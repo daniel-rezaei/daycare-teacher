@@ -32,7 +32,7 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
         await precacheImage(FileImage(f), context);
       }
       setState(() {
-        photos = files;
+        photos = files.reversed.toList();
       });
     });
   }
@@ -114,61 +114,62 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
                               double itemWidth =
                                   (constraints.maxWidth - 2 * spacing) / 3;
 
-                              return Wrap(
-                                spacing: spacing,
-                                runSpacing: spacing,
-                                children: photos.map((file) {
-                                  bool isSelected = selectedPhotos.contains(
-                                    file,
-                                  );
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        if (isSelected) {
-                                          selectedPhotos.remove(file);
-                                        } else {
-                                          selectedPhotos.add(file);
-                                        }
-                                        allSelected =
-                                            selectedPhotos.length ==
-                                            photos.length;
-                                      });
-                                    },
+                              return SingleChildScrollView(
+                                child: Wrap(
+                                  spacing: spacing,
+                                  runSpacing: spacing,
+                                  children: photos.map((file) {
+                                    bool isSelected = selectedPhotos.contains(
+                                      file,
+                                    );
 
-                                    child: Stack(
-                                      children: [
-                                        Container(
-                                          width: itemWidth,
-                                          height: itemWidth,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            image: DecorationImage(
-                                              image: FileImage(file),
-                                              fit: BoxFit.cover,
-                                              colorFilter: isSelected
-                                                  ? ColorFilter.mode(
-                                                      Colors.black.withValues(
-                                                        alpha: 0.3,
-                                                      ),
-                                                      BlendMode.darken,
-                                                    )
-                                                  : null,
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          if (isSelected) {
+                                            selectedPhotos.remove(file);
+                                          } else {
+                                            selectedPhotos.add(file);
+                                          }
+                                          allSelected =
+                                              selectedPhotos.length ==
+                                              photos.length;
+                                        });
+                                      },
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            width: itemWidth,
+                                            height: itemWidth,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              image: DecorationImage(
+                                                image: FileImage(file),
+                                                fit: BoxFit.cover,
+                                                colorFilter: isSelected
+                                                    ? ColorFilter.mode(
+                                                        Colors.black.withValues(
+                                                          alpha: 0.3,
+                                                        ),
+                                                        BlendMode.darken,
+                                                      )
+                                                    : null,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        Positioned(
-                                          top: 8,
-                                          left: 8,
-                                          child: isSelected
-                                              ? Assets.images.radiofi.svg()
-                                              : Assets.images.radio.svg(),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: isSelected
+                                                ? Assets.images.radiofi.svg()
+                                                : Assets.images.radio.svg(),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               );
                             },
                           ),
