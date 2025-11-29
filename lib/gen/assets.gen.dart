@@ -199,6 +199,12 @@ class $AssetsImagesGen {
   /// File path: assets/images/Plain.svg
   SvgGenImage get plain => const SvgGenImage('assets/images/Plain.svg');
 
+  /// File path: assets/images/Radio.svg
+  SvgGenImage get radio => const SvgGenImage('assets/images/Radio.svg');
+
+  /// File path: assets/images/Radiofi.svg
+  SvgGenImage get radiofi => const SvgGenImage('assets/images/Radiofi.svg');
+
   /// File path: assets/images/Record Activity.png
   AssetGenImage get recordActivityPng =>
       const AssetGenImage('assets/images/Record Activity.png');
@@ -223,6 +229,13 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/Snack.svg
   SvgGenImage get snack => const SvgGenImage('assets/images/Snack.svg');
+
+  /// File path: assets/images/Sort.svg
+  SvgGenImage get sort => const SvgGenImage('assets/images/Sort.svg');
+
+  /// File path: assets/images/Square Arrow Right.svg
+  SvgGenImage get squareArrowRight =>
+      const SvgGenImage('assets/images/Square Arrow Right.svg');
 
   /// File path: assets/images/Subtract.svg
   SvgGenImage get subtract => const SvgGenImage('assets/images/Subtract.svg');
@@ -283,6 +296,9 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/checkbox2.svg
   SvgGenImage get checkbox2 => const SvgGenImage('assets/images/checkbox2.svg');
+
+  /// File path: assets/images/checkbox3.svg
+  SvgGenImage get checkbox3 => const SvgGenImage('assets/images/checkbox3.svg');
 
   /// File path: assets/images/chevron-up.svg
   SvgGenImage get chevronUp =>
@@ -358,6 +374,8 @@ class $AssetsImagesGen {
     photo2,
     physicalRequirements,
     plain,
+    radio,
+    radiofi,
     recordActivityPng,
     recordActivitySvg,
     reportableDiseases,
@@ -365,6 +383,8 @@ class $AssetsImagesGen {
     secondary,
     secondary2,
     snack,
+    sort,
+    squareArrowRight,
     subtract,
     subtract2,
     switchAccount,
@@ -383,6 +403,7 @@ class $AssetsImagesGen {
     backgroundUpcoming,
     bottle,
     checkbox2,
+    checkbox3,
     chevronUp,
     dateIconPng,
     dateIconSvg,
