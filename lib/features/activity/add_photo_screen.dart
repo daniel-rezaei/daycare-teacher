@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -100,6 +101,29 @@ class AddPhotoScreen extends StatelessWidget {
 
 class ButtonsInfoCardPhoto extends StatelessWidget {
   const ButtonsInfoCardPhoto({super.key});
+  void showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Container(
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CupertinoActivityIndicator(),
+              SizedBox(height: 16),
+              Text("Processing...", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,25 +142,28 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
               );
 
               if (file != null) {
+                showLoadingDialog(context); // <- نمایش لودینگ
+
                 final dir = await getApplicationDocumentsDirectory();
                 final id = const Uuid().v4();
                 final originalPath = "${dir.path}/$id.jpg";
                 final thumbPath = "${dir.path}/${id}_thumb.jpg";
 
-                // ذخیره عکس اصلی بدون انتظار برای ساخت thumbnail
                 await File(file.path).copy(originalPath);
 
-                // ریست کردن کش
                 PhotoCacheService.refresh();
 
-                // فوری رفتن به صفحه گالری
+                // Thumbnail async
+                _createThumbnail(file.path, thumbPath);
+
+                // کمی تأخیر برای طبیعی‌تر شدن تجربه
+                await Future.delayed(Duration(milliseconds: 300));
+
+                Navigator.pop(context); // بستن لودینگ
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ChoosePhotoScreen()),
                 );
-
-                // --- ساخت thumbnail به صورت async جداگانه ---
-                _createThumbnail(file.path, thumbPath);
               }
             },
           ),
