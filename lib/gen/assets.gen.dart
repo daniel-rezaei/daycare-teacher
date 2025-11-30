@@ -130,8 +130,16 @@ class $AssetsImagesGen {
   SvgGenImage get iconButton =>
       const SvgGenImage('assets/images/Icon Button.svg');
 
+  /// File path: assets/images/Icon Button2.svg
+  SvgGenImage get iconButton2 =>
+      const SvgGenImage('assets/images/Icon Button2.svg');
+
   /// File path: assets/images/Image.png
   AssetGenImage get image => const AssetGenImage('assets/images/Image.png');
+
+  /// File path: assets/images/Individual Mode.svg
+  SvgGenImage get individualMode =>
+      const SvgGenImage('assets/images/Individual Mode.svg');
 
   /// File path: assets/images/Info Card.png
   AssetGenImage get infoCardPng =>
@@ -227,6 +235,10 @@ class $AssetsImagesGen {
   SvgGenImage get secondary2 =>
       const SvgGenImage('assets/images/Secondary2.svg');
 
+  /// File path: assets/images/Shared Mode.svg
+  SvgGenImage get sharedMode =>
+      const SvgGenImage('assets/images/Shared Mode.svg');
+
   /// File path: assets/images/Snack.svg
   SvgGenImage get snack => const SvgGenImage('assets/images/Snack.svg');
 
@@ -318,6 +330,10 @@ class $AssetsImagesGen {
         'assets/images/e5b9da75df2419d740dc72fee03a3f789400619c.png',
       );
 
+  /// File path: assets/images/illustration.png
+  AssetGenImage get illustration =>
+      const AssetGenImage('assets/images/illustration.png');
+
   /// File path: assets/images/immunization.svg
   SvgGenImage get immunization =>
       const SvgGenImage('assets/images/immunization.svg');
@@ -355,7 +371,9 @@ class $AssetsImagesGen {
     homeSmileFill,
     homeSmileOutline,
     iconButton,
+    iconButton2,
     image,
+    individualMode,
     infoCardPng,
     infoCardSvg,
     infoCard2,
@@ -382,6 +400,7 @@ class $AssetsImagesGen {
     restart,
     secondary,
     secondary2,
+    sharedMode,
     snack,
     sort,
     squareArrowRight,
@@ -408,6 +427,7 @@ class $AssetsImagesGen {
     dateIconPng,
     dateIconSvg,
     e5b9da75df2419d740dc72fee03a3f789400619c,
+    illustration,
     immunization,
     nap,
   ];
