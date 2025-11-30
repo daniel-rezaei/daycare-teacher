@@ -109,6 +109,10 @@ class $AssetsImagesGen {
   SvgGenImage get emergencyContacts =>
       const SvgGenImage('assets/images/Emergency Contacts.svg');
 
+  /// File path: assets/images/Eye Closed.svg
+  SvgGenImage get eyeClosed =>
+      const SvgGenImage('assets/images/Eye Closed.svg');
+
   /// File path: assets/images/Gallery.png
   AssetGenImage get gallery => const AssetGenImage('assets/images/Gallery.png');
 
@@ -369,6 +373,7 @@ class $AssetsImagesGen {
     done,
     edit,
     emergencyContacts,
+    eyeClosed,
     gallery,
     gift,
     group,
