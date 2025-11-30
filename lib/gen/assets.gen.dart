@@ -173,6 +173,10 @@ class $AssetsImagesGen {
   SvgGenImage get leftSlotItems =>
       const SvgGenImage('assets/images/Left Slot items.svg');
 
+  /// File path: assets/images/Logo ( Sample ).png
+  AssetGenImage get logoSample =>
+      const AssetGenImage('assets/images/Logo ( Sample ).png');
+
   /// File path: assets/images/Lunch.svg
   SvgGenImage get lunch => const SvgGenImage('assets/images/Lunch.svg');
 
@@ -382,6 +386,7 @@ class $AssetsImagesGen {
     infoCard5,
     infoCard6,
     leftSlotItems,
+    logoSample,
     lunch,
     mailbox,
     medication,
