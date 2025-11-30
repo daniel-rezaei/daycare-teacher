@@ -32,7 +32,7 @@ class TeacherLoginScreen extends StatelessWidget {
             MailTextField(),
             SizedBox(height: 16),
             PassTextField(),
-            SizedBox(height: 16),
+            SizedBox(height: 32),
             RememberMeWidget(),
             Spacer(),
             Padding(

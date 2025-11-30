@@ -263,6 +263,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/Subtract2.svg
   SvgGenImage get subtract2 => const SvgGenImage('assets/images/Subtract2.svg');
 
+  /// File path: assets/images/Subtract3.svg
+  SvgGenImage get subtract3 => const SvgGenImage('assets/images/Subtract3.svg');
+
   /// File path: assets/images/Switch account.svg
   SvgGenImage get switchAccount =>
       const SvgGenImage('assets/images/Switch account.svg');
@@ -416,6 +419,7 @@ class $AssetsImagesGen {
     squareArrowRight,
     subtract,
     subtract2,
+    subtract3,
     switchAccount,
     timeOut,
     timeIn,
