@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/features/auth/welcome_back_screen.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -10,50 +11,71 @@ class TeacherLoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            BackTitleWidget(title: 'Sign In'),
-            SizedBox(height: 40),
-            Assets.images.logoSample.image(height: 116),
-            SizedBox(height: 24),
-            Text(
-              'Teacher Login',
-              style: TextStyle(
-                color: Color(0xff444349),
-                fontSize: 30,
-                fontWeight: .w600,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-            ),
-            Text(
-              'Sign in to manage your class',
-              style: TextStyle(color: Color(0xff71717A).withValues(alpha: .8)),
-            ),
-            SizedBox(height: 48),
-            MailTextField(),
-            SizedBox(height: 16),
-            PassTextField(),
-            SizedBox(height: 32),
-            RememberMeWidget(),
-            Spacer(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 32),
-              child: ButtonWidget(
-                title: 'Log In',
-                onTap: () {
-                  Navigator.pop(context);
-                },
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      BackTitleWidget(title: 'Sign In', onTap: () {}),
+                      SizedBox(height: 40),
+                      Assets.images.logoSample.image(height: 116),
+                      SizedBox(height: 24),
+                      Text(
+                        'Teacher Login',
+                        style: TextStyle(
+                          color: Color(0xff444349),
+                          fontSize: 30,
+                          fontWeight: .w600,
+                        ),
+                      ),
+                      Text(
+                        'Sign in to manage your class',
+                        style: TextStyle(
+                          color: Color(0xff71717A).withValues(alpha: .8),
+                        ),
+                      ),
+                      SizedBox(height: 48),
+                      MailTextField(),
+                      SizedBox(height: 16),
+                      PassTextField(),
+                      SizedBox(height: 32),
+                      RememberMeWidget(),
+                      Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(40, 0, 40, 32),
+                        child: ButtonWidget(
+                          title: 'Log In',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => WelcomeBackScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Color(0xff444349),
+                          fontSize: 16,
+                          fontWeight: .w500,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            Text(
-              'Forgot Password?',
-              style: TextStyle(
-                color: Color(0xff444349),
-                fontSize: 16,
-                fontWeight: .w500,
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
+            );
+          },
         ),
       ),
     );

@@ -25,7 +25,12 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  BackTitleWidget(title: 'Child Profile'),
+                  BackTitleWidget(
+                    title: 'Child Profile',
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
                   ProfileChildSectionWidget(),
                   SizedBox(height: 20),
                   SmoothTabs(

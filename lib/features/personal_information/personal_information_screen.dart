@@ -17,7 +17,12 @@ class PersonalInformationScreen extends StatelessWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  BackTitleWidget(title: 'Personal Information'),
+                  BackTitleWidget(
+                    title: 'Personal Information',
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
                   Row(
                     children: [
                       Container(
@@ -396,16 +401,15 @@ class MailCardWidget extends StatelessWidget {
 
 class BackTitleWidget extends StatelessWidget {
   final String title;
-  const BackTitleWidget({super.key, required this.title});
+  final Function() onTap;
+  const BackTitleWidget({super.key, required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GestureDetector(
-        onTap: () {
-          Navigator.pop(context);
-        },
+        onTap: onTap,
         child: Row(
           children: [
             Container(

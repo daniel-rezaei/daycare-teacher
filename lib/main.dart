@@ -1,12 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:teacher_app/features/auth/select_class_screen.dart';
-import 'package:teacher_app/features/auth/teacher_login_screen.dart';
-import 'package:teacher_app/features/auth/time_in_screen.dart';
-import 'package:teacher_app/features/auth/welcome_back_screen.dart';
 import 'package:teacher_app/features/auth/welcome_screen.dart';
-import 'package:teacher_app/features/home/my_home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +26,7 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
         textTheme: GoogleFonts.interTextTheme(),
       ),
-      home: const TimeInScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }

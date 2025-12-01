@@ -109,6 +109,10 @@ class $AssetsImagesGen {
   SvgGenImage get emergencyContacts =>
       const SvgGenImage('assets/images/Emergency Contacts.svg');
 
+  /// File path: assets/images/Exit Duotone.svg
+  SvgGenImage get exitDuotone =>
+      const SvgGenImage('assets/images/Exit Duotone.svg');
+
   /// File path: assets/images/Eye Closed.svg
   SvgGenImage get eyeClosed =>
       const SvgGenImage('assets/images/Eye Closed.svg');
@@ -349,6 +353,9 @@ class $AssetsImagesGen {
   SvgGenImage get immunization =>
       const SvgGenImage('assets/images/immunization.svg');
 
+  /// File path: assets/images/logout.svg
+  SvgGenImage get logout => const SvgGenImage('assets/images/logout.svg');
+
   /// File path: assets/images/nap.svg
   SvgGenImage get nap => const SvgGenImage('assets/images/nap.svg');
 
@@ -376,6 +383,7 @@ class $AssetsImagesGen {
     done,
     edit,
     emergencyContacts,
+    exitDuotone,
     eyeClosed,
     gallery,
     gift,
@@ -443,6 +451,7 @@ class $AssetsImagesGen {
     e5b9da75df2419d740dc72fee03a3f789400619c,
     illustration,
     immunization,
+    logout,
     nap,
   ];
 }

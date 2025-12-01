@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/features/auth/select_class_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -42,7 +43,14 @@ class WelcomeScreen extends StatelessWidget {
                     InfoCardWelcome(
                       icon: Assets.images.sharedMode.svg(),
                       title: 'Shared Mode',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SelectClassScreen(),
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(height: 24),
                     InfoCardWelcome(
