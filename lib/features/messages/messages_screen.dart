@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
+import 'package:teacher_app/features/messages/chat_archive_screen.dart';
+import 'package:teacher_app/features/messages/select_childs_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class MessagesScreen extends StatelessWidget {
@@ -49,9 +51,29 @@ class MessagesScreen extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                     child: Column(
                       children: [
-                        Assets.images.infoCard4.image(),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SelectChildsScreen(),
+                              ),
+                            );
+                          },
+                          child: Assets.images.infoCard4.image(),
+                        ),
                         SizedBox(height: 8),
-                        Assets.images.infoCard5.image(),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatArchiveScreen(),
+                              ),
+                            );
+                          },
+                          child: Assets.images.infoCard5.image(),
+                        ),
                         SizedBox(height: 8),
                         Assets.images.infoCard6.image(),
                         SizedBox(height: 8),

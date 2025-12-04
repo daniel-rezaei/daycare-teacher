@@ -359,6 +359,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/nap.svg
   SvgGenImage get nap => const SvgGenImage('assets/images/nap.svg');
 
+  /// File path: assets/images/search.svg
+  SvgGenImage get search => const SvgGenImage('assets/images/search.svg');
+
   /// List of all assets
   List<dynamic> get values => [
     a031e3e91d4e9e9792cce85939482907d0c5dd37c,
@@ -453,6 +456,7 @@ class $AssetsImagesGen {
     immunization,
     logout,
     nap,
+    search,
   ];
 }
 
