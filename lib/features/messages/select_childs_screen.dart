@@ -31,19 +31,24 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                 /// --- Header ---
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Assets.images.arrowLeft.svg(),
-                      const SizedBox(width: 16),
-                      const Text(
-                        'Select Childs',
-                        style: TextStyle(
-                          color: Color(0xff444349),
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Row(
+                      children: [
+                        Assets.images.arrowLeft.svg(),
+                        const SizedBox(width: 16),
+                        const Text(
+                          'Select Childs',
+                          style: TextStyle(
+                            color: Color(0xff444349),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 

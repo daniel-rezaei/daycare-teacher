@@ -19,18 +19,27 @@ class ChatArchiveScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
+                    mainAxisAlignment: .spaceBetween,
                     children: [
-                      Assets.images.arrowLeft.svg(),
-                      const SizedBox(width: 16),
-                      const Text(
-                        'Messages',
-                        style: TextStyle(
-                          color: Color(0xff444349),
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Row(
+                          children: [
+                            Assets.images.arrowLeft.svg(),
+                            const SizedBox(width: 16),
+                            const Text(
+                              'Messages',
+                              style: TextStyle(
+                                color: Color(0xff444349),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const Spacer(),
                       Container(
                         decoration: BoxDecoration(
                           color: const Color(0xffFFFFFF),

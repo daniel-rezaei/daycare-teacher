@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/features/activity/add_photo_screen.dart';
+import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/record_activity_screen.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -93,7 +94,17 @@ class ActivityScreen extends StatelessWidget {
                           child: Assets.images.infoCardPng.image(),
                         ),
                         SizedBox(height: 8),
-                        Assets.images.infoCard2.image(),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LogActivityScreen(),
+                              ),
+                            );
+                          },
+                          child: Assets.images.infoCard2.image(),
+                        ),
                         SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
