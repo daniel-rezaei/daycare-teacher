@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
-import 'package:teacher_app/features/auth/teacher_login_screen.dart';
-import 'package:teacher_app/features/auth/time_in_screen.dart';
+import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
+import 'package:teacher_app/features/auth/presentation/time_in_screen.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class WelcomeBackScreen extends StatelessWidget {
+class WelcomeBackScreen extends StatefulWidget {
   const WelcomeBackScreen({super.key});
 
+  @override
+  State<WelcomeBackScreen> createState() => _WelcomeBackScreenState();
+}
+
+class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
+  final passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,7 +80,7 @@ class WelcomeBackScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 16),
-                      PassTextField(),
+                      PassTextField(controller: passwordController),
                       SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: .center,

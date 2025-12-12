@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:teacher_app/features/auth/select_class_screen.dart';
+import 'package:teacher_app/features/auth/presentation/select_class_screen.dart';
+import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -56,7 +57,14 @@ class WelcomeScreen extends StatelessWidget {
                     InfoCardWelcome(
                       icon: Assets.images.individualMode.svg(),
                       title: 'Individual Mode',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TeacherLoginScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

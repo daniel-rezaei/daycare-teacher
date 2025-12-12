@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
-import 'package:teacher_app/features/auth/teacher_login_screen.dart';
+import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
 import 'package:teacher_app/features/child_status/widgets/transfer_class_widget.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -20,7 +20,12 @@ class _SelectClassScreenState extends State<SelectClassScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            BackTitleWidget(title: 'Toddler 2 Class', onTap: () {}),
+            BackTitleWidget(
+              title: 'Toddler 2 Class',
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
             SizedBox(height: 40),
             Assets.images.logoSample.image(height: 116),
             SizedBox(height: 24),

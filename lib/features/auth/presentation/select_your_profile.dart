@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teacher_app/features/auth/logout_widget.dart';
+import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 

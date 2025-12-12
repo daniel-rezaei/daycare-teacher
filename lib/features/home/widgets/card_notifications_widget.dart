@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class CardNotificationsWidget extends StatelessWidget {
@@ -35,18 +36,31 @@ class CardNotificationsWidget extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Color(0xffFFFFFF),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(
-                  'Class Check-In',
-                  style: TextStyle(
-                    color: Color(0xff444349),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    useSafeArea: true,
+                    builder: (context) {
+                      return LogoutWidget();
+                    },
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xffFFFFFF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Text(
+                    'Class Check-In',
+                    style: TextStyle(
+                      color: Color(0xff444349),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
