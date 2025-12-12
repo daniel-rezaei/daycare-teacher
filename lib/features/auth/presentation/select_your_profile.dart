@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class SelectYourProfile extends StatelessWidget {
-  const SelectYourProfile({super.key});
+class SelectYourProfileScreen extends StatelessWidget {
+  final String classId;
+  final List<StaffClassEntity> staffClasses;
+
+  const SelectYourProfileScreen({
+    super.key,
+    required this.classId,
+    required this.staffClasses,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,37 +21,49 @@ class SelectYourProfile extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              BackTitleWidget(title: 'Select Profile', onTap: () {}),
-              SizedBox(height: 40),
-              Text(
+              /// 🔹 Header
+              BackTitleWidget(
+                title: 'Select Profile',
+                onTap: () => Navigator.pop(context),
+              ),
+
+              const SizedBox(height: 40),
+
+              /// 🔹 Titles
+              const Text(
                 'Select Your Profile',
                 style: TextStyle(
                   color: Color(0xff444349),
                   fontSize: 30,
-                  fontWeight: .w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 'Choose your profile to continue',
                 style: TextStyle(
-                  color: Color(0xff71717A).withValues(alpha: .8),
+                  color: const Color(0xff71717A).withValues(alpha: .8),
                   fontSize: 16,
-                  fontWeight: .w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 24),
-              Wrap(
-                runSpacing: 16,
-                spacing: 16,
-                children: [
-                  InfoCardSelectProfile(),
-                  InfoCardSelectProfile(),
-                  InfoCardSelectProfile(),
-                  InfoCardSelectProfile(),
-                  InfoCardSelectProfile(),
-                  InfoCardSelectProfile(),
-                ],
+
+              const SizedBox(height: 24),
+
+              /// 🔹 Profiles (from server)
+              _ProfilesGrid(
+                staffClasses: staffClasses,
+                onProfileTap: (staff) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          PersonalInformationScreen(staffClass: staff),
+                    ),
+                  );
+                },
               ),
+
+              /// 🔹 Logout
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 40,
@@ -56,24 +76,22 @@ class SelectYourProfile extends StatelessWidget {
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
                       useSafeArea: true,
-                      builder: (context) {
-                        return LogoutWidget();
-                      },
+                      builder: (_) => const LogoutWidget(),
                     );
                   },
                   child: Row(
                     children: [
                       Assets.images.logout.svg(),
-                      SizedBox(width: 8),
-                      Text(
+                      const SizedBox(width: 8),
+                      const Text(
                         'Log Out',
                         style: TextStyle(
                           color: Color(0xff444349),
                           fontSize: 16,
-                          fontWeight: .w600,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Assets.images.arrowRight.svg(),
                     ],
                   ),
@@ -87,6 +105,37 @@ class SelectYourProfile extends StatelessWidget {
   }
 }
 
+class _ProfilesGrid extends StatelessWidget {
+  final List<StaffClassEntity> staffClasses;
+  final ValueChanged<StaffClassEntity> onProfileTap;
+
+  const _ProfilesGrid({required this.staffClasses, required this.onProfileTap});
+
+  @override
+  Widget build(BuildContext context) {
+    if (staffClasses.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Text(
+          'No staff found for this class',
+          style: TextStyle(color: Color(0xff71717A), fontSize: 14),
+        ),
+      );
+    }
+
+    return Wrap(
+      runSpacing: 16,
+      spacing: 16,
+      children: staffClasses.map((staff) {
+        return GestureDetector(
+          onTap: () => onProfileTap(staff),
+          child: const InfoCardSelectProfile(),
+        );
+      }).toList(),
+    );
+  }
+}
+
 class InfoCardSelectProfile extends StatelessWidget {
   const InfoCardSelectProfile({super.key});
 
@@ -94,29 +143,29 @@ class InfoCardSelectProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xffF4F4F5),
+        color: const Color(0xffF4F4F5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 2, color: Color(0xffFAFAFA)),
+        border: Border.all(width: 2, color: const Color(0xffFAFAFA)),
       ),
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Assets.images.image.image(height: 100),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 8),
+          const Text(
             'Katy Smith',
             style: TextStyle(
               color: Color(0xff444349),
               fontSize: 16,
-              fontWeight: .w600,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          Text(
+          const Text(
             'Supervisor',
             style: TextStyle(
               color: Color(0xff71717A),
               fontSize: 14,
-              fontWeight: .w400,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

@@ -49,6 +49,7 @@ dependencies:
   clerk_flutter: ^0.0.13-beta
   clerk_auth: ^0.0.13-beta
   shared_preferences: ^2.5.4
+  equatable: ^2.0.7
 
 dev_dependencies:
   flutter_test:

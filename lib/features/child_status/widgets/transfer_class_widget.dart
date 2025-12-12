@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 
 class TransferClassWidget extends StatefulWidget {
@@ -49,7 +50,8 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
                   ),
                   SizedBox(height: 12),
                   TransferClassList(
-                    selectedClass: selectedClass,
+                    rooms: const [],
+                    selectedClassId: selectedClass,
                     onClassSelected: (value) {
                       setState(() {
                         selectedClass = value;
@@ -121,62 +123,97 @@ class _SwitchRowWidgetState extends State<SwitchRowWidget> {
   }
 }
 
-class TransferClassList extends StatefulWidget {
-  final String? selectedClass;
-  final void Function(String) onClassSelected;
+class TransferClassList extends StatelessWidget {
+  final List<ClassRoomEntity> rooms;
+  final String? selectedClassId;
+  final ValueChanged<String> onClassSelected;
 
   const TransferClassList({
     super.key,
-    this.selectedClass,
+    required this.rooms,
+    required this.selectedClassId,
     required this.onClassSelected,
   });
 
   @override
-  State<TransferClassList> createState() => _TransferClassListState();
-}
-
-class _TransferClassListState extends State<TransferClassList> {
-  final List<String> classes = [
-    "Infants",
-    "Toddler 1",
-    "Toddler 2",
-    "Preschool",
-    "Pre-K",
-    "Kinders",
-  ];
-
-  @override
   Widget build(BuildContext context) {
+    /// 🔹 Empty state
+    if (rooms.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Text(
+          'No classes available',
+          style: TextStyle(color: Color(0xff71717A), fontSize: 14),
+        ),
+      );
+    }
+
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: List.generate(classes.length, (index) {
-        final item = classes[index];
-        final bool isSelected = widget.selectedClass == item;
+      children: rooms.map((room) {
+        final roomId = room.id;
+        final roomName = room.roomName ?? 'Unknown';
+        final isSelected = roomId != null && roomId == selectedClassId;
 
-        return GestureDetector(
-          onTap: () {
-            widget.onClassSelected(item);
-          },
-          child: Container(
-            width: 95,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: isSelected ? Color(0xff9C5CFF) : Color(0xffEFEEF0),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              item,
-              style: TextStyle(
-                color: isSelected ? Color(0xffF4F4F5) : Color(0xff444349),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+        return _ClassItem(
+          id: roomId,
+          name: roomName,
+          isSelected: isSelected,
+          onTap: roomId == null ? null : () => onClassSelected(roomId),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _ClassItem extends StatelessWidget {
+  final String? id;
+  final String name;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  const _ClassItem({
+    required this.id,
+    required this.name,
+    required this.isSelected,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 100,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xff9C5CFF)
+                : const Color(0xffEFEEF0),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected
+                  ? const Color(0xffF4F4F5)
+                  : const Color(0xff444349),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }

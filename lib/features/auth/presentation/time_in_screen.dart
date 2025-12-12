@@ -39,7 +39,10 @@ class TimeInScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SelectYourProfile(),
+                      builder: (context) => SelectYourProfileScreen(
+                        classId: '',
+                        staffClasses: [],
+                      ),
                     ),
                   );
                 },

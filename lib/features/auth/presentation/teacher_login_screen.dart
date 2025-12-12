@@ -22,7 +22,7 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
   final passwordController = TextEditingController();
 
   bool isLoading = false;
-  bool isRemember = true; // 👈 وضعیت Remember Me
+  bool isRemember = true;
 
   @override
   void initState() {
@@ -30,7 +30,7 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
     _loadRememberedEmail();
   }
 
-  /// 📥 خواندن ایمیل ذخیره‌شده
+  /// خواندن ایمیل ذخیره‌شده
   Future<void> _loadRememberedEmail() async {
     final prefs = await SharedPreferences.getInstance();
     final savedEmail = prefs.getString('remembered_email');
@@ -198,8 +198,6 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
     );
   }
 }
-
-/* ---------------- Widgets (فقط ولیدیشن اضافه شده) ---------------- */
 
 class RememberMeWidget extends StatelessWidget {
   final bool value;

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class ProfileSectionWidget extends StatelessWidget {
-  const ProfileSectionWidget({super.key});
+  final StaffClassEntity staffClass;
+  const ProfileSectionWidget({super.key, required this.staffClass});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,8 @@ class ProfileSectionWidget extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PersonalInformationScreen(),
+                  builder: (context) =>
+                      PersonalInformationScreen(staffClass: staffClass),
                 ),
               );
             },
