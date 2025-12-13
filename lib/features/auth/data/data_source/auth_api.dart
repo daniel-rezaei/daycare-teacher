@@ -19,7 +19,7 @@ class AuthApi {
       queryParameters: {
         'filter[class_id][_eq]': classId,
         'fields':
-            'id,Role,staff_id.id,staff_id.contact_id.first_name,staff_id.contact_id.last_name',
+            'id,Role,staff_id.id,staff_id.contact_id.first_name,staff_id.contact_id.last_name,staff_id.contact_id.email',
       },
     );
   }

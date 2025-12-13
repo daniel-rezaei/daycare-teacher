@@ -4,6 +4,7 @@ class StaffClassEntity {
   final String staffId; // id کارمند
   final String firstName;
   final String lastName;
+  final String email;
 
   const StaffClassEntity({
     required this.id,
@@ -11,5 +12,6 @@ class StaffClassEntity {
     required this.staffId,
     required this.firstName,
     required this.lastName,
+    required this.email,
   });
 }

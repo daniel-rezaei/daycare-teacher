@@ -7,6 +7,7 @@ class StaffClassModel extends StaffClassEntity {
     required super.staffId,
     required super.firstName,
     required super.lastName,
+    required super.email,
   });
 
   factory StaffClassModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +20,7 @@ class StaffClassModel extends StaffClassEntity {
       staffId: staff['id'] as String,
       firstName: contact['first_name'] as String,
       lastName: contact['last_name'] as String,
+      email: contact['email'] as String,
     );
   }
 }

@@ -1,9 +1,13 @@
+import 'package:clerk_auth/clerk_auth.dart';
+import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
 import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
-import 'package:teacher_app/features/auth/presentation/time_in_screen.dart';
+import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -25,6 +29,54 @@ class WelcomeBackScreen extends StatefulWidget {
 
 class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
   final passwordController = TextEditingController();
+
+  bool isLoading = false;
+
+  Future<void> _login() async {
+    if (passwordController.text.isEmpty || isLoading) return;
+
+    setState(() => isLoading = true);
+
+    final auth = ClerkAuth.of(context);
+
+    try {
+      await auth.attemptSignIn(
+        strategy: Strategy.password,
+
+        /// 🔹 identifier از کارمند انتخاب‌شده
+        identifier: widget.staff.email,
+        password: passwordController.text,
+      );
+
+      if (auth.isSignedIn && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+
+        /// ✅ ذخیره وضعیت لاگین
+        await prefs.setBool('is_logged_in', true);
+
+        /// ✅ ذخیره کارمند انتخاب‌شده (برای بعداً)
+        await prefs.setString('staff_id', widget.staff.staffId);
+        await prefs.setString('staff_role', widget.staff.role);
+
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MyHomePage()),
+          (_) => false,
+        );
+      }
+    } on AuthError catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +104,6 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                       Assets.images.logoSample.image(height: 116),
                       const SizedBox(height: 24),
 
-                      /// 🔹 Welcome text
                       Text(
                         'Welcome ${staff.firstName}',
                         style: const TextStyle(
@@ -70,7 +121,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
 
                       const SizedBox(height: 48),
 
-                      /// 🔹 Selected staff card (clickable)
+                      /// 🔹 Selected staff (changeable)
                       GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
@@ -155,16 +206,21 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
 
                       Padding(
                         padding: const EdgeInsets.fromLTRB(40, 0, 40, 32),
-                        child: ButtonWidget(
-                          title: 'Log In',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const TimeInScreen(),
+                        child: AbsorbPointer(
+                          absorbing: isLoading,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ButtonWidget(
+                                title: isLoading ? '' : 'Log In',
+                                onTap: _login,
                               ),
-                            );
-                          },
+                              if (isLoading)
+                                const CupertinoActivityIndicator(
+                                  color: Colors.white,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
 
