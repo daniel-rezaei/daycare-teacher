@@ -34,9 +34,11 @@ class AuthRepositoryImpl extends AuthRepository {
   }
 
   @override
-  Future<DataState<List<StaffClassEntity>>> staffClass() async {
+  Future<DataState<List<StaffClassEntity>>> staffClass({
+    required String classId,
+  }) async {
     try {
-      final Response response = await authApi.staffClass();
+      final Response response = await authApi.staffClass(classId: classId);
 
       final List list = response.data['data'] as List;
 

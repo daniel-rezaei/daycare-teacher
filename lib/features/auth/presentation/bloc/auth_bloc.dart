@@ -42,7 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(GetStaffClassLoading());
 
-    DataState dataState = await authUsecase.staffClass();
+    DataState dataState = await authUsecase.staffClass(classId: event.classId);
 
     if (dataState is DataSuccess) {
       emit(GetStaffClassSuccess(dataState.data));

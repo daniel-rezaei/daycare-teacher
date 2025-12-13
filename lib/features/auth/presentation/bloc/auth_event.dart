@@ -14,5 +14,6 @@ class GetClassRoomsEvent extends AuthEvent {
 
 /// Event for fetching staff class
 class GetStaffClassEvent extends AuthEvent {
-  const GetStaffClassEvent();
+  final String classId;
+  const GetStaffClassEvent({required this.classId});
 }

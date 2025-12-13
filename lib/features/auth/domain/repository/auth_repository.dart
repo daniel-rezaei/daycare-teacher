@@ -7,5 +7,7 @@ abstract class AuthRepository {
   Future<DataState<List<ClassRoomEntity>>> classRoom();
 
   // دریافت کارکنان هر کلاس
-  Future<DataState<List<StaffClassEntity>>> staffClass();
+  Future<DataState<List<StaffClassEntity>>> staffClass({
+    required String classId,
+  });
 }

@@ -17,8 +17,11 @@ class SelectYourProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: _LogoutSection(), // 👈 همیشه پایین
+
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24), // فاصله از لاگ‌اوت
           child: Column(
             children: [
               /// 🔹 Header
@@ -49,7 +52,7 @@ class SelectYourProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// 🔹 Profiles (from server)
+              /// 🔹 Profiles
               _ProfilesGrid(
                 staffClasses: staffClasses,
                 onProfileTap: (staff) {
@@ -63,40 +66,45 @@ class SelectYourProfileScreen extends StatelessWidget {
                 },
               ),
 
-              /// 🔹 Logout
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 32,
-                ),
-                child: GestureDetector(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      useSafeArea: true,
-                      builder: (_) => const LogoutWidget(),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      Assets.images.logout.svg(),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Log Out',
-                        style: TextStyle(
-                          color: Color(0xff444349),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                      Assets.images.arrowRight.svg(),
-                    ],
-                  ),
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LogoutSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(40, 16, 40, 32),
+        child: GestureDetector(
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              useSafeArea: true,
+              builder: (_) => const LogoutWidget(),
+            );
+          },
+          child: Row(
+            children: [
+              Assets.images.logout.svg(),
+              const SizedBox(width: 8),
+              const Text(
+                'Log Out',
+                style: TextStyle(
+                  color: Color(0xff444349),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+              const Spacer(),
+              Assets.images.arrowRight.svg(),
             ],
           ),
         ),
@@ -129,7 +137,7 @@ class _ProfilesGrid extends StatelessWidget {
       children: staffClasses.map((staff) {
         return GestureDetector(
           onTap: () => onProfileTap(staff),
-          child: const InfoCardSelectProfile(),
+          child: InfoCardSelectProfile(staff: staff),
         );
       }).toList(),
     );
@@ -137,7 +145,8 @@ class _ProfilesGrid extends StatelessWidget {
 }
 
 class InfoCardSelectProfile extends StatelessWidget {
-  const InfoCardSelectProfile({super.key});
+  final StaffClassEntity staff;
+  const InfoCardSelectProfile({super.key, required this.staff});
 
   @override
   Widget build(BuildContext context) {
@@ -152,16 +161,16 @@ class InfoCardSelectProfile extends StatelessWidget {
         children: [
           Assets.images.image.image(height: 100),
           const SizedBox(height: 8),
-          const Text(
-            'Katy Smith',
+          Text(
+            '${staff.firstName} ${staff.lastName}',
             style: TextStyle(
               color: Color(0xff444349),
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const Text(
-            'Supervisor',
+          Text(
+            staff.role,
             style: TextStyle(
               color: Color(0xff71717A),
               fontSize: 14,

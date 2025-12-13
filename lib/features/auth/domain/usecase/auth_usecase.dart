@@ -18,7 +18,9 @@ class AuthUsecase {
   }
 
   // دریافت کارکنان هر کلاس
-  Future<DataState<List<StaffClassEntity>>> staffClass() async {
-    return await authRepository.staffClass();
+  Future<DataState<List<StaffClassEntity>>> staffClass({
+    required String classId,
+  }) async {
+    return await authRepository.staffClass(classId: classId);
   }
 }

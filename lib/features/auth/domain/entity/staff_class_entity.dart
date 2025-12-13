@@ -1,40 +1,15 @@
-import 'package:equatable/equatable.dart';
-
-class StaffClassEntity extends Equatable {
-  final String? id;
-  final String? role;
-  final String? note;
-  final DateTime? dateCreated;
-  final DateTime? dateUpdated;
-  final String? userCreated;
-  final String? userUpdated;
-
-  /// 🔹 Directus relations (UUIDs)
-  final List<String>? staffIds;
-  final List<String>? classIds;
+class StaffClassEntity {
+  final String id; // id رکورد Staff_Class
+  final String role; // teacher / assistant / supervisor
+  final String staffId; // id کارمند
+  final String firstName;
+  final String lastName;
 
   const StaffClassEntity({
-    this.id,
-    this.role,
-    this.note,
-    this.dateCreated,
-    this.dateUpdated,
-    this.userCreated,
-    this.userUpdated,
-    this.staffIds,
-    this.classIds,
+    required this.id,
+    required this.role,
+    required this.staffId,
+    required this.firstName,
+    required this.lastName,
   });
-
-  @override
-  List<Object?> get props => [
-    id,
-    role,
-    note,
-    dateCreated,
-    dateUpdated,
-    userCreated,
-    userUpdated,
-    staffIds,
-    classIds,
-  ];
 }

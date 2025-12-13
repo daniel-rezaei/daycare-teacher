@@ -12,9 +12,15 @@ class AuthApi {
     return resposne;
   }
 
-  // دریافت کارکنان هر کلاس - پروفایل ها
-  Future<dynamic> staffClass() async {
-    final resposne = await httpclient.get('/items/Staff_Class');
-    return resposne;
+  // دریافت پروفایل‌ها بر اساس کلاس
+  Future<Response> staffClass({required String classId}) async {
+    return await httpclient.get(
+      '/items/Staff_Class',
+      queryParameters: {
+        'filter[class_id][_eq]': classId,
+        'fields':
+            'id,Role,staff_id.id,staff_id.contact_id.first_name,staff_id.contact_id.last_name',
+      },
+    );
   }
 }

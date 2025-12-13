@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
-import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/select_class_screen.dart';
 import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
@@ -17,17 +16,14 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   List<ClassRoomEntity>? classRooms;
-  List<StaffClassEntity>? staffClasses;
 
   @override
   void initState() {
     super.initState();
-    final bloc = context.read<AuthBloc>();
-    bloc.add(GetClassRoomsEvent());
-    bloc.add(GetStaffClassEvent());
+    context.read<AuthBloc>().add(GetClassRoomsEvent());
   }
 
-  bool get isSharedReady => classRooms != null && staffClasses != null;
+  bool get isSharedReady => classRooms != null;
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +32,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         if (state is GetClassRoomsSuccess) {
           setState(() {
             classRooms = state.classRooms;
-          });
-        }
-
-        if (state is GetStaffClassSuccess) {
-          setState(() {
-            staffClasses = state.staffClasses;
           });
         }
       },
@@ -79,7 +69,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      /// 🔹 Shared Mode (Preloaded)
+                      /// 🔹 Shared Mode
                       InfoCardWelcome(
                         icon: isSharedReady
                             ? Assets.images.sharedMode.svg()
@@ -92,7 +82,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   MaterialPageRoute(
                                     builder: (_) => SelectClassScreen(
                                       classRooms: classRooms!,
-                                      staffClasses: staffClasses!,
                                     ),
                                   ),
                                 );
