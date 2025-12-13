@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
+import 'package:teacher_app/features/auth/presentation/welcome_back_screen.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -59,8 +60,11 @@ class SelectYourProfileScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          PersonalInformationScreen(staffClass: staff),
+                      builder: (_) => WelcomeBackScreen(
+                        staff: staff,
+                        classId: classId,
+                        staffClasses: staffClasses,
+                      ),
                     ),
                   );
                 },
