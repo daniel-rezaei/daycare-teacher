@@ -2,6 +2,8 @@ import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/domain/repository/child_repository.dart';
+import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 
 @singleton
@@ -18,6 +20,16 @@ class ChildUsecase {
   // دریافت همه Contacts
   Future<DataState<List<ContactEntity>>> getAllContacts() async {
     return await childRepository.getAllContacts();
+  }
+
+  // دریافت همه محدودیت‌های غذایی
+  Future<DataState<List<DietaryRestrictionEntity>>> getAllDietaryRestrictions() async {
+    return await childRepository.getAllDietaryRestrictions();
+  }
+
+  // دریافت همه داروها
+  Future<DataState<List<MedicationEntity>>> getAllMedications() async {
+    return await childRepository.getAllMedications();
   }
 }
 

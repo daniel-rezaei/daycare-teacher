@@ -17,3 +17,13 @@ class GetAllContactsEvent extends ChildEvent {
   const GetAllContactsEvent();
 }
 
+/// Event for fetching all dietary restrictions
+class GetAllDietaryRestrictionsEvent extends ChildEvent {
+  const GetAllDietaryRestrictionsEvent();
+}
+
+/// Event for fetching all medications
+class GetAllMedicationsEvent extends ChildEvent {
+  const GetAllMedicationsEvent();
+}
+
