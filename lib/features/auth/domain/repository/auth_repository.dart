@@ -10,4 +10,9 @@ abstract class AuthRepository {
   Future<DataState<List<StaffClassEntity>>> staffClass({
     required String classId,
   });
+
+  // دریافت class_id بر اساس contact_id
+  Future<DataState<String>> getClassIdByContactId({
+    required String contactId,
+  });
 }

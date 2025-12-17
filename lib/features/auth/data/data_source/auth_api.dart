@@ -23,4 +23,16 @@ class AuthApi {
       },
     );
   }
+
+  // دریافت class_id بر اساس contact_id
+  Future<Response> getClassIdByContactId({required String contactId}) async {
+    return await httpclient.get(
+      '/items/Staff_Class',
+      queryParameters: {
+        'filter[staff_id][contact_id][id][_eq]': contactId,
+        'fields': 'id,class_id',
+        'limit': 1,
+      },
+    );
+  }
 }

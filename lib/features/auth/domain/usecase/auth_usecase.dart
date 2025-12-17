@@ -23,4 +23,11 @@ class AuthUsecase {
   }) async {
     return await authRepository.staffClass(classId: classId);
   }
+
+  // دریافت class_id بر اساس contact_id
+  Future<DataState<String>> getClassIdByContactId({
+    required String contactId,
+  }) async {
+    return await authRepository.getClassIdByContactId(contactId: contactId);
+  }
 }

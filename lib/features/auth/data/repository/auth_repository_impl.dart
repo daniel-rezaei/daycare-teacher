@@ -52,6 +52,34 @@ class AuthRepositoryImpl extends AuthRepository {
     }
   }
 
+  @override
+  Future<DataState<String>> getClassIdByContactId({
+    required String contactId,
+  }) async {
+    try {
+      final Response response = await authApi.getClassIdByContactId(
+        contactId: contactId,
+      );
+
+      final List<dynamic> dataList = response.data['data'] as List<dynamic>;
+
+      if (dataList.isEmpty) {
+        return DataFailed('کلاسی برای این کاربر یافت نشد');
+      }
+
+      final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
+      final String? classId = data['class_id'] as String?;
+
+      if (classId == null || classId.isEmpty) {
+        return DataFailed('کلاس ID یافت نشد');
+      }
+
+      return DataSuccess(classId);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
   DataFailed<T> _handleDioError<T>(DioException e) {
     if (e.response == null) {
       if (e.type == DioExceptionType.receiveTimeout) {

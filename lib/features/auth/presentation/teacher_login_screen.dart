@@ -3,7 +3,9 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/features/auth/domain/usecase/auth_usecase.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -83,8 +85,35 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
         }
 
         // ✅ ذخیره auth_mode
-        // توجه: contact_id باید از Clerk user metadata یا از طریق API دیگری دریافت شود
         await prefs.setString('auth_mode', 'individual');
+
+        // ✅ دریافت contact_id از Clerk user metadata (اگر موجود باشد)
+        String? contactId;
+        try {
+          final user = auth.user;
+          // تلاش برای دریافت contact_id از user metadata
+          // این بستگی به نحوه تنظیم Clerk دارد
+          contactId = user?.publicMetadata?['contact_id'] as String?;
+        } catch (e) {
+          debugPrint('[LOGIN] Error getting contact_id from Clerk: $e');
+        }
+
+        // ✅ دریافت class_id بر اساس contact_id (اگر contact_id موجود باشد)
+        if (contactId != null && contactId.isNotEmpty) {
+          try {
+            final authUsecase = getIt<AuthUsecase>();
+            final classIdResult = await authUsecase.getClassIdByContactId(
+              contactId: contactId,
+            );
+
+            if (classIdResult.data != null) {
+              await prefs.setString('class_id', classIdResult.data!);
+              debugPrint('[LOGIN] class_id saved: ${classIdResult.data}');
+            }
+          } catch (e) {
+            debugPrint('[LOGIN] Error fetching class_id: $e');
+          }
+        }
 
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MyHomePage()),

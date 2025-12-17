@@ -59,9 +59,10 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
         await prefs.setString('staff_id', widget.staff.staffId ?? '');
         await prefs.setString('staff_role', widget.staff.role ?? '');
 
-        /// ✅ ذخیره contact_id و auth_mode
+        /// ✅ ذخیره contact_id و auth_mode و class_id
         await prefs.setString('contact_id', widget.staff.contactId ?? '');
         await prefs.setString('auth_mode', 'shared');
+        await prefs.setString('class_id', widget.classId);
 
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MyHomePage()),
