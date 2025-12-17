@@ -33,6 +33,16 @@ import 'package:teacher_app/features/child/domain/usecase/child_usecase.dart'
     as _i68;
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart'
     as _i135;
+import 'package:teacher_app/features/event/data/data_source/event_api.dart'
+    as _i99;
+import 'package:teacher_app/features/event/data/repository/event_repository_impl.dart'
+    as _i167;
+import 'package:teacher_app/features/event/domain/repository/event_repository.dart'
+    as _i784;
+import 'package:teacher_app/features/event/domain/usecase/event_usecase.dart'
+    as _i695;
+import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart'
+    as _i795;
 import 'package:teacher_app/features/profile/data/data_source/profile_api.dart'
     as _i595;
 import 'package:teacher_app/features/profile/data/repository/profile_repository_impl.dart'
@@ -57,9 +67,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i361.Dio>(() => dioModule.dio());
     gh.singleton<_i59.AuthApi>(() => _i59.AuthApi(gh<_i361.Dio>()));
     gh.singleton<_i1069.ChildApi>(() => _i1069.ChildApi(gh<_i361.Dio>()));
+    gh.singleton<_i99.EventApi>(() => _i99.EventApi(gh<_i361.Dio>()));
     gh.singleton<_i595.ProfileApi>(() => _i595.ProfileApi(gh<_i361.Dio>()));
     gh.singleton<_i275.AuthRepository>(
       () => _i733.AuthRepositoryImpl(gh<_i59.AuthApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i784.EventRepository>(
+      () => _i167.EventRepositoryImpl(gh<_i99.EventApi>()),
       registerFor: {_prod},
     );
     gh.singleton<_i59.ProfileRepository>(
@@ -76,6 +91,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
     );
+    gh.singleton<_i695.EventUsecase>(
+      () => _i695.EventUsecase(gh<_i784.EventRepository>()),
+    );
     gh.factory<_i445.AuthBloc>(() => _i445.AuthBloc(gh<_i1069.AuthUsecase>()));
     gh.singleton<_i68.ChildUsecase>(
       () => _i68.ChildUsecase(gh<_i551.ChildRepository>()),
@@ -84,6 +102,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1012.ProfileUsecase(gh<_i59.ProfileRepository>()),
     );
     gh.factory<_i135.ChildBloc>(() => _i135.ChildBloc(gh<_i68.ChildUsecase>()));
+    gh.factory<_i795.EventBloc>(
+      () => _i795.EventBloc(gh<_i695.EventUsecase>()),
+    );
     gh.factory<_i224.ProfileBloc>(
       () => _i224.ProfileBloc(gh<_i1012.ProfileUsecase>()),
     );

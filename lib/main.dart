@@ -8,6 +8,7 @@ import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<AuthBloc>()),
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
         BlocProvider(create: (_) => getIt<ChildBloc>()),
+        BlocProvider(create: (_) => getIt<EventBloc>()),
       ],
       child: MaterialApp(
         title: 'Teacher App',
