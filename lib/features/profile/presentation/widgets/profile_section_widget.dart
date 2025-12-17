@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
+import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
+import 'package:teacher_app/features/auth/presentation/select_class_screen.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -94,7 +96,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    'Katy Smith',
+                    '',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -117,7 +119,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  'Katy Smith',
+                  '',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -183,19 +185,22 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   Widget _buildSwitchAccountIcon() {
-    // تغییر آیکون بر اساس auth_mode
-    final icon = authMode == 'shared'
-        ? Assets.images.switchAccount.svg()
-        : Assets.images.individualMode.svg();
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PersonalInformationScreen(),
-          ),
-        );
+        if (authMode == 'individual') {
+          // نمایش LogoutWidget به صورت bottom sheet
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            useSafeArea: true,
+            builder: (_) => const LogoutWidget(),
+          );
+        } else if (authMode == 'shared') {
+          // انتقال به SelectClassScreen
+          _navigateToSelectClass();
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -203,9 +208,65 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
           borderRadius: BorderRadius.circular(8),
         ),
         padding: const EdgeInsets.all(8),
-        child: icon,
+        child: Assets.images.switchAccount.svg(),
       ),
     );
+  }
+
+  void _navigateToSelectClass() {
+    final authBloc = context.read<AuthBloc>();
+    final currentState = authBloc.state;
+    
+    // اگر کلاس‌ها قبلاً دریافت شده باشند، مستقیماً به صفحه برو
+    if (currentState is GetClassRoomsSuccess) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SelectClassScreen(
+            classRooms: currentState.classRooms,
+          ),
+        ),
+      );
+    } else {
+      // در غیر این صورت، ابتدا کلاس‌ها را دریافت کن
+      authBloc.add(const GetClassRoomsEvent());
+      
+      // استفاده از BlocListener برای گوش دادن به state
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is GetClassRoomsSuccess) {
+              Navigator.pop(dialogContext); // بستن dialog
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SelectClassScreen(
+                    classRooms: state.classRooms,
+                  ),
+                ),
+              );
+            } else if (state is GetClassRoomsFailure) {
+              Navigator.pop(dialogContext); // بستن dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
+          },
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is GetClassRoomsLoading) {
+                return const Center(
+                  child: CupertinoActivityIndicator(),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+    }
   }
 }
 
