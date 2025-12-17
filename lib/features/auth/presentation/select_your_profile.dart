@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_back_screen.dart';
@@ -163,7 +164,7 @@ class InfoCardSelectProfile extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          Assets.images.image.image(height: 100),
+          StaffAvatar(photoId: staff.photoId, size: 48),
           const SizedBox(height: 8),
           Text(
             '${staff.firstName} ${staff.lastName}',
@@ -174,7 +175,7 @@ class InfoCardSelectProfile extends StatelessWidget {
             ),
           ),
           Text(
-            staff.role,
+            staff.role ?? '',
             style: TextStyle(
               color: Color(0xff71717A),
               fontSize: 14,

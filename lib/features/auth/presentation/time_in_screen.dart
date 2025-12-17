@@ -34,7 +34,14 @@ class TimeInScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(40, 0, 40, 32),
               child: ButtonWidget(
-                title: 'Time-In',
+                child: Text(
+                  'Time-In',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 onTap: () {
                   Navigator.push(
                     context,

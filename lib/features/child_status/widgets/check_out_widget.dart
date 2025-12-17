@@ -197,10 +197,17 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                   AttachPhotoWidget(),
                   SizedBox(height: 32),
                   ButtonWidget(
-                    title: 'Submit',
                     onTap: () {
                       Navigator.pop(context);
                     },
+                    child: Text(
+                      'Submit',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),

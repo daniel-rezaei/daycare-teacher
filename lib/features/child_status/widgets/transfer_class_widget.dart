@@ -66,10 +66,17 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
                     SizedBox(height: 32),
                   ],
                   ButtonWidget(
-                    title: 'Save',
                     onTap: () {
                       Navigator.pop(context);
                     },
+                    child: Text(
+                      'Save',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),

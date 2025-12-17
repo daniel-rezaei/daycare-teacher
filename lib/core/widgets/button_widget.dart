@@ -1,46 +1,33 @@
 import 'package:flutter/material.dart';
 
 class ButtonWidget extends StatelessWidget {
-  final String title;
   final VoidCallback? onTap;
   final bool isEnabled;
+  final Widget child;
 
   const ButtonWidget({
     super.key,
-    required this.title,
     required this.onTap,
+    required this.child,
     this.isEnabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool enabled = isEnabled && onTap != null;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: isEnabled ? onTap : null,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: isEnabled ? 1 : 0.5,
         child: Container(
-          height: 56,
+          height: 52,
+          width: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: enabled
-                ? const Color(0xff9C5CFF)
-                : const Color(0xff9C5CFF).withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xff6C4EFF),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Text(
-            title,
-            style: TextStyle(
-              color: enabled
-                  ? const Color(0xffFAFAFA)
-                  : const Color(0xffFAFAFA).withValues(alpha: 0.7),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          child: child,
         ),
       ),
     );

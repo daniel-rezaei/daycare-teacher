@@ -165,8 +165,15 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
                               alignment: Alignment.center,
                               children: [
                                 ButtonWidget(
-                                  title: isLoading ? '' : 'Log In',
                                   onTap: _login,
+                                  child: Text(
+                                    isLoading ? '' : 'Log In',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                                 if (isLoading)
                                   const CupertinoActivityIndicator(

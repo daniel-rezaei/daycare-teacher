@@ -122,10 +122,17 @@ class TimeScreen extends StatelessWidget {
                             valueListenable: TimeTracker.isRunning,
                             builder: (context, running, _) {
                               return ButtonWidget(
-                                title: running ? 'Time-Out' : 'Time-In',
                                 onTap: () {
                                   TimeTracker.toggle();
                                 },
+                                child: Text(
+                                  running ? 'Time-Out' : 'Time-In',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               );
                             },
                           ),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
@@ -82,16 +83,34 @@ class _SelectClassScreenState extends State<SelectClassScreen> {
 
               Padding(
                 padding: const EdgeInsets.fromLTRB(40, 0, 40, 40),
-                child: ButtonWidget(
-                  title: 'Continue',
-                  isEnabled: selectedClassId != null,
-                  onTap: selectedClassId == null
-                      ? null
-                      : () {
+                child: BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    final isLoading = state is GetStaffClassLoading;
+
+                    return AbsorbPointer(
+                      absorbing: isLoading || selectedClassId == null,
+                      child: ButtonWidget(
+                        isEnabled: selectedClassId != null && !isLoading,
+                        onTap: () {
                           context.read<AuthBloc>().add(
                             GetStaffClassEvent(classId: selectedClassId!),
                           );
                         },
+                        child: isLoading
+                            ? const CupertinoActivityIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'Continue',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

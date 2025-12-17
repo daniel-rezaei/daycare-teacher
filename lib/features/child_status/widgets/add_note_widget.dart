@@ -91,7 +91,14 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
                   AttachPhotoWidget(),
                   SizedBox(height: 32),
                   ButtonWidget(
-                    title: 'Save & Check In',
+                    child: Text(
+                      'Save & Check In',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     onTap: () {
                       Navigator.pop(context);
                     },

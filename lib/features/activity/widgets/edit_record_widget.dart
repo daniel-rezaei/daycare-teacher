@@ -84,7 +84,14 @@ class _EditRecordWidgetState extends State<EditRecordWidget> {
                   ),
                   SizedBox(height: 32),
                   ButtonWidget(
-                    title: 'Save & Change',
+                    child: Text(
+                      'Save & Change',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     onTap: () {
                       Navigator.pop(context);
                     },

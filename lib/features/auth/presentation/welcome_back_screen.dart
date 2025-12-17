@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
 import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
@@ -55,8 +56,8 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
         await prefs.setBool('is_logged_in', true);
 
         /// ✅ ذخیره کارمند انتخاب‌شده (برای بعداً)
-        await prefs.setString('staff_id', widget.staff.staffId);
-        await prefs.setString('staff_role', widget.staff.role);
+        await prefs.setString('staff_id', widget.staff.staffId ?? '');
+        await prefs.setString('staff_role', widget.staff.role ?? '');
 
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MyHomePage()),
@@ -150,7 +151,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 40),
                           child: Row(
                             children: [
-                              Assets.images.image.image(height: 48),
+                              StaffAvatar(photoId: staff.photoId, size: 48),
                               const SizedBox(width: 8),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +165,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                                     ),
                                   ),
                                   Text(
-                                    staff.role,
+                                    staff.role ?? '',
                                     style: const TextStyle(
                                       color: Color(0xff71717A),
                                       fontSize: 14,
@@ -212,8 +213,15 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                             alignment: Alignment.center,
                             children: [
                               ButtonWidget(
-                                title: isLoading ? '' : 'Log In',
                                 onTap: _login,
+                                child: Text(
+                                  isLoading ? '' : 'Log In',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                               if (isLoading)
                                 const CupertinoActivityIndicator(

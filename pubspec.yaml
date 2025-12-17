@@ -50,6 +50,7 @@ dependencies:
   clerk_auth: ^0.0.13-beta
   shared_preferences: ^2.5.4
   equatable: ^2.0.7
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

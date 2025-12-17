@@ -1,17 +1,19 @@
 class StaffClassEntity {
-  final String id; // id رکورد Staff_Class
-  final String role; // teacher / assistant / supervisor
-  final String staffId; // id کارمند
-  final String firstName;
-  final String lastName;
-  final String email;
+  final String? id;
+  final String? role;
+  final String? staffId;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? photoId;
 
   const StaffClassEntity({
-    required this.id,
-    required this.role,
-    required this.staffId,
-    required this.firstName,
-    required this.lastName,
-    required this.email,
+    this.id,
+    this.role,
+    this.staffId,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.photoId,
   });
 }
