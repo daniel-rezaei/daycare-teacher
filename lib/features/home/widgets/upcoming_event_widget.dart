@@ -15,8 +15,8 @@ class UpcomingEventsCardStackUI extends StatefulWidget {
 class _UpcomingEventsCardStackUIState extends State<UpcomingEventsCardStackUI> {
   int selectedIndex = 0;
 
-  final double smallCardWidth = 40.0;
-  final double cardHeight = 95.0;
+  final double smallCardWidth = 60.0;
+  final double cardHeight = 110.0;
   final double smallCardOverlap = 12.0;
 
   String formatShortDate(DateTime? date) {
@@ -69,6 +69,7 @@ class _UpcomingEventsCardStackUIState extends State<UpcomingEventsCardStackUI> {
                       height: cardHeight,
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFEEF0),
+                          border: Border.all(color: Color(0xffFAFAFA), width: 2),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(16),
                           bottomLeft: Radius.circular(16),
