@@ -23,6 +23,16 @@ import 'package:teacher_app/features/auth/domain/usecase/auth_usecase.dart'
     as _i1069;
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart'
     as _i445;
+import 'package:teacher_app/features/profile/data/data_source/profile_api.dart'
+    as _i595;
+import 'package:teacher_app/features/profile/data/repository/profile_repository_impl.dart'
+    as _i248;
+import 'package:teacher_app/features/profile/domain/repository/profile_repository.dart'
+    as _i59;
+import 'package:teacher_app/features/profile/domain/usecase/profile_usecase.dart'
+    as _i1012;
+import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart'
+    as _i224;
 
 const String _prod = 'prod';
 
@@ -36,14 +46,25 @@ extension GetItInjectableX on _i174.GetIt {
     final dioModule = _$DioModule();
     gh.lazySingleton<_i361.Dio>(() => dioModule.dio());
     gh.singleton<_i59.AuthApi>(() => _i59.AuthApi(gh<_i361.Dio>()));
+    gh.singleton<_i595.ProfileApi>(() => _i595.ProfileApi(gh<_i361.Dio>()));
     gh.singleton<_i275.AuthRepository>(
       () => _i733.AuthRepositoryImpl(gh<_i59.AuthApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i59.ProfileRepository>(
+      () => _i248.ProfileRepositoryImpl(gh<_i595.ProfileApi>()),
       registerFor: {_prod},
     );
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
     );
     gh.factory<_i445.AuthBloc>(() => _i445.AuthBloc(gh<_i1069.AuthUsecase>()));
+    gh.singleton<_i1012.ProfileUsecase>(
+      () => _i1012.ProfileUsecase(gh<_i59.ProfileRepository>()),
+    );
+    gh.factory<_i224.ProfileBloc>(
+      () => _i224.ProfileBloc(gh<_i1012.ProfileUsecase>()),
+    );
     return this;
   }
 }

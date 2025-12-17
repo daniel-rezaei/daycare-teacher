@@ -1,0 +1,211 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
+import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:teacher_app/gen/assets.gen.dart';
+
+class ProfileSectionWidget extends StatefulWidget {
+  const ProfileSectionWidget({super.key});
+
+  @override
+  State<ProfileSectionWidget> createState() => _ProfileSectionWidgetState();
+}
+
+class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
+  String? contactId;
+  String? authMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContactId();
+  }
+
+  Future<void> _loadContactId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedContactId = prefs.getString('contact_id');
+    final savedAuthMode = prefs.getString('auth_mode');
+    
+    if (mounted && savedContactId != null && savedContactId.isNotEmpty) {
+      setState(() {
+        contactId = savedContactId;
+        authMode = savedAuthMode;
+      });
+      context.read<ProfileBloc>().add(GetContactEvent(id: savedContactId));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        if (state is GetContactLoading) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            child: Row(
+              children: [
+                _buildLoadingAvatar(),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: CupertinoActivityIndicator(),
+                ),
+                _buildSwitchAccountIcon(),
+              ],
+            ),
+          );
+        }
+
+        if (state is GetContactSuccess) {
+          final contact = state.contact;
+          final fullName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          final displayName = fullName.isNotEmpty ? fullName : 'User';
+
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            child: Row(
+              children: [
+                _buildProfileAvatar(contact.photo),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    displayName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff444349),
+                    ),
+                  ),
+                ),
+                _buildSwitchAccountIcon(),
+              ],
+            ),
+          );
+        }
+
+        if (state is GetContactFailure) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            child: Row(
+              children: [
+                _buildPlaceholderAvatar(),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Katy Smith',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff444349),
+                    ),
+                  ),
+                ),
+                _buildSwitchAccountIcon(),
+              ],
+            ),
+          );
+        }
+
+        // Initial state - show placeholder
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: Row(
+            children: [
+              _buildPlaceholderAvatar(),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Katy Smith',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xff444349),
+                  ),
+                ),
+              ),
+              _buildSwitchAccountIcon(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileAvatar(String? photoId) {
+    if (photoId == null || photoId.isEmpty) {
+      return _buildPlaceholderAvatar();
+    }
+
+    final imageUrl = 'http://51.79.53.56:8055/assets/$photoId';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        httpHeaders: const {
+          'Authorization': 'Bearer ONtKFTGW3t9W0ZSkPDVGQqwXUrUrEmoM',
+        },
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => _buildLoadingAvatar(),
+        errorWidget: (_, __, ___) => _buildPlaceholderAvatar(),
+      ),
+    );
+  }
+
+  Widget _buildLoadingAvatar() {
+    return Container(
+      width: 48,
+      height: 48,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const CupertinoActivityIndicator(),
+    );
+  }
+
+  Widget _buildPlaceholderAvatar() {
+    return Container(
+      width: 48,
+      height: 48,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Icon(Icons.person, color: Colors.white),
+    );
+  }
+
+  Widget _buildSwitchAccountIcon() {
+    // تغییر آیکون بر اساس auth_mode
+    final icon = authMode == 'shared'
+        ? Assets.images.switchAccount.svg()
+        : Assets.images.individualMode.svg();
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PersonalInformationScreen(),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xffFFFFFF),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.all(8),
+        child: icon,
+      ),
+    );
+  }
+}
+

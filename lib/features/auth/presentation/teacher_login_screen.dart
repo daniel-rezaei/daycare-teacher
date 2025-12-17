@@ -82,6 +82,10 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
           debugPrint('[REMEMBER_ME] Email removed');
         }
 
+        // ✅ ذخیره auth_mode
+        // توجه: contact_id باید از Clerk user metadata یا از طریق API دیگری دریافت شود
+        await prefs.setString('auth_mode', 'individual');
+
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MyHomePage()),
           (_) => false,

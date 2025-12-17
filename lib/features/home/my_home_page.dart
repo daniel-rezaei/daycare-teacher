@@ -5,6 +5,7 @@ import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/home/widgets/bottom_navigation_bar_widget.dart';
 import 'package:teacher_app/features/home/widgets/card_widget.dart';
 import 'package:teacher_app/features/messages/messages_screen.dart';
+import 'package:teacher_app/features/profile/presentation/widgets/profile_section_widget.dart';
 import 'package:teacher_app/features/time_screen/time_screen.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -31,7 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Column(
                       children: [
                         AppbarWidget(),
-                        // ProfileSectionWidget(staffClass: staffClass),
+                        ProfileSectionWidget(),
                         CardWidget(),
                       ],
                     ),

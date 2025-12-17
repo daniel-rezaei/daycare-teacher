@@ -8,6 +8,7 @@ import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
+import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => getIt<AuthBloc>())],
+      providers: [
+        BlocProvider(create: (_) => getIt<AuthBloc>()),
+        BlocProvider(create: (_) => getIt<ProfileBloc>()),
+      ],
       child: MaterialApp(
         title: 'Teacher App',
         debugShowCheckedModeBanner: false,

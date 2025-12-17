@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/home/widgets/upcoming_events_header_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/day_strip_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class PersonalInformationScreen extends StatelessWidget {
-  final StaffClassEntity staffClass;
 
-  const PersonalInformationScreen({super.key, required this.staffClass});
+  const PersonalInformationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
