@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class InfoCardWidget extends StatelessWidget {
   final Color color;
   final Widget icon;
-  final String title;
+  final Widget title;
   final String dec;
   final Function() onTap;
   const InfoCardWidget({
@@ -44,19 +44,19 @@ class InfoCardWidget extends StatelessWidget {
               ),
               SizedBox(width: 8),
               Column(
-                crossAxisAlignment: .start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
+                  DefaultTextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xff444349),
                     ),
+                    child: title,
                   ),
                   Text(
                     dec,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                       color: Color(0xff444349),

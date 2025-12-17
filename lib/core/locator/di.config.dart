@@ -23,6 +23,16 @@ import 'package:teacher_app/features/auth/domain/usecase/auth_usecase.dart'
     as _i1069;
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart'
     as _i445;
+import 'package:teacher_app/features/child/data/data_source/child_api.dart'
+    as _i1069;
+import 'package:teacher_app/features/child/data/repository/child_repository_impl.dart'
+    as _i580;
+import 'package:teacher_app/features/child/domain/repository/child_repository.dart'
+    as _i551;
+import 'package:teacher_app/features/child/domain/usecase/child_usecase.dart'
+    as _i68;
+import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart'
+    as _i135;
 import 'package:teacher_app/features/profile/data/data_source/profile_api.dart'
     as _i595;
 import 'package:teacher_app/features/profile/data/repository/profile_repository_impl.dart'
@@ -46,6 +56,7 @@ extension GetItInjectableX on _i174.GetIt {
     final dioModule = _$DioModule();
     gh.lazySingleton<_i361.Dio>(() => dioModule.dio());
     gh.singleton<_i59.AuthApi>(() => _i59.AuthApi(gh<_i361.Dio>()));
+    gh.singleton<_i1069.ChildApi>(() => _i1069.ChildApi(gh<_i361.Dio>()));
     gh.singleton<_i595.ProfileApi>(() => _i595.ProfileApi(gh<_i361.Dio>()));
     gh.singleton<_i275.AuthRepository>(
       () => _i733.AuthRepositoryImpl(gh<_i59.AuthApi>()),
@@ -55,13 +66,24 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i248.ProfileRepositoryImpl(gh<_i595.ProfileApi>()),
       registerFor: {_prod},
     );
+    gh.singleton<_i551.ChildRepository>(
+      () => _i580.ChildRepositoryImpl(
+        gh<_i1069.ChildApi>(),
+        gh<_i595.ProfileApi>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
     );
     gh.factory<_i445.AuthBloc>(() => _i445.AuthBloc(gh<_i1069.AuthUsecase>()));
+    gh.singleton<_i68.ChildUsecase>(
+      () => _i68.ChildUsecase(gh<_i551.ChildRepository>()),
+    );
     gh.singleton<_i1012.ProfileUsecase>(
       () => _i1012.ProfileUsecase(gh<_i59.ProfileRepository>()),
     );
+    gh.factory<_i135.ChildBloc>(() => _i135.ChildBloc(gh<_i68.ChildUsecase>()));
     gh.factory<_i224.ProfileBloc>(
       () => _i224.ProfileBloc(gh<_i1012.ProfileUsecase>()),
     );

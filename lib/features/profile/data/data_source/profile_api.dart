@@ -10,5 +10,10 @@ class ProfileApi {
   Future<Response> getContact({required String id}) async {
     return await httpclient.get('/items/Contacts/$id');
   }
+
+  // دریافت همه Contacts
+  Future<Response> getAllContacts() async {
+    return await httpclient.get('/items/Contacts');
+  }
 }
 
