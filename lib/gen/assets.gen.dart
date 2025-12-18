@@ -356,6 +356,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/bottle.svg
   SvgGenImage get bottle => const SvgGenImage('assets/images/bottle.svg');
 
+  /// File path: assets/images/check.png
+  AssetGenImage get check => const AssetGenImage('assets/images/check.png');
+
   /// File path: assets/images/checkbox2.svg
   SvgGenImage get checkbox2 => const SvgGenImage('assets/images/checkbox2.svg');
 
@@ -494,6 +497,7 @@ class $AssetsImagesGen {
     attachment2,
     backgroundUpcoming,
     bottle,
+    check,
     checkbox2,
     checkbox3,
     chevronUp,

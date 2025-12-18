@@ -53,6 +53,16 @@ import 'package:teacher_app/features/profile/domain/usecase/profile_usecase.dart
     as _i1012;
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart'
     as _i224;
+import 'package:teacher_app/features/session/data/data_source/session_api.dart'
+    as _i846;
+import 'package:teacher_app/features/session/data/repository/session_repository_impl.dart'
+    as _i79;
+import 'package:teacher_app/features/session/domain/repository/session_repository.dart'
+    as _i88;
+import 'package:teacher_app/features/session/domain/usecase/session_usecase.dart'
+    as _i146;
+import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart'
+    as _i512;
 
 const String _prod = 'prod';
 
@@ -69,8 +79,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i1069.ChildApi>(() => _i1069.ChildApi(gh<_i361.Dio>()));
     gh.singleton<_i99.EventApi>(() => _i99.EventApi(gh<_i361.Dio>()));
     gh.singleton<_i595.ProfileApi>(() => _i595.ProfileApi(gh<_i361.Dio>()));
+    gh.singleton<_i846.SessionApi>(() => _i846.SessionApi(gh<_i361.Dio>()));
     gh.singleton<_i275.AuthRepository>(
       () => _i733.AuthRepositoryImpl(gh<_i59.AuthApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i88.SessionRepository>(
+      () => _i79.SessionRepositoryImpl(gh<_i846.SessionApi>()),
       registerFor: {_prod},
     );
     gh.singleton<_i784.EventRepository>(
@@ -90,6 +105,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
+    );
+    gh.singleton<_i146.SessionUsecase>(
+      () => _i146.SessionUsecase(gh<_i88.SessionRepository>()),
+    );
+    gh.factory<_i512.SessionBloc>(
+      () => _i512.SessionBloc(gh<_i146.SessionUsecase>()),
     );
     gh.singleton<_i695.EventUsecase>(
       () => _i695.EventUsecase(gh<_i784.EventRepository>()),

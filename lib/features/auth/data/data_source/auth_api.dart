@@ -42,7 +42,7 @@ class AuthApi {
       '/items/Staff_Class',
       queryParameters: {
         'filter[staff_id][contact_id][email][_eq]': email,
-        'fields': 'id,class_id,staff_id.contact_id.id',
+        'fields': 'id,class_id,staff_id.id,staff_id.contact_id.id',
         'limit': 1,
       },
     );

@@ -97,6 +97,7 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
           if (result.data != null) {
             final contactId = result.data!['contact_id'];
             final classId = result.data!['class_id'];
+            final staffId = result.data!['staff_id'];
 
             if (contactId != null && contactId.isNotEmpty) {
               await prefs.setString('contact_id', contactId);
@@ -106,6 +107,11 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
             if (classId != null && classId.isNotEmpty) {
               await prefs.setString('class_id', classId);
               debugPrint('[LOGIN] class_id saved: $classId');
+            }
+
+            if (staffId != null && staffId.isNotEmpty) {
+              await prefs.setString('staff_id', staffId);
+              debugPrint('[LOGIN] staff_id saved: $staffId');
             }
           } else {
             debugPrint('[LOGIN] Error: ${result.error}');

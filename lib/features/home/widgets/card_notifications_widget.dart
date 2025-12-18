@@ -1,74 +1,260 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
+import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class CardNotificationsWidget extends StatelessWidget {
+class CardNotificationsWidget extends StatefulWidget {
   const CardNotificationsWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xffDBDADD).withValues(alpha: .6),
-        border: Border.all(width: 2, color: Color(0xffFAFAFA)),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 8,
-            color: Color(0xffE4D3FF).withValues(alpha: .5),
+  State<CardNotificationsWidget> createState() =>
+      _CardNotificationsWidgetState();
+}
+
+class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
+  String? classId;
+  String? staffId;
+  bool _hasRequestedSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIds();
+  }
+
+  Future<void> _loadIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString('class_id');
+    final savedStaffId = prefs.getString('staff_id');
+
+    debugPrint('[CARD_NOTIFICATIONS_DEBUG] Loading classId: $savedClassId, staffId: $savedStaffId');
+
+    if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        classId = savedClassId;
+        staffId = savedStaffId;
+      });
+      if (!_hasRequestedSession) {
+        _hasRequestedSession = true;
+        debugPrint(
+            '[CARD_NOTIFICATIONS_DEBUG] Requesting GetSessionByClassIdEvent');
+        context
+            .read<SessionBloc>()
+            .add(GetSessionByClassIdEvent(classId: savedClassId));
+      }
+    } else {
+      debugPrint('[CARD_NOTIFICATIONS_DEBUG] classId is null or empty');
+    }
+  }
+
+  String? _getRoomName(List<ClassRoomEntity> classRooms) {
+    if (classId == null) return null;
+
+    try {
+      final classRoom = classRooms.firstWhere(
+        (room) => room.id == classId,
+      );
+      return classRoom.roomName;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  bool _isCheckedIn(StaffClassSessionEntity? session) {
+    if (session == null) return false;
+    // اگر start_at وجود دارد و end_at null است، یعنی check-in شده
+    return session.startAt != null &&
+        session.startAt!.isNotEmpty &&
+        (session.endAt == null || session.endAt!.isEmpty);
+  }
+
+  String _getCurrentDateTime() {
+    // فرمت ISO 8601 برای تاریخ و زمان
+    return DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+  }
+
+  void _handleCheckInOut(StaffClassSessionEntity? session) async {
+    // اگر staffId null است، دوباره از SharedPreferences بخوانیم
+    if (staffId == null || staffId!.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final savedStaffId = prefs.getString('staff_id');
+      if (mounted) {
+        setState(() {
+          staffId = savedStaffId;
+        });
+      }
+      debugPrint('[CARD_NOTIFICATIONS_DEBUG] Reloaded staffId: $staffId');
+    }
+
+    if (classId == null || staffId == null || staffId!.isEmpty) {
+      debugPrint('[CARD_NOTIFICATIONS_DEBUG] classId or staffId is null. classId: $classId, staffId: $staffId');
+      return;
+    }
+
+    final isCheckedIn = _isCheckedIn(session);
+
+    if (isCheckedIn) {
+      // Check-out: Update existing session
+      if (session?.id != null && classId != null) {
+        final endAt = _getCurrentDateTime();
+        debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-out: sessionId=${session!.id}, endAt=$endAt');
+        context.read<SessionBloc>().add(
+          UpdateSessionEvent(
+            sessionId: session.id!,
+            endAt: endAt,
+            classId: classId!,
           ),
-        ],
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: EdgeInsets.fromLTRB(20, 12, 0, 12),
-      child: Row(
-        mainAxisAlignment: .spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: .start,
-            mainAxisAlignment: .spaceBetween,
-            children: [
-              Text(
-                'Your class hasn’t started',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xff444349),
-                ),
-              ),
-              SizedBox(height: 12),
-              GestureDetector(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    useSafeArea: true,
-                    builder: (context) {
-                      return LogoutWidget();
-                    },
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xffFFFFFF),
-                    borderRadius: BorderRadius.circular(8),
+        );
+      }
+    } else {
+      // Check-in: Create new session
+      final startAt = _getCurrentDateTime();
+      debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-in: staffId=$staffId, classId=$classId, startAt=$startAt');
+      context.read<SessionBloc>().add(
+        CreateSessionEvent(
+          staffId: staffId!,
+          classId: classId!,
+          startAt: startAt,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SessionBloc, SessionState>(
+      builder: (context, sessionState) {
+        return BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            String? roomName;
+            if (authState is GetClassRoomsSuccess) {
+              roomName = _getRoomName(authState.classRooms);
+            }
+
+            StaffClassSessionEntity? session;
+            bool isLoading = false;
+            bool isProcessing = false;
+
+            if (sessionState is GetSessionByClassIdLoading ||
+                sessionState is CreateSessionLoading ||
+                sessionState is UpdateSessionLoading) {
+              isLoading = true;
+              isProcessing = sessionState is CreateSessionLoading || sessionState is UpdateSessionLoading;
+            } else if (sessionState is GetSessionByClassIdSuccess) {
+              session = sessionState.session;
+              isLoading = false;
+            } else if (sessionState is CreateSessionSuccess) {
+              // بعد از ایجاد session موفق، session جدید را دریافت می‌کنیم
+              if (classId != null) {
+                context.read<SessionBloc>().add(GetSessionByClassIdEvent(classId: classId!));
+              }
+              isLoading = false;
+            } else if (sessionState is UpdateSessionSuccess) {
+              // بعد از update session موفق، session جدید را دریافت می‌کنیم
+              if (classId != null) {
+                context.read<SessionBloc>().add(GetSessionByClassIdEvent(classId: classId!));
+              }
+              isLoading = false;
+            } else if (sessionState is GetSessionByClassIdFailure ||
+                sessionState is CreateSessionFailure ||
+                sessionState is UpdateSessionFailure) {
+              // Error state - show default message
+              final errorMessage = sessionState is GetSessionByClassIdFailure
+                  ? sessionState.message
+                  : sessionState is CreateSessionFailure
+                      ? sessionState.message
+                      : (sessionState as UpdateSessionFailure).message;
+              debugPrint('[CARD_NOTIFICATIONS_DEBUG] Error: $errorMessage');
+              isLoading = false;
+            }
+
+            final isCheckedIn = _isCheckedIn(session);
+            final displayText = isCheckedIn
+                ? 'You have checked-in ${roomName ?? 'your class'}'
+                : 'Your class hasn\'t started';
+            final buttonText = isCheckedIn ? 'Class Check-Out' : 'Class Check-In';
+
+            return Container(
+              decoration: BoxDecoration(
+                color:isCheckedIn ? Color(0xffF0E7FF): Color(0xffDBDADD).withValues(alpha: .6),
+                border: Border.all(width: 2, color: Color(0xffFAFAFA)),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 8,
+                    color: isCheckedIn ? Color(0xffF0E7FF): Color(0xffE4D3FF).withValues(alpha: .5),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Text(
-                    'Class Check-In',
-                    style: TextStyle(
-                      color: Color(0xff444349),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                ],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: EdgeInsets.fromLTRB(20, 12, 0, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (isLoading)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CupertinoActivityIndicator(radius: 10),
+                          )
+                        else
+                          Text(
+                            displayText,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xff444349),
+                            ),
+                          ),
+                        SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () {
+                            if (!isLoading && !isProcessing) {
+                              _handleCheckInOut(session);
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xffFFFFFF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              buttonText,
+                              style: TextStyle(
+                                color: Color(0xff444349),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                  isCheckedIn
+                      ? Assets.images.check.image(height: 68)
+                      : Assets.images.aIconNPng.image(height: 68),
+                ],
               ),
-            ],
-          ),
-          Assets.images.aIconNPng.image(),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }

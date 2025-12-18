@@ -11,6 +11,7 @@ import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
         BlocProvider(create: (_) => getIt<ChildBloc>()),
         BlocProvider(create: (_) => getIt<EventBloc>()),
+        BlocProvider(create: (_) => getIt<SessionBloc>()),
       ],
       child: MaterialApp(
         title: 'Teacher App',

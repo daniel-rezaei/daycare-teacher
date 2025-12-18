@@ -99,6 +99,7 @@ class AuthRepositoryImpl extends AuthRepository {
       final String? classId = data['class_id'] as String?;
       
       final Map<String, dynamic>? staffId = data['staff_id'] as Map<String, dynamic>?;
+      final String? staffIdValue = staffId?['id'] as String?;
       final Map<String, dynamic>? contactIdObj = staffId?['contact_id'] as Map<String, dynamic>?;
       final String? contactId = contactIdObj?['id'] as String?;
 
@@ -113,6 +114,7 @@ class AuthRepositoryImpl extends AuthRepository {
       return DataSuccess({
         'contact_id': contactId,
         'class_id': classId,
+        'staff_id': staffIdValue ?? '',
       });
     } on DioException catch (e) {
       return _handleDioError(e);
