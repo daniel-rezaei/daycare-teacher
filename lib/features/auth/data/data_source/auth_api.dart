@@ -35,4 +35,16 @@ class AuthApi {
       },
     );
   }
+
+  // دریافت contact_id و class_id بر اساس email
+  Future<Response> getContactIdAndClassIdByEmail({required String email}) async {
+    return await httpclient.get(
+      '/items/Staff_Class',
+      queryParameters: {
+        'filter[staff_id][contact_id][email][_eq]': email,
+        'fields': 'id,class_id,staff_id.contact_id.id',
+        'limit': 1,
+      },
+    );
+  }
 }

@@ -15,4 +15,9 @@ abstract class AuthRepository {
   Future<DataState<String>> getClassIdByContactId({
     required String contactId,
   });
+
+  // دریافت contact_id و class_id بر اساس email
+  Future<DataState<Map<String, String>>> getContactIdAndClassIdByEmail({
+    required String email,
+  });
 }

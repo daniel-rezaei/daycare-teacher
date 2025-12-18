@@ -87,32 +87,31 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
         // ✅ ذخیره auth_mode
         await prefs.setString('auth_mode', 'individual');
 
-        // ✅ دریافت contact_id از Clerk user metadata (اگر موجود باشد)
-        String? contactId;
+        // ✅ دریافت contact_id و class_id بر اساس email
         try {
-          final user = auth.user;
-          // تلاش برای دریافت contact_id از user metadata
-          // این بستگی به نحوه تنظیم Clerk دارد
-          contactId = user?.publicMetadata?['contact_id'] as String?;
-        } catch (e) {
-          debugPrint('[LOGIN] Error getting contact_id from Clerk: $e');
-        }
+          final authUsecase = getIt<AuthUsecase>();
+          final result = await authUsecase.getContactIdAndClassIdByEmail(
+            email: emailController.text.trim(),
+          );
 
-        // ✅ دریافت class_id بر اساس contact_id (اگر contact_id موجود باشد)
-        if (contactId != null && contactId.isNotEmpty) {
-          try {
-            final authUsecase = getIt<AuthUsecase>();
-            final classIdResult = await authUsecase.getClassIdByContactId(
-              contactId: contactId,
-            );
+          if (result.data != null) {
+            final contactId = result.data!['contact_id'];
+            final classId = result.data!['class_id'];
 
-            if (classIdResult.data != null) {
-              await prefs.setString('class_id', classIdResult.data!);
-              debugPrint('[LOGIN] class_id saved: ${classIdResult.data}');
+            if (contactId != null && contactId.isNotEmpty) {
+              await prefs.setString('contact_id', contactId);
+              debugPrint('[LOGIN] contact_id saved: $contactId');
             }
-          } catch (e) {
-            debugPrint('[LOGIN] Error fetching class_id: $e');
+
+            if (classId != null && classId.isNotEmpty) {
+              await prefs.setString('class_id', classId);
+              debugPrint('[LOGIN] class_id saved: $classId');
+            }
+          } else {
+            debugPrint('[LOGIN] Error: ${result.error}');
           }
+        } catch (e) {
+          debugPrint('[LOGIN] Exception fetching contact_id and class_id: $e');
         }
 
         Navigator.of(context).pushAndRemoveUntil(

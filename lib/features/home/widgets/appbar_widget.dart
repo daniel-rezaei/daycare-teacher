@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,11 +27,22 @@ class _AppbarWidgetState extends State<AppbarWidget> {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString('class_id');
     
+    debugPrint('[APPBAR_DEBUG] Loading classId: $savedClassId');
+    
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
         classId = savedClassId;
       });
-      context.read<AuthBloc>().add(const GetClassRoomsEvent());
+      // فقط در صورتی که state قبلاً success نبوده باشد
+      final currentState = context.read<AuthBloc>().state;
+      if (currentState is! GetClassRoomsSuccess) {
+        debugPrint('[APPBAR_DEBUG] Requesting GetClassRoomsEvent');
+        context.read<AuthBloc>().add(const GetClassRoomsEvent());
+      } else {
+        debugPrint('[APPBAR_DEBUG] ClassRooms already loaded');
+      }
+    } else {
+      debugPrint('[APPBAR_DEBUG] classId is null or empty');
     }
   }
 
@@ -53,8 +65,13 @@ class _AppbarWidgetState extends State<AppbarWidget> {
       builder: (context, state) {
         String? roomName;
 
+        debugPrint('[APPBAR_DEBUG] AuthState: ${state.runtimeType}');
+
         if (state is GetClassRoomsSuccess) {
           roomName = _getRoomName(state.classRooms);
+          debugPrint('[APPBAR_DEBUG] Room name: $roomName');
+        } else if (state is GetClassRoomsFailure) {
+          debugPrint('[APPBAR_DEBUG] GetClassRoomsFailure: ${state.message}');
         }
 
         return Padding(

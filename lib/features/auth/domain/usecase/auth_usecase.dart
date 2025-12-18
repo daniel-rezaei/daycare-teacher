@@ -30,4 +30,11 @@ class AuthUsecase {
   }) async {
     return await authRepository.getClassIdByContactId(contactId: contactId);
   }
+
+  // دریافت contact_id و class_id بر اساس email
+  Future<DataState<Map<String, String>>> getContactIdAndClassIdByEmail({
+    required String email,
+  }) async {
+    return await authRepository.getContactIdAndClassIdByEmail(email: email);
+  }
 }

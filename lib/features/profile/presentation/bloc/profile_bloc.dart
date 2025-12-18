@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -23,14 +24,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(GetContactLoading());
 
-    DataState dataState = await profileUsecase.getContact(id: event.id);
+    try {
+      DataState dataState = await profileUsecase.getContact(id: event.id);
 
-    if (dataState is DataSuccess) {
-      emit(GetContactSuccess(dataState.data));
-    }
-
-    if (dataState is DataFailed) {
-      emit(GetContactFailure(dataState.error!));
+      if (dataState is DataSuccess) {
+        emit(GetContactSuccess(dataState.data));
+      } else if (dataState is DataFailed) {
+        debugPrint('[PROFILE_DEBUG] Error getting contact: ${dataState.error}');
+        emit(GetContactFailure(dataState.error!));
+      }
+    } catch (e) {
+      debugPrint('[PROFILE_DEBUG] Exception getting contact: $e');
+      emit(GetContactFailure('خطا در دریافت اطلاعات پروفایل'));
     }
   }
 }

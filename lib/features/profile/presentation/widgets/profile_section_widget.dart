@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,12 +32,16 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     final savedContactId = prefs.getString('contact_id');
     final savedAuthMode = prefs.getString('auth_mode');
     
+    debugPrint('[PROFILE_DEBUG] Loading contactId: $savedContactId, authMode: $savedAuthMode');
+    
     if (mounted && savedContactId != null && savedContactId.isNotEmpty) {
       setState(() {
         contactId = savedContactId;
         authMode = savedAuthMode;
       });
       context.read<ProfileBloc>().add(GetContactEvent(id: savedContactId));
+    } else {
+      debugPrint('[PROFILE_DEBUG] contactId is null or empty');
     }
   }
 
@@ -88,6 +93,8 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
         }
 
         if (state is GetContactFailure) {
+          debugPrint('[PROFILE_DEBUG] GetContactFailure: ${state.message}');
+          // در صورت خطا، placeholder نمایش بده
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             child: Row(

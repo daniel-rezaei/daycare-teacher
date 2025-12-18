@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,18 +32,24 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString('class_id');
     
+    debugPrint('[TOTAL_NOTIFICATION_DEBUG] Loading classId: $savedClassId');
+    
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
         classId = savedClassId;
       });
       if (!_hasRequestedChildren) {
         _hasRequestedChildren = true;
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAllChildrenEvent');
         context.read<ChildBloc>().add(const GetAllChildrenEvent());
       }
       if (!_hasRequestedContacts) {
         _hasRequestedContacts = true;
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAllContactsEvent');
         context.read<ChildBloc>().add(const GetAllContactsEvent());
       }
+    } else {
+      debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId is null or empty');
     }
   }
 
@@ -106,12 +113,18 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         final contacts = state.contacts;
         final isLoadingChildren = state.isLoadingChildren;
         final isLoadingContacts = state.isLoadingContacts;
+        final childrenError = state.childrenError;
+        final contactsError = state.contactsError;
+
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, childrenError=$childrenError, contactsError=$contactsError');
 
         // بررسی اینکه آیا هر دو داده موجود است
         final hasBothData = children != null && contacts != null;
+        final hasError = childrenError != null || contactsError != null;
+        final isCurrentlyLoading = isLoadingChildren || isLoadingContacts;
         
         // اگر در حال loading است
-        if (isLoadingChildren || isLoadingContacts) {
+        if (isCurrentlyLoading) {
           isLoading = true;
         } 
         // اگر هر دو داده موجود است
@@ -121,8 +134,21 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
           title = '$presentCount/$totalCount';
           isLoading = false;
         } 
-        // در غیر این صورت (یکی از آن‌ها null است)
-        // باید منتظر بمانیم تا هر دو بیایند
+        // اگر خطا رخ داده است
+        else if (hasError) {
+          // اگر داده‌های قبلی موجود است، از همان استفاده کن
+          if (hasBothData) {
+            final totalCount = _getTotalChildrenCount(children, contacts);
+            final presentCount = _getPresentChildrenCount(children, contacts);
+            title = '$presentCount/$totalCount';
+            isLoading = false;
+          } else {
+            // اگر داده‌ای موجود نیست، loading را false کن و 0/0 نمایش بده
+            isLoading = false;
+            title = '0/0';
+          }
+        }
+        // در غیر این صورت (هنوز درخواست داده نشده یا در حال loading است)
         else {
           isLoading = true;
         }

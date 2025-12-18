@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -39,26 +40,41 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
       isLoadingMedications: previousState.isLoadingMedications,
     ));
 
-    DataState dataState = await childUsecase.getAllChildren();
+    try {
+      DataState dataState = await childUsecase.getAllChildren();
 
-    // استفاده از state فعلی (که ممکن است در این فاصله تغییر کرده باشد)
-    final currentState = state;
+      // استفاده از state فعلی (که ممکن است در این فاصله تغییر کرده باشد)
+      final currentState = state;
 
-    if (dataState is DataSuccess) {
-      emit(GetAllChildrenSuccess(
-        dataState.data,
-        contacts: currentState.contacts ?? previousState.contacts,
-        dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
-        medications: currentState.medications ?? previousState.medications,
-        isLoadingContacts: currentState.isLoadingContacts,
-        isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
-        isLoadingMedications: currentState.isLoadingMedications,
-      ));
-    }
-
-    if (dataState is DataFailed) {
+      if (dataState is DataSuccess) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetAllChildrenSuccess: ${dataState.data.length} children');
+        emit(GetAllChildrenSuccess(
+          dataState.data,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          isLoadingContacts: currentState.isLoadingContacts,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      } else if (dataState is DataFailed) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetAllChildrenFailure: ${dataState.error}');
+        emit(GetAllChildrenFailure(
+          dataState.error!,
+          children: currentState.children ?? previousState.children,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          isLoadingContacts: currentState.isLoadingContacts,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[CHILD_BLOC_DEBUG] Exception getting children: $e');
+      final currentState = state;
       emit(GetAllChildrenFailure(
-        dataState.error!,
+        'خطا در دریافت اطلاعات بچه‌ها',
         children: currentState.children ?? previousState.children,
         contacts: currentState.contacts ?? previousState.contacts,
         dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
@@ -86,26 +102,41 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
       isLoadingMedications: previousState.isLoadingMedications,
     ));
 
-    DataState dataState = await childUsecase.getAllContacts();
+    try {
+      DataState dataState = await childUsecase.getAllContacts();
 
-    // استفاده از state فعلی (که ممکن است در این فاصله تغییر کرده باشد)
-    final currentState = state;
-    
-    if (dataState is DataSuccess) {
-      emit(GetAllContactsSuccess(
-        dataState.data,
-        children: currentState.children ?? previousState.children,
-        dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
-        medications: currentState.medications ?? previousState.medications,
-        isLoadingChildren: currentState.isLoadingChildren,
-        isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
-        isLoadingMedications: currentState.isLoadingMedications,
-      ));
-    }
-
-    if (dataState is DataFailed) {
+      // استفاده از state فعلی (که ممکن است در این فاصله تغییر کرده باشد)
+      final currentState = state;
+      
+      if (dataState is DataSuccess) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetAllContactsSuccess: ${dataState.data.length} contacts');
+        emit(GetAllContactsSuccess(
+          dataState.data,
+          children: currentState.children ?? previousState.children,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          isLoadingChildren: currentState.isLoadingChildren,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      } else if (dataState is DataFailed) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetAllContactsFailure: ${dataState.error}');
+        emit(GetAllContactsFailure(
+          dataState.error!,
+          children: currentState.children ?? previousState.children,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          isLoadingChildren: currentState.isLoadingChildren,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[CHILD_BLOC_DEBUG] Exception getting contacts: $e');
+      final currentState = state;
       emit(GetAllContactsFailure(
-        dataState.error!,
+        'خطا در دریافت اطلاعات Contacts',
         children: currentState.children ?? previousState.children,
         contacts: currentState.contacts ?? previousState.contacts,
         dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
