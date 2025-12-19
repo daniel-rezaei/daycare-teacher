@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
-import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/content_activity.dart';
 import 'package:teacher_app/features/child_profile/widgets/content_overview.dart';
 import 'package:teacher_app/features/child_profile/widgets/profile_section_widget.dart';
 import 'package:teacher_app/features/child_profile/widgets/tabs_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
-import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
-import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 
 class ChildProfileScreen extends StatefulWidget {
   final String childId;
@@ -43,16 +41,12 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
       // استفاده از contactId برای دریافت Child
       context.read<ChildBloc>().add(GetChildByContactIdEvent(contactId: widget.childId));
       context.read<ChildBloc>().add(const GetAllContactsEvent());
-      // child_id در جداول دیگر به contactId اشاره می‌کند
-      context.read<ChildGuardianBloc>().add(
-            GetChildGuardianByChildIdEvent(childId: widget.childId),
-          );
+      // دریافت emergency contacts (همه را می‌گیریم و بعد فیلتر می‌کنیم)
       context.read<ChildEmergencyContactBloc>().add(
             const GetAllChildEmergencyContactsEvent(),
           );
-      context.read<PickupAuthorizationBloc>().add(
-            GetPickupAuthorizationByChildIdEvent(childId: widget.childId),
-          );
+      // توجه: guardians و pickup authorization باید بعد از دریافت Child.id دریافت شوند
+      // این کار در ContentOverview انجام می‌شود
     }
   }
 

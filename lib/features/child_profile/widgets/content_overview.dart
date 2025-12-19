@@ -12,10 +12,18 @@ import 'package:teacher_app/features/child_profile/widgets/info_card_overview.da
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 
-class ContentOverview extends StatelessWidget {
+class ContentOverview extends StatefulWidget {
   final String childId;
 
   const ContentOverview({super.key, required this.childId});
+
+  @override
+  State<ContentOverview> createState() => _ContentOverviewState();
+}
+
+class _ContentOverviewState extends State<ContentOverview> {
+  String? _lastRequestedChildId;
+  String? _lastRequestedPickupChildId;
 
   /// پیدا کردن Contact بر اساس contact_id
   /// ارتباط: Contacts.id == Child_Guardian.contact_id
@@ -83,7 +91,7 @@ class ContentOverview extends StatelessWidget {
                         }
 
                         // پیدا کردن Child.id از لیست children بر اساس contactId
-                        // child_id در Child_Emergency_Contact به Child.id اشاره می‌کند، نه Child.contactId
+                        // child_id در Child_Guardian و Child_Emergency_Contact به Child.id اشاره می‌کند، نه Child.contactId
                         String? actualChildId;
                         if (child != null && child.id != null) {
                           actualChildId = child.id;
@@ -91,19 +99,36 @@ class ContentOverview extends StatelessWidget {
                           // اگر child null است، از لیست children استفاده کن
                           try {
                             final foundChild = childState.children!.firstWhere(
-                              (c) => c.contactId == childId,
+                              (c) => c.contactId == widget.childId,
                             );
                             actualChildId = foundChild.id;
-                            debugPrint('[CONTENT_OVERVIEW_DEBUG] Found child.id=${actualChildId} from children list for contactId=$childId');
+                            debugPrint('[CONTENT_OVERVIEW_DEBUG] Found child.id=${actualChildId} from children list for contactId=${widget.childId}');
                           } catch (e) {
-                            debugPrint('[CONTENT_OVERVIEW_DEBUG] Child not found in children list for contactId: $childId');
+                            debugPrint('[CONTENT_OVERVIEW_DEBUG] Child not found in children list for contactId: ${widget.childId}');
                           }
                         }
 
-                        // دریافت guardians
+                        // دریافت guardians - اگر actualChildId پیدا شد و با childId متفاوت است، دوباره دریافت کن
                         List<ChildGuardianEntity> guardians = [];
                         if (guardianState is GetChildGuardianByChildIdSuccess) {
                           guardians = guardianState.guardianList;
+                        }
+                        
+                        // اگر actualChildId پیدا شده و با childId متفاوت است و هنوز درخواست ندادیم، درخواست بده
+                        if (actualChildId != null && 
+                            actualChildId.isNotEmpty && 
+                            actualChildId != widget.childId &&
+                            _lastRequestedChildId != actualChildId) {
+                          debugPrint('[CONTENT_OVERVIEW_DEBUG] Requesting guardians with actualChildId: $actualChildId');
+                          _lastRequestedChildId = actualChildId;
+                          final childIdToRequest = actualChildId;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              context.read<ChildGuardianBloc>().add(
+                                GetChildGuardianByChildIdEvent(childId: childIdToRequest),
+                              );
+                            }
+                          });
                         }
 
                         // دریافت emergency contacts و فیلتر بر اساس Child.id
@@ -130,11 +155,23 @@ class ContentOverview extends StatelessWidget {
                                 : [];
                         debugPrint('[CONTENT_OVERVIEW_DEBUG] Filtered emergencyContacts: ${emergencyContacts.length}');
 
-                        // دریافت pickup authorizations (برای استفاده آینده)
-                        // List<PickupAuthorizationEntity> pickupAuthorizations = [];
-                        // if (pickupState is GetPickupAuthorizationByChildIdSuccess) {
-                        //   pickupAuthorizations = pickupState.authorizationList;
-                        // }
+                        // دریافت pickup authorizations - اگر actualChildId پیدا شد و با childId متفاوت است، دوباره دریافت کن
+                        // توجه: PickupAuthorization.child_id به Child.id اشاره می‌کند
+                        if (actualChildId != null && 
+                            actualChildId.isNotEmpty && 
+                            actualChildId != widget.childId &&
+                            _lastRequestedPickupChildId != actualChildId) {
+                          debugPrint('[CONTENT_OVERVIEW_DEBUG] Requesting pickup authorization with actualChildId: $actualChildId');
+                          _lastRequestedPickupChildId = actualChildId;
+                          final pickupChildIdToRequest = actualChildId;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              context.read<PickupAuthorizationBloc>().add(
+                                GetPickupAuthorizationByChildIdEvent(childId: pickupChildIdToRequest),
+                              );
+                            }
+                          });
+                        }
 
                         // فیلتر والدین
                         final parents = _getParents(guardians);

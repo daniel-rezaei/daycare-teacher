@@ -3,13 +3,13 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
 import 'package:teacher_app/features/auth/presentation/teacher_login_screen.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
-import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class WelcomeBackScreen extends StatefulWidget {

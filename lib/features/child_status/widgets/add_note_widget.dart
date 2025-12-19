@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
+import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
@@ -43,71 +45,55 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color(0xffFFFFFF),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 16,
-              offset: Offset(0, -4),
-              color: Color(0xff95939D).withValues(alpha: .2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            HeaderCheckOut(isIcon: false, title: 'Add Note'),
-            Divider(color: Color(0xffDBDADD)),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(shape: .circle),
-                        child: Assets.images.image.image(),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Henry Davis',
-                        style: TextStyle(
-                          color: Color(0xff444349),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 32),
-                  NoteWidget(title: 'Note', hintText: 'Placeholder'),
-                  SizedBox(height: 20),
-                  AttachPhotoWidget(),
-                  SizedBox(height: 32),
-                  ButtonWidget(
-                    child: Text(
-                      'Save & Check In',
+    return ModalBottomSheetWrapper(
+      child: Column(
+        children: [
+          const HeaderCheckOut(isIcon: false, title: 'Add Note'),
+          const Divider(color: AppColors.divider),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(shape: BoxShape.circle),
+                      child: Assets.images.image.image(),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Henry Davis',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                  ],
+                ),
+                const SizedBox(height: 32),
+                const NoteWidget(title: 'Note', hintText: 'Placeholder'),
+                const SizedBox(height: 20),
+                AttachPhotoWidget(),
+                const SizedBox(height: 32),
+                ButtonWidget(
+                  child: const Text(
+                    'Save & Check In',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ],
-              ),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

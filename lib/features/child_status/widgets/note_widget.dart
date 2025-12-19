@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/constants/app_colors.dart';
 
 class NoteWidget extends StatefulWidget {
   final String title;
@@ -38,13 +39,13 @@ class _NoteWidgetState extends State<NoteWidget> {
       children: [
         Text(
           widget.title,
-          style: TextStyle(
-            color: Color(0xff444349),
+          style: const TextStyle(
+            color: AppColors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadiusGeometry.circular(6),
           child: Container(
@@ -53,8 +54,8 @@ class _NoteWidgetState extends State<NoteWidget> {
               boxShadow: [
                 BoxShadow(
                   blurRadius: 2,
-                  offset: Offset(0, 1),
-                  color: Color(0xff000000).withValues(alpha: .05),
+                  offset: const Offset(0, 1),
+                  color: AppColors.shadowLight.withValues(alpha: .05),
                 ),
               ],
             ),
@@ -69,9 +70,9 @@ class _NoteWidgetState extends State<NoteWidget> {
               decoration: InputDecoration(
                 hintText: widget.hintText,
                 filled: true,
-                fillColor: Color(0xffF7F7F8),
+                fillColor: AppColors.backgroundLighter,
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   vertical: 8,
                   horizontal: 12,
                 ),

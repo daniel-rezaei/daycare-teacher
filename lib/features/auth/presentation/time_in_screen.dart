@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
-import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class TimeInScreen extends StatelessWidget {

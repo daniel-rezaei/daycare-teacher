@@ -2,10 +2,15 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:teacher_app/core/constants/app_colors.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/utils/contact_utils.dart';
+import 'package:teacher_app/core/utils/photo_utils.dart';
+import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
+import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
@@ -78,29 +83,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
     super.dispose();
   }
 
-  String _getPhotoUrl(String? photoId) {
-    if (photoId == null || photoId.isEmpty) {
-      return '';
-    }
-    return 'http://51.79.53.56:8055/assets/$photoId';
-  }
-
-  ContactEntity? _getContactById(String? contactId, List<ContactEntity> contacts) {
-    if (contactId == null || contactId.isEmpty) return null;
-    try {
-      return contacts.firstWhere((contact) => contact.id == contactId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  String _getContactName(ContactEntity? contact) {
-    if (contact == null) return 'Unknown';
-    final firstName = contact.firstName ?? '';
-    final lastName = contact.lastName ?? '';
-    final fullName = '$firstName $lastName'.trim();
-    return fullName.isNotEmpty ? fullName : 'Unknown';
-  }
+  // Removed duplicate methods - using utilities instead
 
   Future<void> _handleSubmit() async {
     debugPrint('[CHECKOUT_DEBUG] Submit button clicked');
@@ -192,27 +175,14 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
           );
         }
       },
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xffFFFFFF),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 16,
-                offset: const Offset(0, -4),
-                color: const Color(0xff95939D).withValues(alpha: .2),
-              ),
-            ],
-          ),
+      child: ModalBottomSheetWrapper(
+        padding: EdgeInsets.zero,
+        child: SingleChildScrollView(
+          controller: _scrollController,
           child: Column(
             children: [
               const HeaderCheckOut(isIcon: true, title: 'Check Out'),
-              const Divider(color: Color(0xffDBDADD)),
+              const Divider(color: AppColors.divider),
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -221,7 +191,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                     Text(
                       'Who is picking up ${widget.childName}?',
                       style: const TextStyle(
-                        color: Color(0xff444349),
+                        color: AppColors.textPrimary,
                         fontSize: 26,
                         fontWeight: FontWeight.w600,
                       ),
@@ -266,7 +236,10 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
                                 final pickup = pickupList[index];
-                                final contact = _getContactById(pickup.authorizedContactId, contacts);
+                                final contact = ContactUtils.getContactById(
+                                  pickup.authorizedContactId,
+                                  contacts,
+                                );
                                 final isSelected = _selectedContactId == pickup.authorizedContactId;
 
                                 return GestureDetector(
@@ -278,10 +251,10 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? const Color(0xffF0E7FF)
-                                          : const Color(0xffF4F4F5),
+                                          ? AppColors.primaryLight
+                                          : AppColors.backgroundLight,
                                       border: Border.all(
-                                        color: const Color(0xffFAFAFA),
+                                        color: AppColors.backgroundBorder,
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(16),
@@ -296,7 +269,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                         Container(
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color: const Color(0xffFAFAFA),
+                                              color: AppColors.backgroundBorder,
                                               width: 1,
                                             ),
                                             shape: BoxShape.circle,
@@ -305,14 +278,11 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                             child: contact?.photo != null &&
                                                     contact!.photo!.isNotEmpty
                                                 ? CachedNetworkImage(
-                                                    imageUrl: _getPhotoUrl(contact.photo),
+                                                    imageUrl: PhotoUtils.getPhotoUrl(contact.photo),
                                                     width: 48,
                                                     height: 48,
                                                     fit: BoxFit.cover,
-                                                    httpHeaders: const {
-                                                      'Authorization':
-                                                          'Bearer ONtKFTGW3t9W0ZSkPDVGQqwXUrUrEmoM',
-                                                    },
+                                                    httpHeaders: PhotoUtils.getImageHeaders(),
                                                     errorWidget: (context, url, error) =>
                                                         Assets.images.image.image(
                                                       width: 48,
@@ -331,18 +301,18 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                _getContactName(contact),
+                                                ContactUtils.getContactName(contact),
                                                 style: const TextStyle(
-                                                  color: Color(0xff444349),
+                                                  color: AppColors.textPrimary,
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                pickup.relationToChild ?? 'Unknown',
+                                                pickup.relationToChild ?? AppConstants.unknownContact,
                                                 style: TextStyle(
-                                                  color: const Color(0xff71717A)
+                                                  color: AppColors.textTertiary
                                                       .withValues(alpha: .8),
                                                 ),
                                               ),

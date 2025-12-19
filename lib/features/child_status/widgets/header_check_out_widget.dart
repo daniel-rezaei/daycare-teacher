@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class HeaderCheckOut extends StatelessWidget {
@@ -16,8 +17,8 @@ class HeaderCheckOut extends StatelessWidget {
           SizedBox(width: 8),
           Text(
             title,
-            style: TextStyle(
-              color: Color(0xff6D6B76),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),

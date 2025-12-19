@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 
@@ -14,75 +16,59 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
   String? selectedClass;
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color(0xffFFFFFF),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 16,
-              offset: Offset(0, -4),
-              color: Color(0xff95939D).withValues(alpha: .2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: .start,
-          children: [
-            HeaderCheckOut(isIcon: false, title: 'Transfer Class'),
-            Divider(color: Color(0xffDBDADD)),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(
-                    'Transfer Class',
+    return ModalBottomSheetWrapper(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HeaderCheckOut(isIcon: false, title: 'Transfer Class'),
+          const Divider(color: AppColors.divider),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Transfer Class',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TransferClassList(
+                  rooms: const [],
+                  selectedClassId: selectedClass,
+                  onClassSelected: (value) {
+                    setState(() {
+                      selectedClass = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 32),
+                if (selectedClass != null) ...[
+                  const SwitchRowWidget(title: 'Check out'),
+                  const SizedBox(height: 32),
+                  const SwitchRowWidget(title: 'Time out'),
+                  const SizedBox(height: 32),
+                ],
+                ButtonWidget(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Save',
                     style: TextStyle(
-                      color: Color(0xff444349),
+                      color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 12),
-                  TransferClassList(
-                    rooms: const [],
-                    selectedClassId: selectedClass,
-                    onClassSelected: (value) {
-                      setState(() {
-                        selectedClass = value;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 32),
-                  if (selectedClass != null) ...[
-                    SwitchRowWidget(title: 'Check out'),
-                    SizedBox(height: 32),
-                    SwitchRowWidget(title: 'Time out'),
-                    SizedBox(height: 32),
-                  ],
-                  ButtonWidget(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -105,20 +91,20 @@ class _SwitchRowWidgetState extends State<SwitchRowWidget> {
       children: [
         Text(
           widget.title,
-          style: TextStyle(
-            color: Color(0xff444349),
+          style: const TextStyle(
+            color: AppColors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
-        Spacer(),
+        const Spacer(),
         Switch(
           value: value,
-          activeThumbColor: Color(0xffFFFFFF),
-          activeTrackColor: Color(0xff9C5CFF),
-          inactiveThumbColor: Color(0xffFFFFFF),
-          inactiveTrackColor: Color(0xffDBDADD),
-          trackOutlineWidth: WidgetStatePropertyAll(0),
+          activeThumbColor: AppColors.backgroundWhite,
+          activeTrackColor: AppColors.primary,
+          inactiveThumbColor: AppColors.backgroundWhite,
+          inactiveTrackColor: AppColors.divider,
+          trackOutlineWidth: const WidgetStatePropertyAll(0),
           onChanged: (newValue) {
             setState(() {
               value = newValue;
@@ -150,7 +136,7 @@ class TransferClassList extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Text(
           'No classes available',
-          style: TextStyle(color: Color(0xff71717A), fontSize: 14),
+          style: TextStyle(color: AppColors.textTertiary, fontSize: 14),
         ),
       );
     }
@@ -201,8 +187,8 @@ class _ClassItem extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xff9C5CFF)
-                : const Color(0xffEFEEF0),
+                ? AppColors.primary
+                : AppColors.backgroundGray,
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -213,8 +199,8 @@ class _ClassItem extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: isSelected
-                  ? const Color(0xffF4F4F5)
-                  : const Color(0xff444349),
+                  ? AppColors.backgroundLight
+                  : AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/constants/app_colors.dart';
 
 class BottomNavigationBarChild extends StatelessWidget {
   const BottomNavigationBarChild({super.key});
@@ -14,14 +15,14 @@ class BottomNavigationBarChild extends StatelessWidget {
         child: Container(
           height: 56,
           decoration: BoxDecoration(
-            color: Color(0xff9C5CFF),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(12),
           ),
-          alignment: .center,
-          child: Text(
+          alignment: Alignment.center,
+          child: const Text(
             'Done',
             style: TextStyle(
-              color: Color(0xffFAFAFA),
+              color: AppColors.backgroundBorder,
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
