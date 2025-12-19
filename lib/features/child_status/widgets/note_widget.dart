@@ -3,14 +3,34 @@ import 'package:flutter/material.dart';
 class NoteWidget extends StatefulWidget {
   final String title;
   final String hintText;
-  const NoteWidget({super.key, required this.title, required this.hintText});
+  final TextEditingController? controller;
+  const NoteWidget({
+    super.key,
+    required this.title,
+    required this.hintText,
+    this.controller,
+  });
 
   @override
   State<NoteWidget> createState() => _NoteWidgetState();
 }
 
 class _NoteWidgetState extends State<NoteWidget> {
-  final TextEditingController _controller = TextEditingController();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Column(

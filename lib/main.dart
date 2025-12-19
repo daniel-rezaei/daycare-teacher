@@ -5,13 +5,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/locator/di.dart';
+import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
+import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
+import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
+import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
+import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
+import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,6 +52,12 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<ChildBloc>()),
         BlocProvider(create: (_) => getIt<EventBloc>()),
         BlocProvider(create: (_) => getIt<SessionBloc>()),
+        BlocProvider(create: (_) => getIt<AttendanceBloc>()),
+        BlocProvider(create: (_) => getIt<PickupAuthorizationBloc>()),
+        BlocProvider(create: (_) => getIt<StaffAttendanceBloc>()),
+        BlocProvider(create: (_) => getIt<StaffScheduleBloc>()),
+        BlocProvider(create: (_) => getIt<ChildGuardianBloc>()),
+        BlocProvider(create: (_) => getIt<ChildEmergencyContactBloc>()),
       ],
       child: MaterialApp(
         title: 'Teacher App',

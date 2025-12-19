@@ -16,5 +16,11 @@ abstract class ChildRepository {
 
   // دریافت همه داروها
   Future<DataState<List<MedicationEntity>>> getAllMedications();
+
+  // دریافت بچه بر اساس ID
+  Future<DataState<ChildEntity>> getChildById({required String childId});
+
+  // دریافت بچه بر اساس contact_id
+  Future<DataState<ChildEntity>> getChildByContactId({required String contactId});
 }
 

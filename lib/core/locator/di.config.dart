@@ -13,6 +13,16 @@ import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:teacher_app/core/http_client.dart' as _i567;
+import 'package:teacher_app/features/attendance/data/data_source/attendance_api.dart'
+    as _i472;
+import 'package:teacher_app/features/attendance/data/repository/attendance_repository_impl.dart'
+    as _i954;
+import 'package:teacher_app/features/attendance/domain/repository/attendance_repository.dart'
+    as _i570;
+import 'package:teacher_app/features/attendance/domain/usecase/attendance_usecase.dart'
+    as _i905;
+import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart'
+    as _i811;
 import 'package:teacher_app/features/auth/data/data_source/auth_api.dart'
     as _i59;
 import 'package:teacher_app/features/auth/data/repository/auth_repository_impl.dart'
@@ -33,6 +43,26 @@ import 'package:teacher_app/features/child/domain/usecase/child_usecase.dart'
     as _i68;
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart'
     as _i135;
+import 'package:teacher_app/features/child_emergency_contact/data/data_source/child_emergency_contact_api.dart'
+    as _i125;
+import 'package:teacher_app/features/child_emergency_contact/data/repository/child_emergency_contact_repository_impl.dart'
+    as _i541;
+import 'package:teacher_app/features/child_emergency_contact/domain/repository/child_emergency_contact_repository.dart'
+    as _i639;
+import 'package:teacher_app/features/child_emergency_contact/domain/usecase/child_emergency_contact_usecase.dart'
+    as _i765;
+import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart'
+    as _i568;
+import 'package:teacher_app/features/child_guardian/data/data_source/child_guardian_api.dart'
+    as _i2;
+import 'package:teacher_app/features/child_guardian/data/repository/child_guardian_repository_impl.dart'
+    as _i136;
+import 'package:teacher_app/features/child_guardian/domain/repository/child_guardian_repository.dart'
+    as _i115;
+import 'package:teacher_app/features/child_guardian/domain/usecase/child_guardian_usecase.dart'
+    as _i793;
+import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart'
+    as _i98;
 import 'package:teacher_app/features/event/data/data_source/event_api.dart'
     as _i99;
 import 'package:teacher_app/features/event/data/repository/event_repository_impl.dart'
@@ -43,6 +73,24 @@ import 'package:teacher_app/features/event/domain/usecase/event_usecase.dart'
     as _i695;
 import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart'
     as _i795;
+import 'package:teacher_app/features/file_upload/data/data_source/file_upload_api.dart'
+    as _i357;
+import 'package:teacher_app/features/file_upload/data/repository/file_upload_repository_impl.dart'
+    as _i355;
+import 'package:teacher_app/features/file_upload/domain/repository/file_upload_repository.dart'
+    as _i606;
+import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart'
+    as _i299;
+import 'package:teacher_app/features/pickup_authorization/data/data_source/pickup_authorization_api.dart'
+    as _i997;
+import 'package:teacher_app/features/pickup_authorization/data/repository/pickup_authorization_repository_impl.dart'
+    as _i592;
+import 'package:teacher_app/features/pickup_authorization/domain/repository/pickup_authorization_repository.dart'
+    as _i520;
+import 'package:teacher_app/features/pickup_authorization/domain/usecase/pickup_authorization_usecase.dart'
+    as _i1027;
+import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart'
+    as _i1025;
 import 'package:teacher_app/features/profile/data/data_source/profile_api.dart'
     as _i595;
 import 'package:teacher_app/features/profile/data/repository/profile_repository_impl.dart'
@@ -63,6 +111,26 @@ import 'package:teacher_app/features/session/domain/usecase/session_usecase.dart
     as _i146;
 import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart'
     as _i512;
+import 'package:teacher_app/features/staff_attendance/data/data_source/staff_attendance_api.dart'
+    as _i45;
+import 'package:teacher_app/features/staff_attendance/data/repository/staff_attendance_repository_impl.dart'
+    as _i370;
+import 'package:teacher_app/features/staff_attendance/domain/repository/staff_attendance_repository.dart'
+    as _i910;
+import 'package:teacher_app/features/staff_attendance/domain/usecase/staff_attendance_usecase.dart'
+    as _i18;
+import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart'
+    as _i264;
+import 'package:teacher_app/features/staff_schedule/data/data_source/staff_schedule_api.dart'
+    as _i565;
+import 'package:teacher_app/features/staff_schedule/data/repository/staff_schedule_repository_impl.dart'
+    as _i162;
+import 'package:teacher_app/features/staff_schedule/domain/repository/staff_schedule_repository.dart'
+    as _i1057;
+import 'package:teacher_app/features/staff_schedule/domain/usecase/staff_schedule_usecase.dart'
+    as _i471;
+import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart'
+    as _i606;
 
 const String _prod = 'prod';
 
@@ -75,22 +143,92 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final dioModule = _$DioModule();
     gh.lazySingleton<_i361.Dio>(() => dioModule.dio());
+    gh.singleton<_i472.AttendanceApi>(
+      () => _i472.AttendanceApi(gh<_i361.Dio>()),
+    );
     gh.singleton<_i59.AuthApi>(() => _i59.AuthApi(gh<_i361.Dio>()));
     gh.singleton<_i1069.ChildApi>(() => _i1069.ChildApi(gh<_i361.Dio>()));
+    gh.singleton<_i125.ChildEmergencyContactApi>(
+      () => _i125.ChildEmergencyContactApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i2.ChildGuardianApi>(
+      () => _i2.ChildGuardianApi(gh<_i361.Dio>()),
+    );
     gh.singleton<_i99.EventApi>(() => _i99.EventApi(gh<_i361.Dio>()));
+    gh.singleton<_i357.FileUploadApi>(
+      () => _i357.FileUploadApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i997.PickupAuthorizationApi>(
+      () => _i997.PickupAuthorizationApi(gh<_i361.Dio>()),
+    );
     gh.singleton<_i595.ProfileApi>(() => _i595.ProfileApi(gh<_i361.Dio>()));
     gh.singleton<_i846.SessionApi>(() => _i846.SessionApi(gh<_i361.Dio>()));
+    gh.singleton<_i45.StaffAttendanceApi>(
+      () => _i45.StaffAttendanceApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i565.StaffScheduleApi>(
+      () => _i565.StaffScheduleApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i910.StaffAttendanceRepository>(
+      () => _i370.StaffAttendanceRepositoryImpl(gh<_i45.StaffAttendanceApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i606.FileUploadRepository>(
+      () => _i355.FileUploadRepositoryImpl(gh<_i357.FileUploadApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i639.ChildEmergencyContactRepository>(
+      () => _i541.ChildEmergencyContactRepositoryImpl(
+        gh<_i125.ChildEmergencyContactApi>(),
+      ),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i1057.StaffScheduleRepository>(
+      () => _i162.StaffScheduleRepositoryImpl(gh<_i565.StaffScheduleApi>()),
+      registerFor: {_prod},
+    );
     gh.singleton<_i275.AuthRepository>(
       () => _i733.AuthRepositoryImpl(gh<_i59.AuthApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i520.PickupAuthorizationRepository>(
+      () => _i592.PickupAuthorizationRepositoryImpl(
+        gh<_i997.PickupAuthorizationApi>(),
+      ),
       registerFor: {_prod},
     );
     gh.singleton<_i88.SessionRepository>(
       () => _i79.SessionRepositoryImpl(gh<_i846.SessionApi>()),
       registerFor: {_prod},
     );
+    gh.singleton<_i115.ChildGuardianRepository>(
+      () => _i136.ChildGuardianRepositoryImpl(gh<_i2.ChildGuardianApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i299.FileUploadUsecase>(
+      () => _i299.FileUploadUsecase(gh<_i606.FileUploadRepository>()),
+    );
+    gh.singleton<_i18.StaffAttendanceUsecase>(
+      () => _i18.StaffAttendanceUsecase(gh<_i910.StaffAttendanceRepository>()),
+    );
     gh.singleton<_i784.EventRepository>(
       () => _i167.EventRepositoryImpl(gh<_i99.EventApi>()),
       registerFor: {_prod},
+    );
+    gh.singleton<_i570.AttendanceRepository>(
+      () => _i954.AttendanceRepositoryImpl(gh<_i472.AttendanceApi>()),
+      registerFor: {_prod},
+    );
+    gh.factory<_i264.StaffAttendanceBloc>(
+      () => _i264.StaffAttendanceBloc(gh<_i18.StaffAttendanceUsecase>()),
+    );
+    gh.singleton<_i1027.PickupAuthorizationUsecase>(
+      () => _i1027.PickupAuthorizationUsecase(
+        gh<_i520.PickupAuthorizationRepository>(),
+      ),
+    );
+    gh.singleton<_i793.ChildGuardianUsecase>(
+      () => _i793.ChildGuardianUsecase(gh<_i115.ChildGuardianRepository>()),
     );
     gh.singleton<_i59.ProfileRepository>(
       () => _i248.ProfileRepositoryImpl(gh<_i595.ProfileApi>()),
@@ -106,6 +244,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
     );
+    gh.singleton<_i471.StaffScheduleUsecase>(
+      () => _i471.StaffScheduleUsecase(gh<_i1057.StaffScheduleRepository>()),
+    );
+    gh.singleton<_i765.ChildEmergencyContactUsecase>(
+      () => _i765.ChildEmergencyContactUsecase(
+        gh<_i639.ChildEmergencyContactRepository>(),
+      ),
+    );
     gh.singleton<_i146.SessionUsecase>(
       () => _i146.SessionUsecase(gh<_i88.SessionRepository>()),
     );
@@ -116,13 +262,35 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i695.EventUsecase(gh<_i784.EventRepository>()),
     );
     gh.factory<_i445.AuthBloc>(() => _i445.AuthBloc(gh<_i1069.AuthUsecase>()));
+    gh.factory<_i606.StaffScheduleBloc>(
+      () => _i606.StaffScheduleBloc(gh<_i471.StaffScheduleUsecase>()),
+    );
+    gh.factory<_i568.ChildEmergencyContactBloc>(
+      () => _i568.ChildEmergencyContactBloc(
+        gh<_i765.ChildEmergencyContactUsecase>(),
+      ),
+    );
+    gh.singleton<_i905.AttendanceUsecase>(
+      () => _i905.AttendanceUsecase(gh<_i570.AttendanceRepository>()),
+    );
+    gh.factory<_i98.ChildGuardianBloc>(
+      () => _i98.ChildGuardianBloc(gh<_i793.ChildGuardianUsecase>()),
+    );
     gh.singleton<_i68.ChildUsecase>(
       () => _i68.ChildUsecase(gh<_i551.ChildRepository>()),
     );
     gh.singleton<_i1012.ProfileUsecase>(
       () => _i1012.ProfileUsecase(gh<_i59.ProfileRepository>()),
     );
+    gh.factory<_i811.AttendanceBloc>(
+      () => _i811.AttendanceBloc(gh<_i905.AttendanceUsecase>()),
+    );
     gh.factory<_i135.ChildBloc>(() => _i135.ChildBloc(gh<_i68.ChildUsecase>()));
+    gh.factory<_i1025.PickupAuthorizationBloc>(
+      () => _i1025.PickupAuthorizationBloc(
+        gh<_i1027.PickupAuthorizationUsecase>(),
+      ),
+    );
     gh.factory<_i795.EventBloc>(
       () => _i795.EventBloc(gh<_i695.EventUsecase>()),
     );

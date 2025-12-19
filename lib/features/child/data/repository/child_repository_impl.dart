@@ -89,6 +89,39 @@ class ChildRepositoryImpl extends ChildRepository {
     }
   }
 
+  @override
+  Future<DataState<ChildEntity>> getChildById({required String childId}) async {
+    try {
+      final Response response = await childApi.getChildById(childId: childId);
+
+      final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
+      final ChildEntity childEntity = ChildModel.fromJson(data);
+
+      return DataSuccess(childEntity);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<DataState<ChildEntity>> getChildByContactId({required String contactId}) async {
+    try {
+      final Response response = await childApi.getChildByContactId(contactId: contactId);
+
+      final List<dynamic> dataList = response.data['data'] as List<dynamic>;
+      if (dataList.isEmpty) {
+        return DataFailed('Child not found for contactId: $contactId');
+      }
+
+      final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
+      final ChildEntity childEntity = ChildModel.fromJson(data);
+
+      return DataSuccess(childEntity);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
   DataFailed<T> _handleDioError<T>(DioException e) {
     String errorMessage = 'خطا در دریافت اطلاعات';
     

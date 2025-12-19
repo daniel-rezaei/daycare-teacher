@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class PhoneWidget extends StatelessWidget {
-  const PhoneWidget({super.key});
+  final String? phone;
+
+  const PhoneWidget({super.key, this.phone});
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +19,11 @@ class PhoneWidget extends StatelessWidget {
           Assets.images.phoneRounded2.svg(),
           SizedBox(width: 4),
           Text(
-            '(123)234-1785',
+            phone != null && phone!.isNotEmpty ? phone! : 'Not available',
             style: TextStyle(
               color: Color(0xff444349),
               fontSize: 12,
-              fontWeight: .w500,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

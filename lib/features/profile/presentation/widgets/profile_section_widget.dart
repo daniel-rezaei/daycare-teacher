@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/auth/presentation/select_class_screen.dart';
+import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -20,6 +21,8 @@ class ProfileSectionWidget extends StatefulWidget {
 class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   String? contactId;
   String? authMode;
+  String? staffId;
+  String? classId;
 
   @override
   void initState() {
@@ -31,13 +34,17 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     final prefs = await SharedPreferences.getInstance();
     final savedContactId = prefs.getString('contact_id');
     final savedAuthMode = prefs.getString('auth_mode');
+    final savedStaffId = prefs.getString('staff_id');
+    final savedClassId = prefs.getString('class_id');
     
-    debugPrint('[PROFILE_DEBUG] Loading contactId: $savedContactId, authMode: $savedAuthMode');
+    debugPrint('[PROFILE_DEBUG] Loading contactId: $savedContactId, authMode: $savedAuthMode, staffId: $savedStaffId, classId: $savedClassId');
     
     if (mounted && savedContactId != null && savedContactId.isNotEmpty) {
       setState(() {
         contactId = savedContactId;
         authMode = savedAuthMode;
+        staffId = savedStaffId;
+        classId = savedClassId;
       });
       context.read<ProfileBloc>().add(GetContactEvent(id: savedContactId));
     } else {
@@ -143,10 +150,57 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   Widget _buildProfileAvatar(String? photoId) {
-    if (photoId == null || photoId.isEmpty) {
-      return _buildPlaceholderAvatar();
-    }
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        String? teacherName;
+        String? teacherPhoto;
+        String? className;
+        
+        if (state is GetContactSuccess) {
+          final contact = state.contact;
+          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          teacherPhoto = contact.photo;
+        }
+        
+        return BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            if (authState is GetClassRoomsSuccess && classId != null) {
+              try {
+                final classRoom = authState.classRooms.firstWhere(
+                  (room) => room.id == classId,
+                );
+                className = classRoom.roomName;
+              } catch (e) {
+                // ignore
+              }
+            }
+            
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PersonalInformationScreen(
+                      teacherName: teacherName ?? '',
+                      teacherPhoto: teacherPhoto,
+                      className: className ?? '',
+                      staffId: staffId ?? '',
+                      contactId: contactId ?? '',
+                    ),
+                  ),
+                );
+              },
+              child: photoId == null || photoId.isEmpty
+                  ? _buildPlaceholderAvatar()
+                  : _buildAvatarImage(photoId),
+            );
+          },
+        );
+      },
+    );
+  }
 
+  Widget _buildAvatarImage(String photoId) {
     final imageUrl = 'http://51.79.53.56:8055/assets/$photoId';
 
     return ClipRRect(
@@ -166,28 +220,118 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   Widget _buildLoadingAvatar() {
-    return Container(
-      width: 48,
-      height: 48,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: const CupertinoActivityIndicator(),
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        String? teacherName;
+        String? teacherPhoto;
+        String? className;
+
+        if (state is GetContactSuccess) {
+          final contact = state.contact;
+          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          teacherPhoto = contact.photo;
+        }
+
+        return BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            if (authState is GetClassRoomsSuccess && classId != null) {
+              try {
+                final classRoom = authState.classRooms.firstWhere(
+                  (room) => room.id == classId,
+                );
+                className = classRoom.roomName;
+              } catch (e) {
+                // ignore
+              }
+            }
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PersonalInformationScreen(
+                      teacherName: teacherName ?? '',
+                      teacherPhoto: teacherPhoto,
+                      className: className ?? '',
+                      staffId: staffId ?? '',
+                      contactId: contactId ?? '',
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const CupertinoActivityIndicator(),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _buildPlaceholderAvatar() {
-    return Container(
-      width: 48,
-      height: 48,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: const Icon(Icons.person, color: Colors.white),
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        String? teacherName;
+        String? teacherPhoto;
+        String? className;
+
+        if (state is GetContactSuccess) {
+          final contact = state.contact;
+          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          teacherPhoto = contact.photo;
+        }
+
+        return BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            if (authState is GetClassRoomsSuccess && classId != null) {
+              try {
+                final classRoom = authState.classRooms.firstWhere(
+                  (room) => room.id == classId,
+                );
+                className = classRoom.roomName;
+              } catch (e) {
+                // ignore
+              }
+            }
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PersonalInformationScreen(
+                      teacherName: teacherName ?? '',
+                      teacherPhoto: teacherPhoto,
+                      className: className ?? '',
+                      staffId: staffId ?? '',
+                      contactId: contactId ?? '',
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(Icons.person, color: Colors.white),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

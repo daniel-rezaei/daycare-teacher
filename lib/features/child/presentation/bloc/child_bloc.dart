@@ -22,6 +22,8 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     on<GetAllContactsEvent>(_getAllContactsEvent);
     on<GetAllDietaryRestrictionsEvent>(_getAllDietaryRestrictionsEvent);
     on<GetAllMedicationsEvent>(_getAllMedicationsEvent);
+    on<GetChildByIdEvent>(_getChildByIdEvent);
+    on<GetChildByContactIdEvent>(_getChildByContactIdEvent);
   }
 
   FutureOr<void> _getAllChildrenEvent(
@@ -234,6 +236,142 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
         isLoadingChildren: currentState.isLoadingChildren,
         isLoadingContacts: currentState.isLoadingContacts,
         isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+      )      );
+    }
+  }
+
+  FutureOr<void> _getChildByIdEvent(
+    GetChildByIdEvent event,
+    Emitter<ChildState> emit,
+  ) async {
+    final previousState = state;
+    emit(GetChildByIdLoading(
+      children: previousState.children,
+      contacts: previousState.contacts,
+      dietaryRestrictions: previousState.dietaryRestrictions,
+      medications: previousState.medications,
+      child: previousState.child,
+      isLoadingChildren: previousState.isLoadingChildren,
+      isLoadingContacts: previousState.isLoadingContacts,
+      isLoadingDietaryRestrictions: previousState.isLoadingDietaryRestrictions,
+      isLoadingMedications: previousState.isLoadingMedications,
+    ));
+
+    try {
+      DataState dataState = await childUsecase.getChildById(childId: event.childId);
+
+      final currentState = state;
+
+      if (dataState is DataSuccess) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetChildByIdSuccess: ${dataState.data.id}');
+        emit(GetChildByIdSuccess(
+          dataState.data,
+          children: currentState.children ?? previousState.children,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          isLoadingChildren: currentState.isLoadingChildren,
+          isLoadingContacts: currentState.isLoadingContacts,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      } else if (dataState is DataFailed) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetChildByIdFailure: ${dataState.error}');
+        emit(GetChildByIdFailure(
+          dataState.error!,
+          children: currentState.children ?? previousState.children,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          child: currentState.child ?? previousState.child,
+          isLoadingChildren: currentState.isLoadingChildren,
+          isLoadingContacts: currentState.isLoadingContacts,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[CHILD_BLOC_DEBUG] Exception getting child by id: $e');
+      final currentState = state;
+      emit(GetChildByIdFailure(
+        'خطا در دریافت اطلاعات بچه',
+        children: currentState.children ?? previousState.children,
+        contacts: currentState.contacts ?? previousState.contacts,
+        dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+        medications: currentState.medications ?? previousState.medications,
+        child: currentState.child ?? previousState.child,
+        isLoadingChildren: currentState.isLoadingChildren,
+        isLoadingContacts: currentState.isLoadingContacts,
+        isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+        isLoadingMedications: currentState.isLoadingMedications,
+      ));
+    }
+  }
+
+  FutureOr<void> _getChildByContactIdEvent(
+    GetChildByContactIdEvent event,
+    Emitter<ChildState> emit,
+  ) async {
+    final previousState = state;
+    emit(GetChildByContactIdLoading(
+      children: previousState.children,
+      contacts: previousState.contacts,
+      dietaryRestrictions: previousState.dietaryRestrictions,
+      medications: previousState.medications,
+      child: previousState.child,
+      isLoadingChildren: previousState.isLoadingChildren,
+      isLoadingContacts: previousState.isLoadingContacts,
+      isLoadingDietaryRestrictions: previousState.isLoadingDietaryRestrictions,
+      isLoadingMedications: previousState.isLoadingMedications,
+    ));
+
+    try {
+      DataState dataState = await childUsecase.getChildByContactId(contactId: event.contactId);
+
+      final currentState = state;
+
+      if (dataState is DataSuccess) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetChildByContactIdSuccess: ${dataState.data.id}');
+        emit(GetChildByContactIdSuccess(
+          dataState.data,
+          children: currentState.children ?? previousState.children,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          isLoadingChildren: currentState.isLoadingChildren,
+          isLoadingContacts: currentState.isLoadingContacts,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      } else if (dataState is DataFailed) {
+        debugPrint('[CHILD_BLOC_DEBUG] GetChildByContactIdFailure: ${dataState.error}');
+        emit(GetChildByContactIdFailure(
+          dataState.error!,
+          children: currentState.children ?? previousState.children,
+          contacts: currentState.contacts ?? previousState.contacts,
+          dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+          medications: currentState.medications ?? previousState.medications,
+          child: currentState.child ?? previousState.child,
+          isLoadingChildren: currentState.isLoadingChildren,
+          isLoadingContacts: currentState.isLoadingContacts,
+          isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+          isLoadingMedications: currentState.isLoadingMedications,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[CHILD_BLOC_DEBUG] Exception getting child by contactId: $e');
+      final currentState = state;
+      emit(GetChildByContactIdFailure(
+        'خطا در دریافت اطلاعات بچه',
+        children: currentState.children ?? previousState.children,
+        contacts: currentState.contacts ?? previousState.contacts,
+        dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+        medications: currentState.medications ?? previousState.medications,
+        child: currentState.child ?? previousState.child,
+        isLoadingChildren: currentState.isLoadingChildren,
+        isLoadingContacts: currentState.isLoadingContacts,
+        isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+        isLoadingMedications: currentState.isLoadingMedications,
       ));
     }
   }

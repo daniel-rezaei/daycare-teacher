@@ -9,19 +9,26 @@ class ContentActivity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xffFFFFFF).withValues(alpha: .4),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            offset: Offset(0, -4),
-            blurRadius: 16,
-            color: Color(0xff000000).withValues(alpha: .1),
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height -
+            MediaQuery.of(context).padding.top -
+            MediaQuery.of(context).padding.bottom -
+            200, // ارتفاع تقریبی header و tabs
       ),
-      child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(0xffFFFFFF).withValues(alpha: .4),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              offset: Offset(0, -4),
+              blurRadius: 16,
+              color: Color(0xff000000).withValues(alpha: .1),
+            ),
+          ],
+        ),
+        child: Column(
         children: [
           DayStripWidget(),
           const SizedBox(height: 16),
@@ -100,6 +107,7 @@ class ContentActivity extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

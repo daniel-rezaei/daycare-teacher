@@ -5,28 +5,34 @@ sealed class ChildState extends Equatable {
   final List<ContactEntity>? contacts;
   final List<DietaryRestrictionEntity>? dietaryRestrictions;
   final List<MedicationEntity>? medications;
+  final ChildEntity? child;
   final bool isLoadingChildren;
   final bool isLoadingContacts;
   final bool isLoadingDietaryRestrictions;
   final bool isLoadingMedications;
+  final bool isLoadingChild;
   final String? childrenError;
   final String? contactsError;
   final String? dietaryRestrictionsError;
   final String? medicationsError;
+  final String? childError;
 
   const ChildState({
     this.children,
     this.contacts,
     this.dietaryRestrictions,
     this.medications,
+    this.child,
     this.isLoadingChildren = false,
     this.isLoadingContacts = false,
     this.isLoadingDietaryRestrictions = false,
     this.isLoadingMedications = false,
+    this.isLoadingChild = false,
     this.childrenError,
     this.contactsError,
     this.dietaryRestrictionsError,
     this.medicationsError,
+    this.childError,
   });
 
   @override
@@ -35,14 +41,17 @@ sealed class ChildState extends Equatable {
         contacts,
         dietaryRestrictions,
         medications,
+        child,
         isLoadingChildren,
         isLoadingContacts,
         isLoadingDietaryRestrictions,
         isLoadingMedications,
+        isLoadingChild,
         childrenError,
         contactsError,
         dietaryRestrictionsError,
         medicationsError,
+        childError,
       ];
 }
 
@@ -231,6 +240,110 @@ final class GetAllMedicationsFailure extends ChildState {
   }) : super(
           medicationsError: message,
           isLoadingMedications: false,
+        );
+}
+
+/// Loading state for getting a child by ID
+final class GetChildByIdLoading extends ChildState {
+  const GetChildByIdLoading({
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.child,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+  }) : super(isLoadingChild: true);
+}
+
+/// Success state for getting a child by ID
+final class GetChildByIdSuccess extends ChildState {
+  const GetChildByIdSuccess(
+    ChildEntity child, {
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+  }) : super(
+          child: child,
+          isLoadingChild: false,
+        );
+}
+
+/// Failure state for getting a child by ID
+final class GetChildByIdFailure extends ChildState {
+  const GetChildByIdFailure(
+    String message, {
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.child,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+  }) : super(
+          childError: message,
+          isLoadingChild: false,
+        );
+}
+
+/// Loading state for getting a child by contact_id
+final class GetChildByContactIdLoading extends ChildState {
+  const GetChildByContactIdLoading({
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.child,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+  }) : super(isLoadingChild: true);
+}
+
+/// Success state for getting a child by contact_id
+final class GetChildByContactIdSuccess extends ChildState {
+  const GetChildByContactIdSuccess(
+    ChildEntity child, {
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+  }) : super(
+          child: child,
+          isLoadingChild: false,
+        );
+}
+
+/// Failure state for getting a child by contact_id
+final class GetChildByContactIdFailure extends ChildState {
+  const GetChildByContactIdFailure(
+    String message, {
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.child,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+  }) : super(
+          childError: message,
+          isLoadingChild: false,
         );
 }
 

@@ -1,0 +1,57 @@
+import 'package:injectable/injectable.dart';
+import 'package:teacher_app/core/data_state.dart';
+import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
+import 'package:teacher_app/features/attendance/domain/repository/attendance_repository.dart';
+
+@singleton
+class AttendanceUsecase {
+  final AttendanceRepository attendanceRepository;
+
+  AttendanceUsecase(this.attendanceRepository);
+
+  // دریافت attendance بر اساس class_id
+  Future<DataState<List<AttendanceChildEntity>>> getAttendanceByClassId({
+    required String classId,
+    String? childId,
+  }) async {
+    return await attendanceRepository.getAttendanceByClassId(
+      classId: classId,
+      childId: childId,
+    );
+  }
+
+  // ایجاد attendance جدید
+  Future<DataState<AttendanceChildEntity>> createAttendance({
+    required String childId,
+    required String classId,
+    required String checkInAt,
+    String? staffId,
+  }) async {
+    return await attendanceRepository.createAttendance(
+      childId: childId,
+      classId: classId,
+      checkInAt: checkInAt,
+      staffId: staffId,
+    );
+  }
+
+  // به‌روزرسانی attendance (برای check out)
+  Future<DataState<AttendanceChildEntity>> updateAttendance({
+    required String attendanceId,
+    required String checkOutAt,
+    String? notes,
+    String? photo,
+    String? checkoutPickupContactId,
+    String? checkoutPickupContactType,
+  }) async {
+    return await attendanceRepository.updateAttendance(
+      attendanceId: attendanceId,
+      checkOutAt: checkOutAt,
+      notes: notes,
+      photo: photo,
+      checkoutPickupContactId: checkoutPickupContactId,
+      checkoutPickupContactType: checkoutPickupContactType,
+    );
+  }
+}
+

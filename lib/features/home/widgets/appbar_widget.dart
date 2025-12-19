@@ -74,36 +74,36 @@ class _AppbarWidgetState extends State<AppbarWidget> {
           debugPrint('[APPBAR_DEBUG] GetClassRoomsFailure: ${state.message}');
         }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+        children: [
               const Text(
-                'Home',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xff444349),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
+            'Home',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xff444349),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
                   color: const Color(0xffFFFFFF).withValues(alpha: .4),
-                  borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16),
                   border: Border.all(width: 2, color: const Color(0xffFAFAFA)),
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 8,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 8,
                       color: const Color(0xffE4D3FF).withValues(alpha: .5),
-                    ),
-                  ],
                 ),
+              ],
+            ),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
+            child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Assets.images.leftSlotItems.svg(),
+              children: [
+                Assets.images.leftSlotItems.svg(),
                     const SizedBox(width: 8),
                     if (state is GetClassRoomsLoading)
                       const SizedBox(
@@ -114,19 +114,19 @@ class _AppbarWidgetState extends State<AppbarWidget> {
                         ),
                       )
                     else
-                      Text(
+                Text(
                         roomName ?? '',
                         style: const TextStyle(
-                          color: Color(0xff681AD6),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                  ],
+                    color: Color(0xff681AD6),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+        ],
+      ),
         );
       },
     );

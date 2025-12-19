@@ -1,13 +1,32 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
+import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CheckOutWidget extends StatefulWidget {
-  const CheckOutWidget({super.key});
+  final String childId;
+  final String childName;
+  final String attendanceId;
+  final String classId;
+
+  const CheckOutWidget({
+    super.key,
+    required this.childId,
+    required this.childName,
+    required this.attendanceId,
+    required this.classId,
+  });
 
   @override
   State<CheckOutWidget> createState() => _CheckOutWidgetState();
@@ -15,22 +34,33 @@ class CheckOutWidget extends StatefulWidget {
 
 class _CheckOutWidgetState extends State<CheckOutWidget> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _noteController = TextEditingController();
+  final List<File> _images = [];
+  String? _selectedContactId;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
 
+    // دریافت PickupAuthorization
+    context.read<PickupAuthorizationBloc>().add(
+          GetPickupAuthorizationByChildIdEvent(childId: widget.childId),
+        );
+
+    // دریافت Contacts
+    context.read<ChildBloc>().add(const GetAllContactsEvent());
+
     // وقتی کیبورد باز/بسته شود، اسکرول اتوماتیک انجام می شود
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // لیسنر تغییر اندازه صفحه (کیبورد)
       WidgetsBinding.instance.addObserver(
         LifecycleEventHandler(
           onMetricsChanged: () {
-            Future.delayed(Duration(milliseconds: 150), () {
+            Future.delayed(const Duration(milliseconds: 150), () {
               if (_scrollController.hasClients) {
                 _scrollController.animateTo(
                   _scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 250),
+                  duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOut,
                 );
               }
@@ -42,177 +72,339 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color(0xffFFFFFF),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 16,
-              offset: Offset(0, -4),
-              color: Color(0xff95939D).withValues(alpha: .2),
+  void dispose() {
+    _noteController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  String _getPhotoUrl(String? photoId) {
+    if (photoId == null || photoId.isEmpty) {
+      return '';
+    }
+    return 'http://51.79.53.56:8055/assets/$photoId';
+  }
+
+  ContactEntity? _getContactById(String? contactId, List<ContactEntity> contacts) {
+    if (contactId == null || contactId.isEmpty) return null;
+    try {
+      return contacts.firstWhere((contact) => contact.id == contactId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String _getContactName(ContactEntity? contact) {
+    if (contact == null) return 'Unknown';
+    final firstName = contact.firstName ?? '';
+    final lastName = contact.lastName ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    return fullName.isNotEmpty ? fullName : 'Unknown';
+  }
+
+  Future<void> _handleSubmit() async {
+    debugPrint('[CHECKOUT_DEBUG] Submit button clicked');
+    
+    if (_isSubmitting) {
+      debugPrint('[CHECKOUT_DEBUG] Already submitting, returning');
+      return;
+    }
+
+    if (_selectedContactId == null || _selectedContactId!.isEmpty) {
+      debugPrint('[CHECKOUT_DEBUG] No contact selected');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لطفاً شخصی که بچه را برمی‌دارد انتخاب کنید')),
+      );
+      return;
+    }
+
+    debugPrint('[CHECKOUT_DEBUG] Starting submit process');
+    debugPrint('[CHECKOUT_DEBUG] Selected contactId: $_selectedContactId');
+    debugPrint('[CHECKOUT_DEBUG] Widget childId (Child.id): ${widget.childId}');
+    debugPrint('[CHECKOUT_DEBUG] Note: ${_noteController.text}');
+    debugPrint('[CHECKOUT_DEBUG] Images count: ${_images.length}');
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // widget.childId در واقع Child.id است (نه contactId)
+      // چون در child_status.dart، child.id به CheckOutWidget پاس داده می‌شود
+      final actualChildId = widget.childId;
+      
+      debugPrint('[CHECKOUT_DEBUG] Using widget.childId as Child.id: $actualChildId');
+
+      if (actualChildId.isEmpty) {
+        debugPrint('[CHECKOUT_DEBUG] actualChildId is empty');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('خطا در پیدا کردن اطلاعات بچه')),
+          );
+        }
+        setState(() {
+          _isSubmitting = false;
+        });
+        return;
+      }
+
+      // ارسال PickupAuthorization
+      final note = _noteController.text.isNotEmpty ? _noteController.text : null;
+      debugPrint('[CHECKOUT_DEBUG] Dispatching CreatePickupAuthorizationEvent');
+      debugPrint('[CHECKOUT_DEBUG] - childId: $actualChildId');
+      debugPrint('[CHECKOUT_DEBUG] - authorizedContactId: $_selectedContactId');
+      debugPrint('[CHECKOUT_DEBUG] - note: $note');
+      
+      context.read<PickupAuthorizationBloc>().add(
+            CreatePickupAuthorizationEvent(
+              childId: actualChildId,
+              authorizedContactId: _selectedContactId!,
+              note: note,
             ),
-          ],
+          );
+    } catch (e, stackTrace) {
+      debugPrint('[CHECKOUT_DEBUG] Exception in _handleSubmit: $e');
+      debugPrint('[CHECKOUT_DEBUG] StackTrace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطا: $e')),
+        );
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<PickupAuthorizationBloc, PickupAuthorizationState>(
+      listener: (context, state) {
+        if (state is CreatePickupAuthorizationSuccess) {
+          // بعد از موفقیت، به صفحه قبلی برمی‌گردیم
+          Navigator.pop(context);
+        } else if (state is CreatePickupAuthorizationFailure) {
+          setState(() {
+            _isSubmitting = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: Column(
-          children: [
-            HeaderCheckOut(isIcon: true, title: 'Check Out'),
-            Divider(color: Color(0xffDBDADD)),
-
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(
-                    'Who is picking up Alice Johnson?',
-                    style: TextStyle(
-                      color: Color(0xff444349),
-                      fontSize: 26,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 32),
-
-                  ListView.builder(
-                    itemCount: 3,
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Color(0xffF0E7FF),
-                            border: Border.all(
-                              color: Color(0xffFAFAFA),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 16,
-                          ),
-                          margin: EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Color(0xffFAFAFA),
-                                    width: 1,
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-
-                                child: Assets.images.image.image(),
-                              ),
-                              SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: .start,
-                                children: [
-                                  Text(
-                                    'Jane Doe',
-                                    style: TextStyle(
-                                      color: Color(0xff444349),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Mother',
-                                    style: TextStyle(
-                                      color: Color(
-                                        0xff71717A,
-                                      ).withValues(alpha: .8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Spacer(),
-                              Assets.images.checkbox.svg(),
-                            ],
-                          ),
-                        );
-                      } else {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Color(0xffF4F4F5),
-                            border: Border.all(
-                              color: Color(0xffFAFAFA),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 16,
-                          ),
-                          margin: EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              Assets.images.image.image(),
-                              SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: .start,
-                                children: [
-                                  Text(
-                                    'Jane Doe',
-                                    style: TextStyle(
-                                      color: Color(0xff444349),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Mother',
-                                    style: TextStyle(
-                                      color: Color(
-                                        0xff71717A,
-                                      ).withValues(alpha: .8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Spacer(),
-                              Assets.images.checkbox2.svg(),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
-
-                  SizedBox(height: 16),
-                  NoteWidget(title: 'Note', hintText: 'Placeholder'),
-                  SizedBox(height: 20),
-                  AttachPhotoWidget(),
-                  SizedBox(height: 32),
-                  ButtonWidget(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Submit',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xffFFFFFF),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 16,
+                offset: const Offset(0, -4),
+                color: const Color(0xff95939D).withValues(alpha: .2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              const HeaderCheckOut(isIcon: true, title: 'Check Out'),
+              const Divider(color: Color(0xffDBDADD)),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Who is picking up ${widget.childName}?',
+                      style: const TextStyle(
+                        color: Color(0xff444349),
+                        fontSize: 26,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 32),
+                    BlocBuilder<PickupAuthorizationBloc, PickupAuthorizationState>(
+                      builder: (context, pickupState) {
+                        return BlocBuilder<ChildBloc, ChildState>(
+                          builder: (context, childState) {
+                            if (pickupState is GetPickupAuthorizationByChildIdLoading ||
+                                childState.isLoadingContacts) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
+
+                            List<PickupAuthorizationEntity> pickupList = [];
+                            if (pickupState is GetPickupAuthorizationByChildIdSuccess) {
+                              pickupList = pickupState.pickupAuthorizationList;
+                            }
+
+                            List<ContactEntity> contacts = [];
+                            if (childState.contacts != null) {
+                              contacts = childState.contacts!;
+                            }
+
+                            if (pickupList.isEmpty) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: Text('هیچ مجوزی برای این بچه یافت نشد'),
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              itemCount: pickupList.length,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                final pickup = pickupList[index];
+                                final contact = _getContactById(pickup.authorizedContactId, contacts);
+                                final isSelected = _selectedContactId == pickup.authorizedContactId;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedContactId = pickup.authorizedContactId;
+                                    });
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? const Color(0xffF0E7FF)
+                                          : const Color(0xffF4F4F5),
+                                      border: Border.all(
+                                        color: const Color(0xffFAFAFA),
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: const Color(0xffFAFAFA),
+                                              width: 1,
+                                            ),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: ClipOval(
+                                            child: contact?.photo != null &&
+                                                    contact!.photo!.isNotEmpty
+                                                ? CachedNetworkImage(
+                                                    imageUrl: _getPhotoUrl(contact.photo),
+                                                    width: 48,
+                                                    height: 48,
+                                                    fit: BoxFit.cover,
+                                                    httpHeaders: const {
+                                                      'Authorization':
+                                                          'Bearer ONtKFTGW3t9W0ZSkPDVGQqwXUrUrEmoM',
+                                                    },
+                                                    errorWidget: (context, url, error) =>
+                                                        Assets.images.image.image(
+                                                      width: 48,
+                                                      height: 48,
+                                                    ),
+                                                  )
+                                                : Assets.images.image.image(
+                                                    width: 48,
+                                                    height: 48,
+                                                  ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _getContactName(contact),
+                                                style: const TextStyle(
+                                                  color: Color(0xff444349),
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                pickup.relationToChild ?? 'Unknown',
+                                                style: TextStyle(
+                                                  color: const Color(0xff71717A)
+                                                      .withValues(alpha: .8),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          Assets.images.checkbox.svg()
+                                        else
+                                          Assets.images.checkbox2.svg(),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    NoteWidget(
+                      title: 'Note',
+                      hintText: 'Placeholder',
+                      controller: _noteController,
+                    ),
+                    const SizedBox(height: 20),
+                    AttachPhotoWidget(
+                      images: _images,
+                      onImagesChanged: (images) {
+                        setState(() {
+                          _images.clear();
+                          _images.addAll(images);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    ButtonWidget(
+                      onTap: _isSubmitting ? null : _handleSubmit,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              'Submit',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -31,5 +31,15 @@ class ChildUsecase {
   Future<DataState<List<MedicationEntity>>> getAllMedications() async {
     return await childRepository.getAllMedications();
   }
+
+  // دریافت بچه بر اساس ID
+  Future<DataState<ChildEntity>> getChildById({required String childId}) async {
+    return await childRepository.getChildById(childId: childId);
+  }
+
+  // دریافت بچه بر اساس contact_id
+  Future<DataState<ChildEntity>> getChildByContactId({required String contactId}) async {
+    return await childRepository.getChildByContactId(contactId: contactId);
+  }
 }
 

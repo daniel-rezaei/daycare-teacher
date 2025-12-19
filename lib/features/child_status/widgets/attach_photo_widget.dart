@@ -4,15 +4,39 @@ import 'package:image_picker/image_picker.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class AttachPhotoWidget extends StatefulWidget {
-  const AttachPhotoWidget({super.key});
+  final List<File> images;
+  final Function(List<File>)? onImagesChanged;
+  const AttachPhotoWidget({
+    super.key,
+    this.images = const [],
+    this.onImagesChanged,
+  });
 
   @override
   State<AttachPhotoWidget> createState() => _AttachPhotoWidgetState();
 }
 
 class _AttachPhotoWidgetState extends State<AttachPhotoWidget> {
-  final List<File> _images = [];
+  late List<File> _images;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _images = List.from(widget.images);
+  }
+
+  @override
+  void didUpdateWidget(AttachPhotoWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.images != oldWidget.images) {
+      _images = List.from(widget.images);
+    }
+  }
+
+  void _notifyChange() {
+    widget.onImagesChanged?.call(_images);
+  }
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -34,7 +58,10 @@ class _AttachPhotoWidgetState extends State<AttachPhotoWidget> {
                     source: ImageSource.camera,
                   );
                   if (image != null) {
-                    setState(() => _images.insert(0, File(image.path)));
+                    setState(() {
+                      _images.insert(0, File(image.path));
+                      _notifyChange();
+                    });
                   }
                 },
               ),
@@ -47,7 +74,10 @@ class _AttachPhotoWidgetState extends State<AttachPhotoWidget> {
                     source: ImageSource.gallery,
                   );
                   if (image != null) {
-                    setState(() => _images.insert(0, File(image.path)));
+                    setState(() {
+                      _images.insert(0, File(image.path));
+                      _notifyChange();
+                    });
                   }
                 },
               ),
@@ -142,6 +172,7 @@ class _AttachPhotoWidgetState extends State<AttachPhotoWidget> {
                         onTap: () {
                           setState(() {
                             _images.remove(file);
+                            _notifyChange();
                           });
                         },
                         child: Container(

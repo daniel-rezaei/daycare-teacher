@@ -20,5 +20,27 @@ class ChildApi {
   Future<Response> getAllMedications() async {
     return await httpclient.get('/items/Medication');
   }
+
+  // دریافت بچه بر اساس ID
+  Future<Response> getChildById({required String childId}) async {
+    return await httpclient.get(
+      '/items/Child/$childId',
+      queryParameters: {
+        'fields': 'id,dob,language,photo,contact_id,status,date_created,date_updated',
+      },
+    );
+  }
+
+  // دریافت بچه بر اساس contact_id
+  Future<Response> getChildByContactId({required String contactId}) async {
+    return await httpclient.get(
+      '/items/Child',
+      queryParameters: {
+        'filter[contact_id][_eq]': contactId,
+        'fields': 'id,dob,language,photo,contact_id,status,date_created,date_updated',
+        'limit': 1,
+      },
+    );
+  }
 }
 
