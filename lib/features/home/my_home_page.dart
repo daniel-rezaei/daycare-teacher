@@ -12,7 +12,7 @@ import 'package:teacher_app/features/home/widgets/card_widget.dart';
 import 'package:teacher_app/features/home/widgets/home_shimmer_widget.dart';
 import 'package:teacher_app/features/messages/messages_screen.dart';
 import 'package:teacher_app/features/profile/presentation/widgets/profile_section_widget.dart';
-import 'package:teacher_app/features/time_screen/time_screen.dart';
+import 'package:teacher_app/features/staff_attendance/presentation/time_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
