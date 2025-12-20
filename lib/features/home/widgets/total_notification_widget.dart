@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
@@ -11,6 +12,8 @@ import 'package:teacher_app/features/child_status/services/local_absent_storage_
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/child_status.dart';
 import 'package:teacher_app/features/home/widgets/info_card_widget.dart';
+import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -26,6 +29,7 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
   bool _hasRequestedChildren = false;
   bool _hasRequestedContacts = false;
   bool _hasRequestedAttendance = false;
+  bool _hasRequestedNotifications = false;
   Set<String> _locallyAbsentChildIds = {};
 
   @override
@@ -69,6 +73,13 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
 
       // بارگذاری لیست غایبین محلی
       _loadLocallyAbsentChildren(savedClassId);
+
+      // دریافت notifications
+      if (!_hasRequestedNotifications) {
+        _hasRequestedNotifications = true;
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAllNotificationsEvent');
+        context.read<NotificationBloc>().add(const GetAllNotificationsEvent());
+      }
     } else {
       debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId is null or empty');
     }
@@ -153,6 +164,18 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     return presentCount;
   }
 
+  int _getTodayNotificationsCount(List<NotificationEntity> notifications) {
+    final now = DateTime.now();
+    return notifications
+        .where((notification) {
+          if (notification.createdAt == null || notification.createdAt!.isEmpty) {
+            return false;
+          }
+          return DateUtils.isSameDate(notification.createdAt!, now);
+        })
+        .length;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AttendanceBloc, AttendanceState>(
@@ -162,10 +185,12 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
           _loadLocallyAbsentChildren(classId!);
         }
       },
-      child: BlocBuilder<AttendanceBloc, AttendanceState>(
-        builder: (context, attendanceState) {
-          return BlocBuilder<ChildBloc, ChildState>(
-          builder: (context, state) {
+      child: BlocBuilder<NotificationBloc, NotificationState>(
+        builder: (context, notificationState) {
+          return BlocBuilder<AttendanceBloc, AttendanceState>(
+            builder: (context, attendanceState) {
+              return BlocBuilder<ChildBloc, ChildState>(
+                builder: (context, state) {
             String title = '0/0';
             bool isLoading = false;
 
@@ -181,15 +206,23 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
               attendanceList = attendanceState.attendanceList;
             }
 
+            List<NotificationEntity> notifications = [];
+            if (notificationState is GetAllNotificationsSuccess) {
+              notifications = notificationState.notificationList;
+            }
+
             final isLoadingAttendance = attendanceState is GetAttendanceByClassIdLoading ||
                 attendanceState is AttendanceInitial;
+            
+            final isLoadingNotifications = notificationState is GetAllNotificationsLoading ||
+                notificationState is NotificationInitial;
 
             debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, attendance=${attendanceList.length}, isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, isLoadingAttendance=$isLoadingAttendance, childrenError=$childrenError, contactsError=$contactsError');
 
             // بررسی اینکه آیا هر دو داده موجود است
             final hasBothData = children != null && contacts != null;
             final hasError = childrenError != null || contactsError != null;
-            final isCurrentlyLoading = isLoadingChildren || isLoadingContacts || isLoadingAttendance;
+            final isCurrentlyLoading = isLoadingChildren || isLoadingContacts || isLoadingAttendance || isLoadingNotifications;
             
             // اگر در حال loading است
             if (isCurrentlyLoading) {
@@ -221,9 +254,9 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
               isLoading = true;
             }
 
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
             InfoCardWidget(
               color: const Color(0XFFDEF4FF),
               icon: Padding(
@@ -266,14 +299,29 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                 padding: const EdgeInsets.all(8.0),
                 child: Assets.images.vector.svg(),
               ),
-              title: const Text('5'),
+              title: isLoadingNotifications
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CupertinoActivityIndicator(radius: 10),
+                    )
+                  : Text(
+                      '${_getTodayNotificationsCount(notifications)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xff444349),
+                      ),
+                    ),
               dec: 'Notifications',
               onTap: () {},
-            ),
-          ],
-        );
-          },
-        );
+                    ),
+                  ],
+                );
+                },
+              );
+            },
+          );
         },
       ),
     );

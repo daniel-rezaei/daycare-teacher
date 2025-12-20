@@ -81,6 +81,16 @@ import 'package:teacher_app/features/file_upload/domain/repository/file_upload_r
     as _i606;
 import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart'
     as _i299;
+import 'package:teacher_app/features/notification/data/data_source/notification_api.dart'
+    as _i958;
+import 'package:teacher_app/features/notification/data/repository/notification_repository_impl.dart'
+    as _i827;
+import 'package:teacher_app/features/notification/domain/repository/notification_repository.dart'
+    as _i26;
+import 'package:teacher_app/features/notification/domain/usecase/notification_usecase.dart'
+    as _i618;
+import 'package:teacher_app/features/notification/presentation/bloc/notification_bloc.dart'
+    as _i10;
 import 'package:teacher_app/features/pickup_authorization/data/data_source/pickup_authorization_api.dart'
     as _i997;
 import 'package:teacher_app/features/pickup_authorization/data/repository/pickup_authorization_repository_impl.dart'
@@ -158,6 +168,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i357.FileUploadApi>(
       () => _i357.FileUploadApi(gh<_i361.Dio>()),
     );
+    gh.singleton<_i958.NotificationApi>(
+      () => _i958.NotificationApi(gh<_i361.Dio>()),
+    );
     gh.singleton<_i997.PickupAuthorizationApi>(
       () => _i997.PickupAuthorizationApi(gh<_i361.Dio>()),
     );
@@ -215,6 +228,13 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i167.EventRepositoryImpl(gh<_i99.EventApi>()),
       registerFor: {_prod},
     );
+    gh.singleton<_i26.NotificationRepository>(
+      () => _i827.NotificationRepositoryImpl(gh<_i958.NotificationApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i618.NotificationUsecase>(
+      () => _i618.NotificationUsecase(gh<_i26.NotificationRepository>()),
+    );
     gh.singleton<_i570.AttendanceRepository>(
       () => _i954.AttendanceRepositoryImpl(gh<_i472.AttendanceApi>()),
       registerFor: {_prod},
@@ -269,6 +289,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i568.ChildEmergencyContactBloc(
         gh<_i765.ChildEmergencyContactUsecase>(),
       ),
+    );
+    gh.factory<_i10.NotificationBloc>(
+      () => _i10.NotificationBloc(gh<_i618.NotificationUsecase>()),
     );
     gh.singleton<_i905.AttendanceUsecase>(
       () => _i905.AttendanceUsecase(gh<_i570.AttendanceRepository>()),

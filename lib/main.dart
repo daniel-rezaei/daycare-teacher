@@ -16,6 +16,7 @@ import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guar
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
+import 'package:teacher_app/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
 
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<StaffScheduleBloc>()),
         BlocProvider(create: (_) => getIt<ChildGuardianBloc>()),
         BlocProvider(create: (_) => getIt<ChildEmergencyContactBloc>()),
+        BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: MaterialApp(
         title: 'Teacher App',
