@@ -19,6 +19,30 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   DateTime? _lastBackPressTime;
+  
+  // نگه داشتن صفحات برای جلوگیری از rebuild و درخواست مجدد API
+  // استفاده از late final و ساخت در build برای دسترسی به context
+  late final List<Widget> _pages = [
+    Stack(
+      children: [
+        BackgroundWidget(),
+        SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                AppbarWidget(),
+                ProfileSectionWidget(),
+                CardWidget(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+    const TimeScreen(),
+    const ActivityScreen(),
+    const MessagesScreen(),
+  ];
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
@@ -57,32 +81,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: ValueListenableBuilder(
         valueListenable: MyHomePage.pageIndex,
         builder: (context, value, child) {
-          if (value == 0) {
-            return Stack(
-              children: [
-                BackgroundWidget(),
-                SafeArea(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        AppbarWidget(),
-                        ProfileSectionWidget(),
-                        CardWidget(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          } else if (value == 1) {
-            return TimeScreen();
-          } else if (value == 2) {
-            return ActivityScreen();
-          } else if (value == 3) {
-            return MessagesScreen();
-          } else {
-            return Container();
-          }
+          // استفاده از IndexedStack برای نگه داشتن تمام صفحات
+          // این باعث می‌شود که initState فقط یک بار صدا زده شود
+          final index = value.clamp(0, _pages.length - 1);
+          return IndexedStack(
+            index: index,
+            children: _pages,
+          );
         },
       ),
       bottomNavigationBar: BottomNavigationBarWidget(),
