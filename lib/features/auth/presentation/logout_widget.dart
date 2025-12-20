@@ -1,4 +1,5 @@
 import 'package:clerk_flutter/clerk_flutter.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
@@ -125,7 +126,10 @@ class _LogoutWidgetState extends State<LogoutWidget> {
                 alignment: Alignment.center,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const CupertinoActivityIndicator(
+                        radius: 10,
+                        color: Colors.white,
+                      )
                     : const Text(
                         'Log Out',
                         style: TextStyle(

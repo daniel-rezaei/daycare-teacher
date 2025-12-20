@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -280,14 +281,12 @@ class _TimeScreenState extends State<TimeScreen> {
                                     }
                                   },
                             child: isLoading || isProcessing
-                                ? SizedBox(
+                                ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
+                                    child: CupertinoActivityIndicator(
+                                      radius: 10,
+                                      color: Colors.white,
                                     ),
                                   )
                                 : Text(

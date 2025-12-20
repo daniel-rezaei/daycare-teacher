@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
@@ -156,7 +157,6 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
               notes: note,
               checkoutPickupContactId: _selectedContactId!,
               checkoutPickupContactType: _selectedRelationToChild,
-              // TODO: photo upload - فعلاً null می‌گذاریم
               photo: null,
             ),
           );
@@ -200,9 +200,11 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
             // بعد از نمایش خطا (با کمی تاخیر)، به MyHomePage منتقل می‌شویم
             // و تمام صفحات قبلی از navigation stack حذف می‌شوند
             debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceFailure - Navigating to MyHomePage after error');
+            if (!mounted) return;
+            final navigator = Navigator.of(context);
             Future.delayed(const Duration(milliseconds: 200), () {
               if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
+                navigator.pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const MyHomePage()),
                   (_) => false, // تمام صفحات قبلی را حذف می‌کند
                 );
@@ -242,7 +244,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                               return const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
-                                  child: CircularProgressIndicator(),
+                                  child: CupertinoActivityIndicator(),
                                 ),
                               );
                             }
@@ -393,9 +395,9 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              child: CupertinoActivityIndicator(
+                                radius: 10,
+                                color: Colors.white,
                               ),
                             )
                           : const Text(

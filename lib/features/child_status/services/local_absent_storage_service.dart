@@ -16,7 +16,7 @@ class LocalAbsentStorageService {
   static String _getTodayKey(String classId) {
     final today = DateTime.now();
     final dateStr = DateFormat(_dateFormat).format(today);
-    return '${_keyPrefix}${dateStr}_class_$classId';
+    return '$_keyPrefix${dateStr}_class_$classId';
   }
 
   /// Get all absent child IDs for today in a specific class
