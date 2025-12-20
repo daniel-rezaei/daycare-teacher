@@ -76,7 +76,7 @@ class ChildStatusListItem extends StatelessWidget {
                   childName,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -42,7 +42,7 @@ class ChildStatusActions extends StatelessWidget {
                 child: const Text(
                   'Check Out',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                   ),
@@ -62,12 +62,12 @@ class ChildStatusActions extends StatelessWidget {
             _MoreButton(onTap: onMoreTap),
             const SizedBox(width: 8),
             _ActionButton(
-              color: AppColors.success,
+              color: Color(0xffDAFEE8),
               icon: Assets.images.done.svg(
-                width: 16,
-                height: 16,
+                width: 18,
+                height: 18,
                 colorFilter: const ColorFilter.mode(
-                  Colors.white,
+                  Color(0xff0EAB52),
                   BlendMode.srcIn,
                 ),
               ),
@@ -75,12 +75,12 @@ class ChildStatusActions extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _ActionButton(
-              color: AppColors.error,
+              color: Color(0xffFFDFDF),
               icon: Assets.images.xFill.svg(
-                width: 16,
-                height: 16,
+                width: 18,
+                height: 18,
                 colorFilter: const ColorFilter.mode(
-                  Colors.white,
+                  Color(0xffED1515),
                   BlendMode.srcIn,
                 ),
               ),
@@ -145,7 +145,7 @@ class ChildStatusActions extends StatelessWidget {
                 'Absent',
                 style: TextStyle(
                   color: Color(0xffED1515),
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -166,8 +166,8 @@ class _MoreButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 32,
-        height: 32,
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
           color: AppColors.backgroundWhite,
           borderRadius: BorderRadius.circular(8),
@@ -199,8 +199,8 @@ class _ActionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 32,
-        height: 32,
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(8),
