@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:teacher_app/features/activity/activity_screen.dart';
 import 'package:teacher_app/features/home/widgets/appbar_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
@@ -17,9 +18,42 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  DateTime? _lastBackPressTime;
+
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    
+    // اگر اولین بار است یا زمان زیادی از آخرین کلیک گذشته (بیش از 2 ثانیه)
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      // اولین کلیک: نمایش SnackBar و جلوگیری از خروج
+      _lastBackPressTime = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('اگر می‌خواهید از اپ خارج شوید، دوباره دکمه back را بزنید'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return false; // جلوگیری از خروج
+    } else {
+      // دوباره کلیک شده در مدت زمان کوتاه: اجازه خروج
+      return true; // اجازه خروج از اپ
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        
+        final shouldPop = await _onWillPop();
+        if (shouldPop && mounted) {
+          SystemNavigator.pop(); // خروج از اپ
+        }
+      },
+      child: Scaffold(
       body: ValueListenableBuilder(
         valueListenable: MyHomePage.pageIndex,
         builder: (context, value, child) {
@@ -52,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
       bottomNavigationBar: BottomNavigationBarWidget(),
+      ),
     );
   }
 }
