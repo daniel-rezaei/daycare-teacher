@@ -9,6 +9,7 @@ import 'package:teacher_app/features/home/widgets/appbar_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/home/widgets/bottom_navigation_bar_widget.dart';
 import 'package:teacher_app/features/home/widgets/card_widget.dart';
+import 'package:teacher_app/features/home/widgets/home_shimmer_widget.dart';
 import 'package:teacher_app/features/messages/messages_screen.dart';
 import 'package:teacher_app/features/profile/presentation/widgets/profile_section_widget.dart';
 import 'package:teacher_app/features/time_screen/time_screen.dart';
@@ -105,19 +106,33 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       },
       child: Scaffold(
-      body: ValueListenableBuilder(
-        valueListenable: MyHomePage.pageIndex,
-        builder: (context, value, child) {
-          // استفاده از IndexedStack برای نگه داشتن تمام صفحات
-          // این باعث می‌شود که initState فقط یک بار صدا زده شود
-          final index = value.clamp(0, _pages.length - 1);
-          return IndexedStack(
-            index: index,
-            children: _pages,
-          );
-        },
-      ),
-      bottomNavigationBar: BottomNavigationBarWidget(),
+        body: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            // بررسی اینکه آیا باید shimmer نمایش داده شود
+            // از ابتدا shimmer نمایش داده می‌شود تا زمانی که داده‌های ضروری لود شوند
+            final shouldShowShimmer = !state.hasLoadedInitialDataOnce;
+
+            // اگر داده‌های ضروری هنوز لود نشده‌اند، shimmer نمایش بده
+            if (shouldShowShimmer) {
+              return const HomeShimmerWidget();
+            }
+
+            // در غیر این صورت، محتوای عادی را نمایش بده
+            return ValueListenableBuilder(
+              valueListenable: MyHomePage.pageIndex,
+              builder: (context, value, child) {
+                // استفاده از IndexedStack برای نگه داشتن تمام صفحات
+                // این باعث می‌شود که initState فقط یک بار صدا زده شود
+                final index = value.clamp(0, _pages.length - 1);
+                return IndexedStack(
+                  index: index,
+                  children: _pages,
+                );
+              },
+            );
+          },
+        ),
+        bottomNavigationBar: BottomNavigationBarWidget(),
       ),
     );
   }

@@ -86,6 +86,39 @@ sealed class HomeState extends Equatable {
     this.eventsError,
   });
 
+  /// بررسی اینکه آیا داده‌های اصلی در حال لود شدن هستند
+  /// این متد فقط بررسی می‌کند که آیا در حال حاضر loading فعال است یا نه
+  bool get isInitialLoading {
+    return isLoadingClassRooms ||
+        isLoadingContact ||
+        isLoadingSession ||
+        isLoadingChildren ||
+        isLoadingContacts ||
+        isLoadingAttendance ||
+        isLoadingNotifications ||
+        isLoadingEvents ||
+        isLoadingDietaryRestrictions ||
+        isLoadingMedications;
+  }
+
+  /// بررسی اینکه آیا همه داده‌های اصلی لود شده‌اند
+  /// این متد بررسی می‌کند که آیا همه درخواست‌ها به پایان رسیده‌اند (موفق یا ناموفق)
+  /// اگر هیچ loading فعالی وجود نداشته باشد، یعنی همه درخواست‌ها به پایان رسیده‌اند
+  bool get isInitialDataLoaded {
+    return !isInitialLoading;
+  }
+
+  /// بررسی اینکه آیا داده‌های ضروری حداقل یک بار لود شده‌اند
+  /// این متد برای جلوگیری از نمایش shimmer در درخواست‌های بعدی استفاده می‌شود
+  bool get hasLoadedInitialDataOnce {
+    // بررسی اینکه آیا حداقل یکی از داده‌های ضروری لود شده است
+    // این به ما کمک می‌کند تا بفهمیم آیا اولین بار است که داده‌ها لود می‌شوند یا نه
+    return (classRooms != null || classRoomsError != null) &&
+        (contact != null || contactError != null) &&
+        (children != null || childrenError != null) &&
+        (contacts != null || contactsError != null);
+  }
+
   @override
   List<Object?> get props => [
         classRooms,

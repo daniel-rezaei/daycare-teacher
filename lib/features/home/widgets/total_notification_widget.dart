@@ -54,17 +54,20 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
       setState(() {
         classId = savedClassId;
       });
-      if (!_hasRequestedChildren) {
+      // بررسی اینکه آیا داده‌ها قبلاً لود شده‌اند
+      final currentState = context.read<HomeBloc>().state;
+      
+      if (!_hasRequestedChildren && (currentState.children == null || currentState.isLoadingChildren)) {
         _hasRequestedChildren = true;
         debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadChildrenEvent');
         context.read<HomeBloc>().add(const LoadChildrenEvent());
       }
-      if (!_hasRequestedContacts) {
+      if (!_hasRequestedContacts && (currentState.contacts == null || currentState.isLoadingContacts)) {
         _hasRequestedContacts = true;
         debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadContactsEvent');
         context.read<HomeBloc>().add(const LoadContactsEvent());
       }
-      if (!_hasRequestedAttendance) {
+      if (!_hasRequestedAttendance && (currentState.attendanceList == null || currentState.isLoadingAttendance)) {
         _hasRequestedAttendance = true;
         debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadAttendanceEvent');
         context.read<HomeBloc>().add(LoadAttendanceEvent(savedClassId));
@@ -74,14 +77,16 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
       _loadLocallyAbsentChildren(savedClassId);
 
       // دریافت notifications
-      if (!_hasRequestedNotifications) {
+      if (!_hasRequestedNotifications && (currentState.notifications == null || currentState.isLoadingNotifications)) {
         _hasRequestedNotifications = true;
         debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadNotificationsEvent');
         context.read<HomeBloc>().add(const LoadNotificationsEvent());
       }
 
-      // دریافت session برای بررسی استارت کلاس
-      context.read<HomeBloc>().add(LoadSessionEvent(savedClassId));
+      // دریافت session برای بررسی استارت کلاس (فقط اگر قبلاً لود نشده باشد)
+      if (currentState.session == null && !currentState.isLoadingSession) {
+        context.read<HomeBloc>().add(LoadSessionEvent(savedClassId));
+      }
     } else {
       debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId is null or empty');
     }

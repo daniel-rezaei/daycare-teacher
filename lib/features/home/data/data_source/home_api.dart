@@ -101,7 +101,7 @@ class HomeApi {
   }
 
   Future<Response> getAllDietaryRestrictions() async {
-    return await httpclient.get('/items/Child_Dietary_Restrictions');
+    return await httpclient.get('/items/child_dietary_restrictions');
   }
 
   Future<Response> getAllMedications() async {
