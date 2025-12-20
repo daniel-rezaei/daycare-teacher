@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
-import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/item_widget.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -22,12 +22,12 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
   void initState() {
     super.initState();
     // درخواست داده‌ها در صورت نیاز
-    final currentState = context.read<ChildBloc>().state;
+    final currentState = context.read<HomeBloc>().state;
     if (currentState.dietaryRestrictions == null) {
-      context.read<ChildBloc>().add(const GetAllDietaryRestrictionsEvent());
+      context.read<HomeBloc>().add(const LoadDietaryRestrictionsEvent());
     }
     if (currentState.medications == null) {
-      context.read<ChildBloc>().add(const GetAllMedicationsEvent());
+      context.read<HomeBloc>().add(const LoadMedicationsEvent());
     }
   }
 
@@ -268,7 +268,7 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChildBloc, ChildState>(
+    return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         final children = state.children ?? [];
         final contacts = state.contacts ?? [];

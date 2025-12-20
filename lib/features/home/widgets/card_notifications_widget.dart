@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
-import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
-import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class CardNotificationsWidget extends StatefulWidget {
@@ -42,18 +41,18 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
       if (!_hasRequestedSession) {
         _hasRequestedSession = true;
         debugPrint(
-            '[CARD_NOTIFICATIONS_DEBUG] Requesting GetSessionByClassIdEvent');
+            '[CARD_NOTIFICATIONS_DEBUG] Requesting LoadSessionEvent');
         context
-            .read<SessionBloc>()
-            .add(GetSessionByClassIdEvent(classId: savedClassId));
+            .read<HomeBloc>()
+            .add(LoadSessionEvent(savedClassId));
       }
     } else {
       debugPrint('[CARD_NOTIFICATIONS_DEBUG] classId is null or empty');
     }
   }
 
-  String? _getRoomName(List<ClassRoomEntity> classRooms) {
-    if (classId == null) return null;
+  String? _getRoomName(List<ClassRoomEntity>? classRooms) {
+    if (classId == null || classRooms == null) return null;
 
     try {
       final classRoom = classRooms.firstWhere(
@@ -97,14 +96,14 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
     }
 
     final isCheckedIn = _isCheckedIn(session);
-    final sessionBloc = context.read<SessionBloc>();
+    final homeBloc = context.read<HomeBloc>();
 
     if (isCheckedIn) {
       // Check-out: Update existing session
       if (session?.id != null && classId != null) {
         final endAt = _getCurrentDateTime();
         debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-out: sessionId=${session!.id}, endAt=$endAt');
-        sessionBloc.add(
+        homeBloc.add(
           UpdateSessionEvent(
             sessionId: session.id!,
             endAt: endAt,
@@ -116,7 +115,7 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
       // Check-in: Create new session
       final startAt = _getCurrentDateTime();
       debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-in: staffId=$staffId, classId=$classId, startAt=$startAt');
-      sessionBloc.add(
+      homeBloc.add(
         CreateSessionEvent(
           staffId: staffId!,
           classId: classId!,
@@ -128,51 +127,12 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SessionBloc, SessionState>(
-      builder: (context, sessionState) {
-        return BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, authState) {
-            String? roomName;
-            if (authState is GetClassRoomsSuccess) {
-              roomName = _getRoomName(authState.classRooms);
-            }
-
-            StaffClassSessionEntity? session;
-            bool isLoading = false;
-            bool isProcessing = false;
-
-            if (sessionState is GetSessionByClassIdLoading ||
-                sessionState is CreateSessionLoading ||
-                sessionState is UpdateSessionLoading) {
-              isLoading = true;
-              isProcessing = sessionState is CreateSessionLoading || sessionState is UpdateSessionLoading;
-            } else if (sessionState is GetSessionByClassIdSuccess) {
-              session = sessionState.session;
-              isLoading = false;
-            } else if (sessionState is CreateSessionSuccess) {
-              // بعد از ایجاد session موفق، session جدید را دریافت می‌کنیم
-              if (classId != null) {
-                context.read<SessionBloc>().add(GetSessionByClassIdEvent(classId: classId!));
-              }
-              isLoading = false;
-            } else if (sessionState is UpdateSessionSuccess) {
-              // بعد از update session موفق، session جدید را دریافت می‌کنیم
-              if (classId != null) {
-                context.read<SessionBloc>().add(GetSessionByClassIdEvent(classId: classId!));
-              }
-              isLoading = false;
-            } else if (sessionState is GetSessionByClassIdFailure ||
-                sessionState is CreateSessionFailure ||
-                sessionState is UpdateSessionFailure) {
-              // Error state - show default message
-              final errorMessage = sessionState is GetSessionByClassIdFailure
-                  ? sessionState.message
-                  : sessionState is CreateSessionFailure
-                      ? sessionState.message
-                      : (sessionState as UpdateSessionFailure).message;
-              debugPrint('[CARD_NOTIFICATIONS_DEBUG] Error: $errorMessage');
-              isLoading = false;
-            }
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        String? roomName = _getRoomName(state.classRooms);
+        StaffClassSessionEntity? session = state.session;
+        bool isLoading = state.isLoadingSession;
+        bool isProcessing = state.isProcessingSession;
 
             final isCheckedIn = _isCheckedIn(session);
             final displayText = isCheckedIn
@@ -251,8 +211,6 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
                 ],
               ),
             );
-          },
-        );
       },
     );
   }

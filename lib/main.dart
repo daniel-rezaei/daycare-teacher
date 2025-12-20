@@ -9,16 +9,14 @@ import 'package:teacher_app/features/attendance/presentation/bloc/attendance_blo
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
-import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
-import 'package:teacher_app/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,18 +46,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => getIt<HomeBloc>()),
         BlocProvider(create: (_) => getIt<AuthBloc>()),
         BlocProvider(create: (_) => getIt<ProfileBloc>()),
         BlocProvider(create: (_) => getIt<ChildBloc>()),
-        BlocProvider(create: (_) => getIt<EventBloc>()),
-        BlocProvider(create: (_) => getIt<SessionBloc>()),
         BlocProvider(create: (_) => getIt<AttendanceBloc>()),
         BlocProvider(create: (_) => getIt<PickupAuthorizationBloc>()),
         BlocProvider(create: (_) => getIt<StaffAttendanceBloc>()),
         BlocProvider(create: (_) => getIt<StaffScheduleBloc>()),
         BlocProvider(create: (_) => getIt<ChildGuardianBloc>()),
         BlocProvider(create: (_) => getIt<ChildEmergencyContactBloc>()),
-        BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: MaterialApp(
         title: 'Teacher App',

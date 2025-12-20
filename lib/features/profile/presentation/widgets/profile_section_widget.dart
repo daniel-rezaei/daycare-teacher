@@ -3,11 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/auth/presentation/select_class_screen.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
-import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class ProfileSectionWidget extends StatefulWidget {
@@ -45,17 +44,32 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
         staffId = savedStaffId;
         classId = savedClassId;
       });
-      context.read<ProfileBloc>().add(GetContactEvent(id: savedContactId));
+      context.read<HomeBloc>().add(LoadContactEvent(savedContactId));
     } else {
       debugPrint('[PROFILE_DEBUG] contactId is null or empty');
     }
   }
 
+  String? _getClassName() {
+    if (classId == null) return null;
+    final homeState = context.read<HomeBloc>().state;
+    if (homeState.classRooms == null) return null;
+    
+    try {
+      final classRoom = homeState.classRooms!.firstWhere(
+        (room) => room.id == classId,
+      );
+      return classRoom.roomName;
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
+    return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        if (state is GetContactLoading) {
+        if (state.isLoadingContact) {
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             child: Row(
@@ -71,8 +85,8 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
           );
         }
 
-        if (state is GetContactSuccess) {
-          final contact = state.contact;
+        if (state.contact != null) {
+          final contact = state.contact!;
           final fullName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
           final displayName = fullName.isNotEmpty ? fullName : 'User';
 
@@ -98,32 +112,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
           );
         }
 
-        if (state is GetContactFailure) {
-          debugPrint('[PROFILE_DEBUG] GetContactFailure: ${state.message}');
-          // در صورت خطا، placeholder نمایش بده
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-            child: Row(
-              children: [
-                _buildPlaceholderAvatar(),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    '',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xff444349),
-                    ),
-                  ),
-                ),
-                _buildSwitchAccountIcon(),
-              ],
-            ),
-          );
-        }
-
-        // Initial state - show placeholder
+        // Initial state or error - show placeholder
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
           child: Row(
@@ -149,51 +138,38 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   Widget _buildProfileAvatar(String? photoId) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
+    return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         String? teacherName;
         String? teacherPhoto;
         String? className;
         
-        if (state is GetContactSuccess) {
-          final contact = state.contact;
+        if (state.contact != null) {
+          final contact = state.contact!;
           teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
           teacherPhoto = contact.photo;
         }
         
-        return BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, authState) {
-            if (authState is GetClassRoomsSuccess && classId != null) {
-              try {
-                final classRoom = authState.classRooms.firstWhere(
-                  (room) => room.id == classId,
-                );
-                className = classRoom.roomName;
-              } catch (e) {
-                // ignore
-              }
-            }
-            
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PersonalInformationScreen(
-                      teacherName: teacherName ?? '',
-                      teacherPhoto: teacherPhoto,
-                      className: className ?? '',
-                      staffId: staffId ?? '',
-                      contactId: contactId ?? '',
-                    ),
-                  ),
-                );
-              },
-              child: photoId == null || photoId.isEmpty
-                  ? _buildPlaceholderAvatar()
-                  : _buildAvatarImage(photoId),
+        className = _getClassName();
+        
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PersonalInformationScreen(
+                  teacherName: teacherName ?? '',
+                  teacherPhoto: teacherPhoto,
+                  className: className ?? '',
+                  staffId: staffId ?? '',
+                  contactId: contactId ?? '',
+                ),
+              ),
             );
           },
+          child: photoId == null || photoId.isEmpty
+              ? _buildPlaceholderAvatar()
+              : _buildAvatarImage(photoId),
         );
       },
     );
@@ -219,123 +195,96 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   Widget _buildLoadingAvatar() {
-    return BlocBuilder<ProfileBloc, ProfileState>(
+    return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         String? teacherName;
         String? teacherPhoto;
         String? className;
 
-        if (state is GetContactSuccess) {
-          final contact = state.contact;
+        if (state.contact != null) {
+          final contact = state.contact!;
           teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
           teacherPhoto = contact.photo;
         }
 
-        return BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, authState) {
-            if (authState is GetClassRoomsSuccess && classId != null) {
-              try {
-                final classRoom = authState.classRooms.firstWhere(
-                  (room) => room.id == classId,
-                );
-                className = classRoom.roomName;
-              } catch (e) {
-                // ignore
-              }
-            }
+        className = _getClassName();
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PersonalInformationScreen(
-                      teacherName: teacherName ?? '',
-                      teacherPhoto: teacherPhoto,
-                      className: className ?? '',
-                      staffId: staffId ?? '',
-                      contactId: contactId ?? '',
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(24),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PersonalInformationScreen(
+                  teacherName: teacherName ?? '',
+                  teacherPhoto: teacherPhoto,
+                  className: className ?? '',
+                  staffId: staffId ?? '',
+                  contactId: contactId ?? '',
                 ),
-                child: const CupertinoActivityIndicator(),
               ),
             );
           },
+          child: Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const CupertinoActivityIndicator(),
+          ),
         );
       },
     );
   }
 
   Widget _buildPlaceholderAvatar() {
-    return BlocBuilder<ProfileBloc, ProfileState>(
+    return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         String? teacherName;
         String? teacherPhoto;
         String? className;
 
-        if (state is GetContactSuccess) {
-          final contact = state.contact;
+        if (state.contact != null) {
+          final contact = state.contact!;
           teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
           teacherPhoto = contact.photo;
         }
 
-        return BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, authState) {
-            if (authState is GetClassRoomsSuccess && classId != null) {
-              try {
-                final classRoom = authState.classRooms.firstWhere(
-                  (room) => room.id == classId,
-                );
-                className = classRoom.roomName;
-              } catch (e) {
-                // ignore
-              }
-            }
+        className = _getClassName();
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PersonalInformationScreen(
-                      teacherName: teacherName ?? '',
-                      teacherPhoto: teacherPhoto,
-                      className: className ?? '',
-                      staffId: staffId ?? '',
-                      contactId: contactId ?? '',
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(24),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PersonalInformationScreen(
+                  teacherName: teacherName ?? '',
+                  teacherPhoto: teacherPhoto,
+                  className: className ?? '',
+                  staffId: staffId ?? '',
+                  contactId: contactId ?? '',
                 ),
-                child: const Icon(Icons.person, color: Colors.white),
               ),
             );
           },
+          child: Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: const Icon(Icons.person, color: Colors.white),
+          ),
         );
       },
     );
   }
 
   Widget _buildSwitchAccountIcon() {
-
     return GestureDetector(
       onTap: () {
         if (authMode == 'individual') {
@@ -364,49 +313,49 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   void _navigateToSelectClass() {
-    final authBloc = context.read<AuthBloc>();
-    final currentState = authBloc.state;
+    final homeBloc = context.read<HomeBloc>();
+    final currentState = homeBloc.state;
     
     // اگر کلاس‌ها قبلاً دریافت شده باشند، مستقیماً به صفحه برو
-    if (currentState is GetClassRoomsSuccess) {
+    if (currentState.classRooms != null && currentState.classRooms!.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => SelectClassScreen(
-            classRooms: currentState.classRooms,
+            classRooms: currentState.classRooms!,
           ),
         ),
       );
     } else {
       // در غیر این صورت، ابتدا کلاس‌ها را دریافت کن
-      authBloc.add(const GetClassRoomsEvent());
+      homeBloc.add(const LoadClassRoomsEvent());
       
       // استفاده از BlocListener برای گوش دادن به state
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (dialogContext) => BlocListener<AuthBloc, AuthState>(
+        builder: (dialogContext) => BlocListener<HomeBloc, HomeState>(
           listener: (context, state) {
-            if (state is GetClassRoomsSuccess) {
+            if (state.classRooms != null && state.classRooms!.isNotEmpty) {
               Navigator.pop(dialogContext); // بستن dialog
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => SelectClassScreen(
-                    classRooms: state.classRooms,
+                    classRooms: state.classRooms!,
                   ),
                 ),
               );
-            } else if (state is GetClassRoomsFailure) {
+            } else if (state.classRoomsError != null) {
               Navigator.pop(dialogContext); // بستن dialog
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
+                SnackBar(content: Text(state.classRoomsError!)),
               );
             }
           },
-          child: BlocBuilder<AuthBloc, AuthState>(
+          child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
-              if (state is GetClassRoomsLoading) {
+              if (state.isLoadingClassRooms) {
                 return const Center(
                   child: CupertinoActivityIndicator(),
                 );
@@ -419,4 +368,3 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     }
   }
 }
-

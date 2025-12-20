@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
-import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class AppbarWidget extends StatefulWidget {
@@ -32,10 +32,10 @@ class _AppbarWidgetState extends State<AppbarWidget> {
         classId = savedClassId;
       });
       // فقط در صورتی که state قبلاً success نبوده باشد
-      final currentState = context.read<AuthBloc>().state;
-      if (currentState is! GetClassRoomsSuccess) {
-        debugPrint('[APPBAR_DEBUG] Requesting GetClassRoomsEvent');
-        context.read<AuthBloc>().add(const GetClassRoomsEvent());
+      final currentState = context.read<HomeBloc>().state;
+      if (currentState.classRooms == null || currentState.classRooms!.isEmpty) {
+        debugPrint('[APPBAR_DEBUG] Requesting LoadClassRoomsEvent');
+        context.read<HomeBloc>().add(const LoadClassRoomsEvent());
       } else {
         debugPrint('[APPBAR_DEBUG] ClassRooms already loaded');
       }
@@ -44,8 +44,8 @@ class _AppbarWidgetState extends State<AppbarWidget> {
     }
   }
 
-  String? _getRoomName(List<ClassRoomEntity> classRooms) {
-    if (classId == null) return null;
+  String? _getRoomName(List<ClassRoomEntity>? classRooms) {
+    if (classId == null || classRooms == null) return null;
     
     try {
       final classRoom = classRooms.firstWhere(
@@ -59,18 +59,11 @@ class _AppbarWidgetState extends State<AppbarWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
+    return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        String? roomName;
+        String? roomName = _getRoomName(state.classRooms);
 
-        debugPrint('[APPBAR_DEBUG] AuthState: ${state.runtimeType}');
-
-        if (state is GetClassRoomsSuccess) {
-          roomName = _getRoomName(state.classRooms);
-          debugPrint('[APPBAR_DEBUG] Room name: $roomName');
-        } else if (state is GetClassRoomsFailure) {
-          debugPrint('[APPBAR_DEBUG] GetClassRoomsFailure: ${state.message}');
-        }
+        debugPrint('[APPBAR_DEBUG] HomeState classRooms: ${state.classRooms?.length ?? 0}');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -103,7 +96,7 @@ class _AppbarWidgetState extends State<AppbarWidget> {
               children: [
                 Assets.images.leftSlotItems.svg(),
                     const SizedBox(width: 8),
-                    if (state is GetClassRoomsLoading)
+                    if (state.isLoadingClassRooms)
                       const SizedBox(
                         width: 16,
                         height: 16,

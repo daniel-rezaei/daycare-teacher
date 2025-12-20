@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
-import 'package:teacher_app/features/event/presentation/bloc/event_bloc.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/upcoming_event_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -18,7 +18,7 @@ class _UpcomingEventsHeaderWidgetState
   @override
   void initState() {
     super.initState();
-    context.read<EventBloc>().add(const GetAllEventsEvent());
+    context.read<HomeBloc>().add(const LoadEventsEvent());
   }
 
   List<EventUiModel> _convertToUiModels(List<EventEntity> events) {
@@ -97,9 +97,9 @@ class _UpcomingEventsHeaderWidgetState
           ],
         ),
         const SizedBox(height: 14),
-        BlocBuilder<EventBloc, EventState>(
+        BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
-            if (state is GetAllEventsLoading) {
+            if (state.isLoadingEvents) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
@@ -108,8 +108,8 @@ class _UpcomingEventsHeaderWidgetState
               );
             }
 
-            if (state is GetAllEventsSuccess) {
-              final events = _convertToUiModels(state.events);
+            if (state.events != null && state.events!.isNotEmpty) {
+              final events = _convertToUiModels(state.events!);
               
               if (events.isEmpty) {
                 return const SizedBox.shrink();
@@ -118,12 +118,12 @@ class _UpcomingEventsHeaderWidgetState
               return UpcomingEventsCardStackUI(events: events);
             }
 
-            if (state is GetAllEventsFailure) {
+            if (state.eventsError != null) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    state.message,
+                    state.eventsError!,
                     style: const TextStyle(
                       color: Color(0xff444349),
                       fontSize: 14,

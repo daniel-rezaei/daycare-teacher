@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/features/activity/activity_screen.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/appbar_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/home/widgets/bottom_navigation_bar_widget.dart';
@@ -19,6 +23,29 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   DateTime? _lastBackPressTime;
+  bool _hasLoadedData = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadHomeData();
+  }
+
+  Future<void> _loadHomeData() async {
+    if (_hasLoadedData) return;
+    
+    final prefs = await SharedPreferences.getInstance();
+    final classId = prefs.getString(AppConstants.classIdKey);
+    final contactId = prefs.getString('contact_id');
+    
+    if (mounted && (classId != null || contactId != null)) {
+      context.read<HomeBloc>().add(LoadHomeDataEvent(
+        classId: classId,
+        contactId: contactId,
+      ));
+      _hasLoadedData = true;
+    }
+  }
   
   // نگه داشتن صفحات برای جلوگیری از rebuild و درخواست مجدد API
   // استفاده از late final و ساخت در build برای دسترسی به context
