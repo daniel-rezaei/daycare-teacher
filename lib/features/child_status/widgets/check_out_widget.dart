@@ -14,6 +14,7 @@ import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -178,16 +179,36 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
     return BlocListener<AttendanceBloc, AttendanceState>(
       listener: (context, state) {
         if (state is UpdateAttendanceSuccess) {
-          // بعد از موفقیت Check-Out، به صفحه قبلی برمی‌گردیم
-          debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceSuccess - Closing modal');
-          Navigator.pop(context);
+          // بعد از موفقیت Check-Out، به MyHomePage منتقل می‌شویم
+          // و تمام صفحات قبلی از navigation stack حذف می‌شوند
+          debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceSuccess - Navigating to MyHomePage');
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const MyHomePage()),
+              (_) => false, // تمام صفحات قبلی را حذف می‌کند
+            );
+          }
         } else if (state is UpdateAttendanceFailure) {
           setState(() {
             _isSubmitting = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          // نمایش خطا به کاربر
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+            // بعد از نمایش خطا (با کمی تاخیر)، به MyHomePage منتقل می‌شویم
+            // و تمام صفحات قبلی از navigation stack حذف می‌شوند
+            debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceFailure - Navigating to MyHomePage after error');
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const MyHomePage()),
+                  (_) => false, // تمام صفحات قبلی را حذف می‌کند
+                );
+              }
+            });
+          }
         }
       },
       child: ModalBottomSheetWrapper(
