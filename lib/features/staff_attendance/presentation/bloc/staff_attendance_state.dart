@@ -29,3 +29,41 @@ final class GetStaffAttendanceByStaffIdFailure extends StaffAttendanceState {
   List<Object?> get props => [message];
 }
 
+/// States for GetLatestStaffAttendance
+final class GetLatestStaffAttendanceLoading extends StaffAttendanceState {
+  const GetLatestStaffAttendanceLoading();
+}
+
+final class GetLatestStaffAttendanceSuccess extends StaffAttendanceState {
+  final StaffAttendanceEntity? latestAttendance;
+  const GetLatestStaffAttendanceSuccess(this.latestAttendance);
+  @override
+  List<Object?> get props => [latestAttendance];
+}
+
+final class GetLatestStaffAttendanceFailure extends StaffAttendanceState {
+  final String message;
+  const GetLatestStaffAttendanceFailure(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+/// States for CreateStaffAttendance
+final class CreateStaffAttendanceLoading extends StaffAttendanceState {
+  const CreateStaffAttendanceLoading();
+}
+
+final class CreateStaffAttendanceSuccess extends StaffAttendanceState {
+  final StaffAttendanceEntity attendance;
+  const CreateStaffAttendanceSuccess(this.attendance);
+  @override
+  List<Object?> get props => [attendance];
+}
+
+final class CreateStaffAttendanceFailure extends StaffAttendanceState {
+  final String message;
+  const CreateStaffAttendanceFailure(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+

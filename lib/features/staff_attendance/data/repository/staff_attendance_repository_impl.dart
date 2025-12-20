@@ -37,6 +37,54 @@ class StaffAttendanceRepositoryImpl extends StaffAttendanceRepository {
     }
   }
 
+  @override
+  Future<DataState<StaffAttendanceEntity?>> getLatestStaffAttendance({
+    required String staffId,
+  }) async {
+    try {
+      final Response response = await staffAttendanceApi.getLatestStaffAttendance(
+        staffId: staffId,
+      );
+
+      final List<dynamic> dataList = response.data['data'] as List<dynamic>;
+      if (dataList.isEmpty) {
+        return DataSuccess(null);
+      }
+
+      final StaffAttendanceEntity attendance = StaffAttendanceModel.fromJson(
+        dataList[0] as Map<String, dynamic>,
+      );
+
+      return DataSuccess(attendance);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<DataState<StaffAttendanceEntity>> createStaffAttendance({
+    required String staffId,
+    required String eventType,
+    required String eventAt,
+    String? classId,
+  }) async {
+    try {
+      final Response response = await staffAttendanceApi.createStaffAttendance(
+        staffId: staffId,
+        eventType: eventType,
+        eventAt: eventAt,
+        classId: classId,
+      );
+
+      final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
+      final StaffAttendanceEntity attendance = StaffAttendanceModel.fromJson(data);
+
+      return DataSuccess(attendance);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
   DataFailed<T> _handleDioError<T>(DioException e) {
     String errorMessage = 'خطا در دریافت اطلاعات';
 

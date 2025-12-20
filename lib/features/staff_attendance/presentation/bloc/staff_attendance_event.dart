@@ -22,3 +22,29 @@ class GetStaffAttendanceByStaffIdEvent extends StaffAttendanceEvent {
   List<Object> get props => [staffId, startDate ?? '', endDate ?? ''];
 }
 
+/// دریافت آخرین رکورد Attendance_Staff
+class GetLatestStaffAttendanceEvent extends StaffAttendanceEvent {
+  final String staffId;
+
+  const GetLatestStaffAttendanceEvent({required this.staffId});
+
+  @override
+  List<Object> get props => [staffId];
+}
+
+/// ثبت رویداد time_in یا time_out
+class CreateStaffAttendanceEvent extends StaffAttendanceEvent {
+  final String staffId;
+  final String eventType; // 'time_in' or 'time_out'
+  final String? classId;
+
+  const CreateStaffAttendanceEvent({
+    required this.staffId,
+    required this.eventType,
+    this.classId,
+  });
+
+  @override
+  List<Object> get props => [staffId, eventType, classId ?? ''];
+}
+

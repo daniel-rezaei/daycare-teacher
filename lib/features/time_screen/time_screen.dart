@@ -1,12 +1,93 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
+import 'package:teacher_app/features/staff_attendance/domain/entity/staff_attendance_entity.dart';
+import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class TimeScreen extends StatelessWidget {
+class TimeScreen extends StatefulWidget {
   const TimeScreen({super.key});
+
+  @override
+  State<TimeScreen> createState() => _TimeScreenState();
+}
+
+class _TimeScreenState extends State<TimeScreen> {
+  String? _staffId;
+  String? _classId;
+  Timer? _timer;
+  Duration _elapsed = Duration.zero;
+  DateTime? _lastEventAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIds();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final staffId = prefs.getString('staff_id');
+    final classId = prefs.getString(AppConstants.classIdKey);
+
+    if (mounted && staffId != null && staffId.isNotEmpty) {
+      setState(() {
+        _staffId = staffId;
+        _classId = classId;
+      });
+
+      // دریافت آخرین وضعیت از API
+      context.read<StaffAttendanceBloc>().add(
+            GetLatestStaffAttendanceEvent(staffId: staffId),
+          );
+    }
+  }
+
+  void _startTimer(DateTime eventAt) {
+    _lastEventAt = eventAt;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _lastEventAt != null) {
+        setState(() {
+          _elapsed = DateTime.now().difference(_lastEventAt!);
+        });
+      }
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+    _lastEventAt = null;
+    if (mounted) {
+      setState(() {
+        _elapsed = Duration.zero;
+      });
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    final h = d.inHours.toString().padLeft(2, '0');
+    final m = (d.inMinutes % 60).toString().padLeft(2, '0');
+    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return "$h:$m:$s";
+  }
+
+  bool _isRunning(StaffAttendanceEntity? latestAttendance) {
+    if (latestAttendance == null) return false;
+    return latestAttendance.eventType == 'time_in';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,20 +130,75 @@ class TimeScreen extends StatelessWidget {
                     ],
                   ),
                   padding: EdgeInsets.all(40),
-                  child: ValueListenableBuilder(
-                    valueListenable: TimeTracker.isRunning,
-                    builder: (context, running, child) {
+                  child: BlocConsumer<StaffAttendanceBloc, StaffAttendanceState>(
+                    listener: (context, state) {
+                      if (state is GetLatestStaffAttendanceSuccess) {
+                        final latestAttendance = state.latestAttendance;
+                        if (latestAttendance != null &&
+                            latestAttendance.eventType == 'time_in' &&
+                            latestAttendance.eventAt != null) {
+                          try {
+                            final eventAt = DateTime.parse(latestAttendance.eventAt!);
+                            _startTimer(eventAt);
+                          } catch (e) {
+                            debugPrint('[TIME_SCREEN] Error parsing eventAt: $e');
+                            _stopTimer();
+                          }
+                        } else {
+                          _stopTimer();
+                        }
+                      } else if (state is CreateStaffAttendanceSuccess) {
+                        // بعد از ثبت موفق، تایمر را به‌روزرسانی کن
+                        final attendance = state.attendance;
+                        if (attendance.eventType == 'time_in' &&
+                            attendance.eventAt != null) {
+                          try {
+                            final eventAt = DateTime.parse(attendance.eventAt!);
+                            _startTimer(eventAt);
+                          } catch (e) {
+                            debugPrint('[TIME_SCREEN] Error parsing eventAt: $e');
+                            _stopTimer();
+                          }
+                        } else {
+                          _stopTimer();
+                        }
+                      } else if (state is GetLatestStaffAttendanceFailure ||
+                          state is CreateStaffAttendanceFailure) {
+                        // در صورت خطا، تایمر را متوقف کن
+                        _stopTimer();
+                      }
+                    },
+                    builder: (context, state) {
+                      // دریافت آخرین وضعیت
+                      StaffAttendanceEntity? latestAttendance;
+                      bool isLoading = false;
+                      String? errorMessage;
+
+                      if (state is GetLatestStaffAttendanceLoading ||
+                          state is CreateStaffAttendanceLoading) {
+                        isLoading = true;
+                      } else if (state is GetLatestStaffAttendanceSuccess) {
+                        latestAttendance = state.latestAttendance;
+                      } else if (state is GetLatestStaffAttendanceFailure) {
+                        errorMessage = state.message;
+                      } else if (state is CreateStaffAttendanceFailure) {
+                        errorMessage = state.message;
+                      }
+
+                      final isRunning = _isRunning(latestAttendance);
+                      final isProcessing = state is CreateStaffAttendanceLoading;
+
                       return Column(
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top: 96),
-                            child: running
+                            child: isRunning
                                 ? Assets.images.timeout.svg()
                                 : Assets.images.timeIn.svg(),
                           ),
                           SizedBox(height: 24),
                           Text(
-                            running ? 'Time_Out' : 'Please Time_In First',
+                            isRunning ? 'Time_Out' : 'Please Time_In First',
                             style: TextStyle(
                               color: Color(0xff444349),
                               fontSize: 30,
@@ -71,9 +207,9 @@ class TimeScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 6),
                           Text(
-                            running
+                            isRunning
                                 ? 'Are you sure you want to Time Out?'
-                                : 'To access your account, make sure you’ve timed in with your daycare',
+                                : 'To access your account, make sure you\'ve timed in with your daycare',
                             style: TextStyle(
                               color: Color(0xff71717A).withValues(alpha: .8),
                               fontSize: 14,
@@ -84,57 +220,84 @@ class TimeScreen extends StatelessWidget {
                           SizedBox(height: 24),
 
                           // نمایش تایمر
-                          ValueListenableBuilder(
-                            valueListenable: TimeTracker.isRunning,
-                            builder: (context, running, child) {
-                              if (running) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: Color(0xffF4F4F5),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  padding: EdgeInsets.symmetric(vertical: 16),
-                                  alignment: Alignment.center,
-                                  child: ValueListenableBuilder<Duration>(
-                                    valueListenable: TimeTracker.elapsed,
-                                    builder: (context, value, _) {
-                                      return Text(
-                                        TimeTracker.format(value),
-                                        style: TextStyle(
-                                          color: Color(0xff444349),
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-                              } else {
-                                return SizedBox.shrink();
-                              }
-                            },
-                          ),
+                          if (isRunning)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Color(0xffF4F4F5),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              alignment: Alignment.center,
+                              child: Text(
+                                _formatDuration(_elapsed),
+                                style: TextStyle(
+                                  color: Color(0xff444349),
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+
+                          // نمایش خطا
+                          if (errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Text(
+                                errorMessage,
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
 
                           Spacer(),
 
                           // دکمه Time-In / Time-Out
-                          ValueListenableBuilder<bool>(
-                            valueListenable: TimeTracker.isRunning,
-                            builder: (context, running, _) {
-                              return ButtonWidget(
-                                onTap: () {
-                                  TimeTracker.toggle();
-                                },
-                                child: Text(
-                                  running ? 'Time-Out' : 'Time-In',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                          ButtonWidget(
+                            onTap: isLoading || isProcessing || _staffId == null
+                                ? null
+                                : () {
+                                    if (isRunning) {
+                                      // Time-Out
+                                      context.read<StaffAttendanceBloc>().add(
+                                            CreateStaffAttendanceEvent(
+                                              staffId: _staffId!,
+                                              eventType: 'time_out',
+                                              classId: _classId,
+                                            ),
+                                          );
+                                    } else {
+                                      // Time-In
+                                      context.read<StaffAttendanceBloc>().add(
+                                            CreateStaffAttendanceEvent(
+                                              staffId: _staffId!,
+                                              eventType: 'time_in',
+                                              classId: _classId,
+                                            ),
+                                          );
+                                    }
+                                  },
+                            child: isLoading || isProcessing
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    isRunning ? 'Time-Out' : 'Time-In',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
                           ),
                         ],
                       );
@@ -147,56 +310,5 @@ class TimeScreen extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class TimeTracker {
-  static ValueNotifier<Duration> elapsed = ValueNotifier(Duration.zero);
-  static ValueNotifier<bool> isRunning = ValueNotifier(false);
-
-  static DateTime? _start;
-  static Timer? _timer;
-  static DateTime? _lastResetDate;
-
-  /// شروع یا ادامه تایمر
-  static void toggle() {
-    final now = DateTime.now();
-
-    // ریست کردن اگر روز جدید آمده
-    if (_lastResetDate == null ||
-        now.day != _lastResetDate!.day ||
-        now.difference(_lastResetDate!).inHours >= 24) {
-      reset();
-    }
-
-    if (_timer == null) {
-      // شروع تایمر
-      _start = now.subtract(elapsed.value);
-      _timer = Timer.periodic(Duration(seconds: 1), (_) {
-        elapsed.value = DateTime.now().difference(_start!);
-      });
-      isRunning.value = true;
-    } else {
-      // متوقف کردن تایمر
-      _timer?.cancel();
-      _timer = null;
-      isRunning.value = false;
-    }
-  }
-
-  /// ریست تایمر به صفر
-  static void reset() {
-    _timer?.cancel();
-    _timer = null;
-    elapsed.value = Duration.zero;
-    isRunning.value = false;
-    _lastResetDate = DateTime.now();
-  }
-
-  static String format(Duration d) {
-    final h = d.inHours.toString().padLeft(2, '0');
-    final m = (d.inMinutes % 60).toString().padLeft(2, '0');
-    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return "$h:$m:$s";
   }
 }
