@@ -2,8 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
+import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_status/services/local_absent_storage_service.dart';
+import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/child_status.dart';
 import 'package:teacher_app/features/home/widgets/info_card_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -20,16 +25,23 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
   String? classId;
   bool _hasRequestedChildren = false;
   bool _hasRequestedContacts = false;
+  bool _hasRequestedAttendance = false;
+  Set<String> _locallyAbsentChildIds = {};
 
   @override
   void initState() {
     super.initState();
     _loadClassId();
+    _clearOldAbsentRecords();
+  }
+
+  Future<void> _clearOldAbsentRecords() async {
+    await LocalAbsentStorageService.clearIfDateChanged();
   }
 
   Future<void> _loadClassId() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedClassId = prefs.getString('class_id');
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
     
     debugPrint('[TOTAL_NOTIFICATION_DEBUG] Loading classId: $savedClassId');
     
@@ -47,8 +59,27 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAllContactsEvent');
         context.read<ChildBloc>().add(const GetAllContactsEvent());
       }
+      if (!_hasRequestedAttendance) {
+        _hasRequestedAttendance = true;
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAttendanceByClassIdEvent');
+        context.read<AttendanceBloc>().add(
+          GetAttendanceByClassIdEvent(classId: savedClassId),
+        );
+      }
+
+      // بارگذاری لیست غایبین محلی
+      _loadLocallyAbsentChildren(savedClassId);
     } else {
       debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId is null or empty');
+    }
+  }
+
+  Future<void> _loadLocallyAbsentChildren(String classId) async {
+    final absentSet = await LocalAbsentStorageService.getAbsentToday(classId);
+    if (mounted) {
+      setState(() {
+        _locallyAbsentChildIds = absentSet;
+      });
     }
   }
 
@@ -95,61 +126,100 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
   int _getPresentChildrenCount(
     List<ChildEntity> children,
     List<ContactEntity> contacts,
+    List<AttendanceChildEntity> attendanceList,
   ) {
-    // فعلاً همان تعداد کل را برمی‌گردانیم
-    return _getTotalChildrenCount(children, contacts);
+    if (classId == null) {
+      return 0;
+    }
+
+    final childrenInClass = ChildStatusHelper.getChildrenInClass(
+      children,
+      contacts,
+    );
+
+    // شمارش بچه‌هایی که وضعیت آن‌ها present است
+    final presentCount = childrenInClass
+        .where((child) {
+          final status = ChildStatusHelper.getChildStatusToday(
+            childId: child.id ?? '',
+            classId: classId!,
+            attendanceList: attendanceList,
+            locallyAbsentChildIds: _locallyAbsentChildIds,
+          );
+          return status == ChildAttendanceStatus.present;
+        })
+        .length;
+
+    return presentCount;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChildBloc, ChildState>(
-      builder: (context, state) {
-        String title = '0/0';
-        bool isLoading = false;
-
-        final children = state.children;
-        final contacts = state.contacts;
-        final isLoadingChildren = state.isLoadingChildren;
-        final isLoadingContacts = state.isLoadingContacts;
-        final childrenError = state.childrenError;
-        final contactsError = state.contactsError;
-
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, childrenError=$childrenError, contactsError=$contactsError');
-
-        // بررسی اینکه آیا هر دو داده موجود است
-        final hasBothData = children != null && contacts != null;
-        final hasError = childrenError != null || contactsError != null;
-        final isCurrentlyLoading = isLoadingChildren || isLoadingContacts;
-        
-        // اگر در حال loading است
-        if (isCurrentlyLoading) {
-          isLoading = true;
-        } 
-        // اگر هر دو داده موجود است
-        else if (hasBothData) {
-          final totalCount = _getTotalChildrenCount(children, contacts);
-          final presentCount = _getPresentChildrenCount(children, contacts);
-          title = '$presentCount/$totalCount';
-          isLoading = false;
-        } 
-        // اگر خطا رخ داده است
-        else if (hasError) {
-          // اگر داده‌های قبلی موجود است، از همان استفاده کن
-          if (hasBothData) {
-            final totalCount = _getTotalChildrenCount(children, contacts);
-            final presentCount = _getPresentChildrenCount(children, contacts);
-            title = '$presentCount/$totalCount';
-            isLoading = false;
-          } else {
-            // اگر داده‌ای موجود نیست، loading را false کن و 0/0 نمایش بده
-            isLoading = false;
-            title = '0/0';
-          }
+    return BlocListener<AttendanceBloc, AttendanceState>(
+      listener: (context, attendanceState) {
+        // به‌روزرسانی لیست غایبین محلی وقتی attendance به‌روزرسانی می‌شود
+        if (attendanceState is GetAttendanceByClassIdSuccess && classId != null) {
+          _loadLocallyAbsentChildren(classId!);
         }
-        // در غیر این صورت (هنوز درخواست داده نشده یا در حال loading است)
-        else {
-          isLoading = true;
-        }
+      },
+      child: BlocBuilder<AttendanceBloc, AttendanceState>(
+        builder: (context, attendanceState) {
+          return BlocBuilder<ChildBloc, ChildState>(
+          builder: (context, state) {
+            String title = '0/0';
+            bool isLoading = false;
+
+            final children = state.children;
+            final contacts = state.contacts;
+            final isLoadingChildren = state.isLoadingChildren;
+            final isLoadingContacts = state.isLoadingContacts;
+            final childrenError = state.childrenError;
+            final contactsError = state.contactsError;
+
+            List<AttendanceChildEntity> attendanceList = [];
+            if (attendanceState is GetAttendanceByClassIdSuccess) {
+              attendanceList = attendanceState.attendanceList;
+            }
+
+            final isLoadingAttendance = attendanceState is GetAttendanceByClassIdLoading ||
+                attendanceState is AttendanceInitial;
+
+            debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, attendance=${attendanceList.length}, isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, isLoadingAttendance=$isLoadingAttendance, childrenError=$childrenError, contactsError=$contactsError');
+
+            // بررسی اینکه آیا هر دو داده موجود است
+            final hasBothData = children != null && contacts != null;
+            final hasError = childrenError != null || contactsError != null;
+            final isCurrentlyLoading = isLoadingChildren || isLoadingContacts || isLoadingAttendance;
+            
+            // اگر در حال loading است
+            if (isCurrentlyLoading) {
+              isLoading = true;
+            } 
+            // اگر هر دو داده موجود است
+            else if (hasBothData) {
+              final totalCount = _getTotalChildrenCount(children, contacts);
+              final presentCount = _getPresentChildrenCount(children, contacts, attendanceList);
+              title = '$presentCount/$totalCount';
+              isLoading = false;
+            } 
+            // اگر خطا رخ داده است
+            else if (hasError) {
+              // اگر داده‌های قبلی موجود است، از همان استفاده کن
+              if (hasBothData) {
+                final totalCount = _getTotalChildrenCount(children, contacts);
+                final presentCount = _getPresentChildrenCount(children, contacts, attendanceList);
+                title = '$presentCount/$totalCount';
+                isLoading = false;
+              } else {
+                // اگر داده‌ای موجود نیست، loading را false کن و 0/0 نمایش بده
+                isLoading = false;
+                title = '0/0';
+              }
+            }
+            // در غیر این صورت (هنوز درخواست داده نشده یا در حال loading است)
+            else {
+              isLoading = true;
+            }
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,7 +272,10 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
             ),
           ],
         );
-      },
+          },
+        );
+        },
+      ),
     );
   }
 }
