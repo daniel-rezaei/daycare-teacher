@@ -1,20 +1,22 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/utils/contact_utils.dart';
+import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/core/utils/photo_utils.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
 import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
+import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -41,6 +43,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   final TextEditingController _noteController = TextEditingController();
   final List<File> _images = [];
   String? _selectedContactId;
+  String? _selectedRelationToChild; // برای checkoutPickupContactType
   bool _isSubmitting = false;
 
   @override
@@ -130,18 +133,30 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
         return;
       }
 
-      // ارسال PickupAuthorization
+      // به‌روزرسانی Attendance_Child (Check-Out)
+      // ❌ هیچ PickupAuthorization جدیدی ساخته نمی‌شود
+      // ✅ فقط Attendance_Child به‌روزرسانی می‌شود
+      final checkOutAt = DateUtils.getCurrentDateTime();
       final note = _noteController.text.isNotEmpty ? _noteController.text : null;
-      debugPrint('[CHECKOUT_DEBUG] Dispatching CreatePickupAuthorizationEvent');
-      debugPrint('[CHECKOUT_DEBUG] - childId: $actualChildId');
-      debugPrint('[CHECKOUT_DEBUG] - authorizedContactId: $_selectedContactId');
-      debugPrint('[CHECKOUT_DEBUG] - note: $note');
       
-      context.read<PickupAuthorizationBloc>().add(
-            CreatePickupAuthorizationEvent(
-              childId: actualChildId,
-              authorizedContactId: _selectedContactId!,
-              note: note,
+      debugPrint('[CHECKOUT_DEBUG] Dispatching UpdateAttendanceEvent');
+      debugPrint('[CHECKOUT_DEBUG] - attendanceId: ${widget.attendanceId}');
+      debugPrint('[CHECKOUT_DEBUG] - classId: ${widget.classId}');
+      debugPrint('[CHECKOUT_DEBUG] - checkOutAt: $checkOutAt');
+      debugPrint('[CHECKOUT_DEBUG] - checkoutPickupContactId: $_selectedContactId');
+      debugPrint('[CHECKOUT_DEBUG] - checkoutPickupContactType: $_selectedRelationToChild');
+      debugPrint('[CHECKOUT_DEBUG] - notes: $note');
+      
+      context.read<AttendanceBloc>().add(
+            UpdateAttendanceEvent(
+              attendanceId: widget.attendanceId,
+              classId: widget.classId,
+              checkOutAt: checkOutAt,
+              notes: note,
+              checkoutPickupContactId: _selectedContactId!,
+              checkoutPickupContactType: _selectedRelationToChild,
+              // TODO: photo upload - فعلاً null می‌گذاریم
+              photo: null,
             ),
           );
     } catch (e, stackTrace) {
@@ -160,12 +175,13 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PickupAuthorizationBloc, PickupAuthorizationState>(
+    return BlocListener<AttendanceBloc, AttendanceState>(
       listener: (context, state) {
-        if (state is CreatePickupAuthorizationSuccess) {
-          // بعد از موفقیت، به صفحه قبلی برمی‌گردیم
+        if (state is UpdateAttendanceSuccess) {
+          // بعد از موفقیت Check-Out، به صفحه قبلی برمی‌گردیم
+          debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceSuccess - Closing modal');
           Navigator.pop(context);
-        } else if (state is CreatePickupAuthorizationFailure) {
+        } else if (state is UpdateAttendanceFailure) {
           setState(() {
             _isSubmitting = false;
           });
@@ -245,6 +261,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                   onTap: () {
                                     setState(() {
                                       _selectedContactId = pickup.authorizedContactId;
+                                      _selectedRelationToChild = pickup.relationToChild;
                                     });
                                   },
                                   child: Container(
