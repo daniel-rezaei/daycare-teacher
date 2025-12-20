@@ -15,6 +15,7 @@ import 'package:teacher_app/features/child_status/widgets/appbar_child.dart';
 import 'package:teacher_app/features/child_status/widgets/bottom_navigation_bar_child.dart';
 import 'package:teacher_app/features/child_status/widgets/check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/child_status_list_item.dart';
+import 'package:teacher_app/features/child_status/widgets/more_details_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 
 class ChildStatus extends StatefulWidget {
@@ -155,6 +156,16 @@ class _ChildStatusState extends State<ChildStatus> {
     );
   }
 
+  void _handleMoreClick() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (context) => const MoreDetailsWidget(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -289,6 +300,7 @@ class _ChildStatusState extends State<ChildStatus> {
                                           ContactUtils.getContactName(contact),
                                           attendanceList,
                                         ),
+                                        onMoreTap: _handleMoreClick,
                                       );
                                     },
                                   ),

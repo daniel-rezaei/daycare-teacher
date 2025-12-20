@@ -8,6 +8,7 @@ class ChildStatusActions extends StatelessWidget {
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
+  final VoidCallback? onMoreTap;
 
   const ChildStatusActions({
     super.key,
@@ -15,6 +16,7 @@ class ChildStatusActions extends StatelessWidget {
     required this.onPresentTap,
     required this.onAbsentTap,
     required this.onCheckOutTap,
+    this.onMoreTap,
   });
 
   @override
@@ -48,7 +50,7 @@ class ChildStatusActions extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            _MoreButton(),
+            _MoreButton(onTap: onMoreTap),
           ],
         );
 
@@ -57,7 +59,7 @@ class ChildStatusActions extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _MoreButton(),
+            _MoreButton(onTap: onMoreTap),
             const SizedBox(width: 8),
             _ActionButton(
               color: AppColors.success,
@@ -92,7 +94,7 @@ class ChildStatusActions extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _MoreButton(),
+            _MoreButton(onTap: onMoreTap),
             const SizedBox(width: 8),
             _ActionButton(
               color: AppColors.success.withValues(alpha: 0.5),
@@ -155,12 +157,14 @@ class ChildStatusActions extends StatelessWidget {
 }
 
 class _MoreButton extends StatelessWidget {
+  final VoidCallback? onTap;
+
+  const _MoreButton({this.onTap});
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // فعلاً کاری نمی‌کند
-      },
+      onTap: onTap,
       child: Container(
         width: 32,
         height: 32,

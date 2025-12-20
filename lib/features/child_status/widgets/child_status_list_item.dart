@@ -16,6 +16,7 @@ class ChildStatusListItem extends StatelessWidget {
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
+  final VoidCallback? onMoreTap;
 
   const ChildStatusListItem({
     super.key,
@@ -25,6 +26,7 @@ class ChildStatusListItem extends StatelessWidget {
     required this.onPresentTap,
     required this.onAbsentTap,
     required this.onCheckOutTap,
+    this.onMoreTap,
   });
 
   String get childName => ContactUtils.getContactName(contact);
@@ -88,6 +90,7 @@ class ChildStatusListItem extends StatelessWidget {
             onPresentTap: onPresentTap,
             onAbsentTap: onAbsentTap,
             onCheckOutTap: onCheckOutTap,
+            onMoreTap: onMoreTap,
           ),
         ],
       ),
