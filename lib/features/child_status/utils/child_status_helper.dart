@@ -8,6 +8,7 @@ enum ChildAttendanceStatus {
   notArrived,
   present,
   checkedOut,
+  absent,
 }
 
 class ChildStatusHelper {
@@ -147,13 +148,15 @@ class ChildStatusHelper {
   /// Get child attendance status for today based on business logic
   /// 
   /// Returns:
-  /// - [ChildAttendanceStatus.notArrived]: No valid attendance record for today and current class
+  /// - [ChildAttendanceStatus.notArrived]: No valid attendance record for today and current class, and not marked as absent locally
   /// - [ChildAttendanceStatus.present]: Has attendance with check_in_at != null and check_out_at == null for today
   /// - [ChildAttendanceStatus.checkedOut]: Has attendance with both check_in_at and check_out_at != null for today
+  /// - [ChildAttendanceStatus.absent]: No attendance record but marked as absent locally
   static ChildAttendanceStatus getChildStatusToday({
     required String childId,
     required String classId,
     required List<AttendanceChildEntity> attendanceList,
+    Set<String>? locallyAbsentChildIds,
   }) {
     final now = DateTime.now();
 
@@ -189,31 +192,42 @@ class ChildStatusHelper {
       return true;
     }).toList();
 
-    // اگر هیچ رکورد معتبری برای امروز و کلاس فعلی وجود نداشت
-    if (validTodayAttendance.isEmpty) {
-      debugPrint(
-        '[CHILD_STATUS_DEBUG] Child $childId: No valid attendance for today and class $classId -> notArrived',
+    // اگر رکورد attendance معتبری برای امروز وجود دارد
+    if (validTodayAttendance.isNotEmpty) {
+      // بررسی اینکه آیا رکوردی با check_out_at == null وجود دارد
+      final hasActiveAttendance = validTodayAttendance.any(
+        (attendance) => attendance.checkOutAt == null || attendance.checkOutAt!.isEmpty,
       );
-      return ChildAttendanceStatus.notArrived;
+
+      if (hasActiveAttendance) {
+        debugPrint(
+          '[CHILD_STATUS_DEBUG] Child $childId: Has active attendance (check_out_at == null) -> present',
+        );
+        return ChildAttendanceStatus.present;
+      }
+
+      // اگر همه رکوردها check_out_at != null دارند
+      debugPrint(
+        '[CHILD_STATUS_DEBUG] Child $childId: All attendances have check_out_at -> checkedOut',
+      );
+      return ChildAttendanceStatus.checkedOut;
     }
 
-    // بررسی اینکه آیا رکوردی با check_out_at == null وجود دارد
-    final hasActiveAttendance = validTodayAttendance.any(
-      (attendance) => attendance.checkOutAt == null || attendance.checkOutAt!.isEmpty,
-    );
-
-    if (hasActiveAttendance) {
+    // اگر هیچ رکورد attendance معتبری وجود ندارد
+    // بررسی اینکه آیا در لیست غایبین محلی است
+    final isLocallyAbsent = locallyAbsentChildIds?.contains(childId) ?? false;
+    
+    if (isLocallyAbsent) {
       debugPrint(
-        '[CHILD_STATUS_DEBUG] Child $childId: Has active attendance (check_out_at == null) -> present',
+        '[CHILD_STATUS_DEBUG] Child $childId: Marked as absent locally -> absent',
       );
-      return ChildAttendanceStatus.present;
+      return ChildAttendanceStatus.absent;
     }
 
-    // اگر همه رکوردها check_out_at != null دارند
     debugPrint(
-      '[CHILD_STATUS_DEBUG] Child $childId: All attendances have check_out_at -> checkedOut',
+      '[CHILD_STATUS_DEBUG] Child $childId: No valid attendance for today and class $classId -> notArrived',
     );
-    return ChildAttendanceStatus.checkedOut;
+    return ChildAttendanceStatus.notArrived;
   }
 }
 

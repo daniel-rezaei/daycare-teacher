@@ -9,6 +9,7 @@ import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_status/services/local_absent_storage_service.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/widgets/appbar_child.dart';
 import 'package:teacher_app/features/child_status/widgets/bottom_navigation_bar_child.dart';
@@ -28,11 +29,17 @@ class _ChildStatusState extends State<ChildStatus> {
   String? staffId;
   bool _hasRequestedData = false;
   bool _hasRequestedAttendance = false;
+  Set<String> _locallyAbsentChildIds = {};
 
   @override
   void initState() {
     super.initState();
     _loadIds();
+    _clearOldAbsentRecords();
+  }
+
+  Future<void> _clearOldAbsentRecords() async {
+    await LocalAbsentStorageService.clearIfDateChanged();
   }
 
   Future<void> _loadIds() async {
@@ -65,6 +72,18 @@ class _ChildStatusState extends State<ChildStatus> {
           GetAttendanceByClassIdEvent(classId: savedClassId),
         );
       }
+
+      // بارگذاری لیست غایبین محلی
+      _loadLocallyAbsentChildren(savedClassId);
+    }
+  }
+
+  Future<void> _loadLocallyAbsentChildren(String classId) async {
+    final absentSet = await LocalAbsentStorageService.getAbsentToday(classId);
+    if (mounted) {
+      setState(() {
+        _locallyAbsentChildIds = absentSet;
+      });
     }
   }
 
@@ -74,6 +93,11 @@ class _ChildStatusState extends State<ChildStatus> {
     if (classId == null || staffId == null) {
       return;
     }
+
+    // حذف از لیست غایبین محلی (اگر وجود داشته باشد)
+    LocalAbsentStorageService.removeAbsent(classId!, childId).then((_) {
+      _loadLocallyAbsentChildren(classId!);
+    });
 
     final checkInAt = DateUtils.getCurrentDateTime();
     context.read<AttendanceBloc>().add(
@@ -87,7 +111,18 @@ class _ChildStatusState extends State<ChildStatus> {
   }
 
   void _handleAbsentClick(String childId) {
-    // فعلاً کاری نمی‌کنیم (باید بعداً پیاده‌سازی شود)
+    if (classId == null) {
+      return;
+    }
+
+    // ذخیره در لیست غایبین محلی (بدون ارسال درخواست به بک‌اند)
+    LocalAbsentStorageService.markAbsent(classId!, childId).then((_) {
+      if (mounted) {
+        setState(() {
+          _locallyAbsentChildIds.add(childId);
+        });
+      }
+    });
   }
 
   void _handleCheckOutClick(
@@ -196,6 +231,7 @@ class _ChildStatusState extends State<ChildStatus> {
                                       childId: child.id ?? '',
                                       classId: classId!,
                                       attendanceList: attendanceList,
+                                      locallyAbsentChildIds: _locallyAbsentChildIds,
                                     );
                                     return status == ChildAttendanceStatus.present;
                                   })
@@ -239,6 +275,7 @@ class _ChildStatusState extends State<ChildStatus> {
                                         childId: child.id ?? '',
                                         classId: classId!,
                                         attendanceList: attendanceList,
+                                        locallyAbsentChildIds: _locallyAbsentChildIds,
                                       );
 
                                       return ChildStatusListItem(

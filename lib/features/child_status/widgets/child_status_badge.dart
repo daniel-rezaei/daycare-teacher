@@ -15,6 +15,7 @@ class ChildStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (status) {
       case ChildAttendanceStatus.present:
+        // فقط زمانی که بچه حاضر است و دکمه Check Out نمایش داده می‌شود
         return Container(
           decoration: const BoxDecoration(
             color: AppColors.successLight,
@@ -41,66 +42,16 @@ class ChildStatusBadge extends StatelessWidget {
         );
 
       case ChildAttendanceStatus.notArrived:
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.errorLight,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Assets.images.xFill.svg(
-                colorFilter: const ColorFilter.mode(
-                  AppColors.error,
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                'Absent',
-                style: TextStyle(
-                  color: AppColors.error,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        );
+        // اگر هنوز نیامده و معلم باید انتخاب کند، badge نمایش داده نمی‌شود
+        return const SizedBox.shrink();
 
       case ChildAttendanceStatus.checkedOut:
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.textSecondary.withValues(alpha: 0.1),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Assets.images.done.svg(
-                colorFilter: ColorFilter.mode(
-                  AppColors.textSecondary.withValues(alpha: 0.6),
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Checked Out',
-                style: TextStyle(
-                  color: AppColors.textSecondary.withValues(alpha: 0.6),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        );
+        // اگر امروز آمده و رفته، badge نمایش داده نمی‌شود
+        return const SizedBox.shrink();
+
+      case ChildAttendanceStatus.absent:
+        // برای حالت غایب، badge نمایش داده نمی‌شود (ویجت Absent در سمت راست نمایش داده می‌شود)
+        return const SizedBox.shrink();
     }
   }
 }

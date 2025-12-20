@@ -121,6 +121,35 @@ class ChildStatusActions extends StatelessWidget {
             ),
           ],
         );
+
+      case ChildAttendanceStatus.absent:
+        // اگر غایب است، فقط ویجت Absent نمایش داده می‌شود
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xffFFDFDF),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              Assets.images.xFill.svg(
+                colorFilter: const ColorFilter.mode(
+                  Colors.redAccent,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Absent',
+                style: TextStyle(
+                  color: Color(0xffED1515),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
     }
   }
 }
