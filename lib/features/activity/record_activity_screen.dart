@@ -15,7 +15,7 @@ class RecordActivityScreen extends StatelessWidget {
           BackgroundWidget(),
           SafeArea(
             child: Column(
-              crossAxisAlignment: .start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
                   onTap: () {
@@ -85,7 +85,7 @@ class RecordActivityScreen extends StatelessWidget {
                                 ),
                                 margin: EdgeInsets.only(bottom: 12),
                                 child: Column(
-                                  crossAxisAlignment: .start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
@@ -96,7 +96,7 @@ class RecordActivityScreen extends StatelessWidget {
                                             child: Assets
                                                 .images
                                                 .a71311088a9687505b49ce50537c803aa86b5242c
-                                                .image(fit: .cover),
+                                                .image(fit: BoxFit.cover),
                                           ),
                                         ),
                                         SizedBox(width: 8),
@@ -105,7 +105,7 @@ class RecordActivityScreen extends StatelessWidget {
                                           style: TextStyle(
                                             color: Color(0xff444349),
                                             fontSize: 20,
-                                            fontWeight: .w600,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                         Spacer(),
@@ -132,7 +132,7 @@ class RecordActivityScreen extends StatelessWidget {
                                       style: TextStyle(
                                         color: Color(0xff444349),
                                         fontSize: 14,
-                                        fontWeight: .w400,
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ],
@@ -142,7 +142,7 @@ class RecordActivityScreen extends StatelessWidget {
                           );
                         } else {
                           return Column(
-                            mainAxisAlignment: .center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Assets.images.recordActivityPng.image(
                                 height: 116,
@@ -153,7 +153,7 @@ class RecordActivityScreen extends StatelessWidget {
                                 style: TextStyle(
                                   color: Color(0xff444349),
                                   fontSize: 30,
-                                  fontWeight: .w600,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Text(

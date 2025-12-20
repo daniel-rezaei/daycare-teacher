@@ -24,7 +24,7 @@ class _RecordingWidgetState extends State<RecordingWidget> {
         valueListenable: RecordingWidget.isRecording,
         builder: (context, isRecording, child) {
           return Row(
-            mainAxisAlignment: .spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 height: 56,

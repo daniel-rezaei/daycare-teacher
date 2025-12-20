@@ -46,7 +46,7 @@ class ContentActivity extends StatelessWidget {
             ),
             padding: EdgeInsets.fromLTRB(16, 16, 16, 36),
             child: Column(
-              crossAxisAlignment: .start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ActivitySectionWidget(),
                 SizedBox(height: 12),
@@ -59,12 +59,12 @@ class ContentActivity extends StatelessWidget {
                   style: TextStyle(
                     color: Color(0xff444349),
                     fontSize: 16,
-                    fontWeight: .w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 14),
                 Row(
-                  mainAxisAlignment: .spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TodaysMealCardWidget(),
                     TodaysMealCardWidget(),
@@ -88,7 +88,7 @@ class ContentActivity extends StatelessWidget {
                         style: TextStyle(
                           color: Color(0xff444349),
                           fontSize: 16,
-                          fontWeight: .w600,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Spacer(),
@@ -97,7 +97,7 @@ class ContentActivity extends StatelessWidget {
                         style: TextStyle(
                           color: Color(0xff444349),
                           fontSize: 16,
-                          fontWeight: .w600,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],

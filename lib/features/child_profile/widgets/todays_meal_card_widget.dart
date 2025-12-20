@@ -14,7 +14,7 @@ class TodaysMealCardWidget extends StatelessWidget {
       ),
       padding: EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: .start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Assets.images.breakfast.svg(),
           SizedBox(height: 8),
@@ -23,7 +23,7 @@ class TodaysMealCardWidget extends StatelessWidget {
             style: TextStyle(
               color: Color(0xff444349),
               fontSize: 16,
-              fontWeight: .w600,
+              fontWeight: FontWeight.w600,
             ),
           ),
           Text(
@@ -31,7 +31,7 @@ class TodaysMealCardWidget extends StatelessWidget {
             style: TextStyle(
               color: Color(0xff71717A).withValues(alpha: .8),
               fontSize: 14,
-              fontWeight: .w400,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

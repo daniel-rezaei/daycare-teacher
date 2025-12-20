@@ -59,21 +59,21 @@ class _EditRecordWidgetState extends State<EditRecordWidget> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
-          crossAxisAlignment: .start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             HeaderCheckOut(isIcon: false, title: 'Edit Record'),
             Divider(color: Color(0xffDBDADD)),
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                crossAxisAlignment: .start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'You can edit the following text',
                     style: TextStyle(
                       color: Color(0xff444349),
                       fontSize: 20,
-                      fontWeight: .w600,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: 32),

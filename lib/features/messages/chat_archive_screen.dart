@@ -18,8 +18,8 @@ class ChatArchiveScreen extends StatelessWidget {
                 /// --- Header ---
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: .spaceBetween,
+                    child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
                         onTap: () {

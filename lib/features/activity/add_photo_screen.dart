@@ -22,7 +22,7 @@ class AddPhotoScreen extends StatelessWidget {
           BackgroundWidget(),
           SafeArea(
             child: Column(
-              crossAxisAlignment: .start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
@@ -73,7 +73,7 @@ class AddPhotoScreen extends StatelessWidget {
                           style: TextStyle(
                             color: Color(0xff444349),
                             fontSize: 30,
-                            fontWeight: .w600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         SizedBox(height: 6),
@@ -82,7 +82,7 @@ class AddPhotoScreen extends StatelessWidget {
                           style: TextStyle(
                             color: Color(0xff71717A).withValues(alpha: .8),
                             fontSize: 16,
-                            fontWeight: .w600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -236,7 +236,7 @@ class InfoCardPhoto extends StatelessWidget {
               style: TextStyle(
                 color: Color(0xff444349),
                 fontSize: 16,
-                fontWeight: .w600,
+                fontWeight: FontWeight.w600,
               ),
             ),
             icon,

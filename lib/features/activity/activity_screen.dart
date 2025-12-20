@@ -17,7 +17,7 @@ class ActivityScreen extends StatelessWidget {
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: .start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -53,7 +53,7 @@ class ActivityScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         Stack(
-                          alignment: .center,
+                          alignment: Alignment.center,
                           children: [
                             Assets.images.dateIconPng.image(height: 198),
                             Positioned(
@@ -65,7 +65,7 @@ class ActivityScreen extends StatelessWidget {
                                     style: TextStyle(
                                       color: Color(0xff444349),
                                       fontSize: 20,
-                                      fontWeight: .w600,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   Text(
@@ -73,7 +73,7 @@ class ActivityScreen extends StatelessWidget {
                                     style: TextStyle(
                                       color: Color(0xff7B2AF3),
                                       fontSize: 60,
-                                      fontWeight: .w800,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ],

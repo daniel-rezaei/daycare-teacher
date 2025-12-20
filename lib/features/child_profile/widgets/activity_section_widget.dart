@@ -21,14 +21,14 @@ class ActivitySectionWidget extends StatelessWidget {
       child: Row(
         children: [
           Column(
-            mainAxisAlignment: .center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 '08:00',
                 style: TextStyle(
                   color: Color(0xff444349),
                   fontSize: 16,
-                  fontWeight: .w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
@@ -36,7 +36,7 @@ class ActivitySectionWidget extends StatelessWidget {
                 style: TextStyle(
                   color: Color(0xff6D6B76),
                   fontSize: 14,
-                  fontWeight: .w400,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -52,14 +52,14 @@ class ActivitySectionWidget extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
-                crossAxisAlignment: .start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Container(
                         decoration: BoxDecoration(
                           color: Color(0xffEFFAFF),
-                          shape: .circle,
+                          shape: BoxShape.circle,
                         ),
                         padding: EdgeInsets.all(6),
                         child: Assets.images.subtract.svg(),
@@ -70,7 +70,7 @@ class ActivitySectionWidget extends StatelessWidget {
                         style: TextStyle(
                           color: Color(0xff444349),
                           fontSize: 16,
-                          fontWeight: .w600,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -83,14 +83,14 @@ class ActivitySectionWidget extends StatelessWidget {
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: Row(
-                      mainAxisAlignment: .spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Brought By',
                           style: TextStyle(
                             color: Color(0xff6D6B76),
                             fontSize: 14,
-                            fontWeight: .w600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Row(
@@ -106,7 +106,7 @@ class ActivitySectionWidget extends StatelessWidget {
                               style: TextStyle(
                                 color: Color(0xff444349),
                                 fontSize: 14,
-                                fontWeight: .w600,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],

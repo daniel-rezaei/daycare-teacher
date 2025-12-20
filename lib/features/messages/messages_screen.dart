@@ -15,7 +15,7 @@ class MessagesScreen extends StatelessWidget {
           BackgroundWidget(),
           SafeArea(
             child: Column(
-              crossAxisAlignment: .start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(

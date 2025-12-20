@@ -22,7 +22,7 @@ class TimeInScreen extends StatelessWidget {
               style: TextStyle(
                 color: Color(0xff444349),
                 fontSize: 26,
-                fontWeight: .w600,
+                fontWeight: FontWeight.w600,
               ),
             ),
             SizedBox(height: 6),
@@ -60,7 +60,7 @@ class TimeInScreen extends StatelessWidget {
               style: TextStyle(
                 color: Color(0xff444349),
                 fontSize: 16,
-                fontWeight: .w500,
+                fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(height: 16),
