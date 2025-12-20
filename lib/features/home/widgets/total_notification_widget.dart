@@ -15,6 +15,8 @@ import 'package:teacher_app/features/home/widgets/info_card_widget.dart';
 import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
 import 'package:teacher_app/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/session/presentation/bloc/session_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class TotalNotificationWidget extends StatefulWidget {
@@ -80,6 +82,10 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAllNotificationsEvent');
         context.read<NotificationBloc>().add(const GetAllNotificationsEvent());
       }
+
+      // دریافت session برای بررسی استارت کلاس
+      // (CardNotificationsWidget هم این کار را می‌کند، اما برای اطمینان اینجا هم انجام می‌دهیم)
+      context.read<SessionBloc>().add(GetSessionByClassIdEvent(classId: savedClassId));
     } else {
       debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId is null or empty');
     }
@@ -176,6 +182,15 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         .length;
   }
 
+  /// بررسی اینکه آیا کلاس استارت شده است یا نه
+  bool _isClassStarted(StaffClassSessionEntity? session) {
+    if (session == null) return false;
+    // اگر start_at وجود دارد و end_at null است، یعنی check-in شده
+    return session.startAt != null &&
+        session.startAt!.isNotEmpty &&
+        (session.endAt == null || session.endAt!.isEmpty);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AttendanceBloc, AttendanceState>(
@@ -185,12 +200,14 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
           _loadLocallyAbsentChildren(classId!);
         }
       },
-      child: BlocBuilder<NotificationBloc, NotificationState>(
-        builder: (context, notificationState) {
-          return BlocBuilder<AttendanceBloc, AttendanceState>(
-            builder: (context, attendanceState) {
-              return BlocBuilder<ChildBloc, ChildState>(
-                builder: (context, state) {
+      child: BlocBuilder<SessionBloc, SessionState>(
+        builder: (context, sessionState) {
+          return BlocBuilder<NotificationBloc, NotificationState>(
+            builder: (context, notificationState) {
+              return BlocBuilder<AttendanceBloc, AttendanceState>(
+                builder: (context, attendanceState) {
+                  return BlocBuilder<ChildBloc, ChildState>(
+                    builder: (context, state) {
             String title = '0/0';
             bool isLoading = false;
 
@@ -210,6 +227,13 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
             if (notificationState is GetAllNotificationsSuccess) {
               notifications = notificationState.notificationList;
             }
+
+                      // بررسی وضعیت session (استارت کلاس)
+                      StaffClassSessionEntity? session;
+                      if (sessionState is GetSessionByClassIdSuccess) {
+                        session = sessionState.session;
+                      }
+                      final isClassStarted = _isClassStarted(session);
 
             final isLoadingAttendance = attendanceState is GetAttendanceByClassIdLoading ||
                 attendanceState is AttendanceInitial;
@@ -254,70 +278,83 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
               isLoading = true;
             }
 
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-            InfoCardWidget(
-              color: const Color(0XFFDEF4FF),
-              icon: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Assets.images.subtract.svg(),
-              ),
-              title: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CupertinoActivityIndicator(radius: 10),
-                    )
-                  : Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xff444349),
-                      ),
-                    ),
-              dec: 'Total Children',
-              onTap: () {
-                // فقط در صورتی که داده‌ها لود شده باشند، اجازه رفتن به صفحه بعد را بده
-                final currentState = context.read<ChildBloc>().state;
-                if (currentState.children != null && 
-                    currentState.contacts != null &&
-                    !currentState.isLoadingChildren &&
-                    !currentState.isLoadingContacts) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChildStatus()),
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          InfoCardWidget(
+                            color: const Color(0XFFDEF4FF),
+                            icon: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Assets.images.subtract.svg(),
+                            ),
+                            title: isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CupertinoActivityIndicator(radius: 10),
+                                  )
+                                : Text(
+                                    title,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xff444349),
+                                    ),
+                                  ),
+                            dec: 'Total Children',
+                            onTap: () {
+                              // بررسی اینکه آیا کلاس استارت شده است
+                              if (!isClassStarted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('لطفاً ابتدا کلاس را استارت کنید'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // فقط در صورتی که داده‌ها لود شده باشند، اجازه رفتن به صفحه بعد را بده
+                              final currentState = context.read<ChildBloc>().state;
+                              if (currentState.children != null && 
+                                  currentState.contacts != null &&
+                                  !currentState.isLoadingChildren &&
+                                  !currentState.isLoadingContacts) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ChildStatus()),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          InfoCardWidget(
+                            color: const Color(0xffFEE5F2),
+                            icon: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Assets.images.vector.svg(),
+                            ),
+                            title: isLoadingNotifications
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CupertinoActivityIndicator(radius: 10),
+                                  )
+                                : Text(
+                                    '${_getTodayNotificationsCount(notifications)}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xff444349),
+                                    ),
+                                  ),
+                            dec: 'Notifications',
+                            onTap: () {},
+                          ),
+                        ],
+                      );
+                    },
                   );
-                }
-              },
-            ),
-            const SizedBox(width: 8),
-            InfoCardWidget(
-              color: const Color(0xffFEE5F2),
-              icon: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Assets.images.vector.svg(),
-              ),
-              title: isLoadingNotifications
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CupertinoActivityIndicator(radius: 10),
-                    )
-                  : Text(
-                      '${_getTodayNotificationsCount(notifications)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xff444349),
-                      ),
-                    ),
-              dec: 'Notifications',
-              onTap: () {},
-                    ),
-                  ],
-                );
                 },
               );
             },
