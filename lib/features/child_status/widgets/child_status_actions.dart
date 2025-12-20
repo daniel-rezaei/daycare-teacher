@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
+import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class ChildStatusActions extends StatelessWidget {
-  final bool isPresent;
+  final ChildAttendanceStatus status;
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
 
   const ChildStatusActions({
     super.key,
-    required this.isPresent,
+    required this.status,
     required this.onPresentTap,
     required this.onAbsentTap,
     required this.onCheckOutTap,
@@ -18,71 +19,108 @@ class ChildStatusActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isPresent) {
-      // اگر حاضر است، دکمه Check Out و آیکون سه نقطه نمایش داده می‌شود
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: onCheckOutTap,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.backgroundWhite,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
-              child: const Text(
-                'Check Out',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+    switch (status) {
+      case ChildAttendanceStatus.present:
+        // اگر حاضر است، فقط دکمه Check Out نمایش داده می‌شود
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: onCheckOutTap,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundWhite,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                child: const Text(
+                  'Check Out',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          _MoreButton(),
-        ],
-      );
-    } else {
-      // اگر حاضر نیست، سه دکمه نمایش داده می‌شود: منو | سبز | قرمز
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _MoreButton(),
-          const SizedBox(width: 8),
-          _ActionButton(
-            color: AppColors.success,
-            icon: Assets.images.done.svg(
-              width: 16,
-              height: 16,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
+            const SizedBox(width: 8),
+            _MoreButton(),
+          ],
+        );
+
+      case ChildAttendanceStatus.notArrived:
+        // اگر هنوز نیامده، دکمه‌های Present و Absent نمایش داده می‌شود
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _MoreButton(),
+            const SizedBox(width: 8),
+            _ActionButton(
+              color: AppColors.success,
+              icon: Assets.images.done.svg(
+                width: 16,
+                height: 16,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
+              onTap: onPresentTap,
             ),
-            onTap: onPresentTap,
-          ),
-          const SizedBox(width: 8),
-          _ActionButton(
-            color: AppColors.error,
-            icon: Assets.images.xFill.svg(
-              width: 16,
-              height: 16,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
+            const SizedBox(width: 8),
+            _ActionButton(
+              color: AppColors.error,
+              icon: Assets.images.xFill.svg(
+                width: 16,
+                height: 16,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
+              onTap: onAbsentTap,
             ),
-            onTap: onAbsentTap,
-          ),
-        ],
-      );
+          ],
+        );
+
+      case ChildAttendanceStatus.checkedOut:
+        // اگر امروز آمده و رفته، هیچ دکمه‌ای نمایش داده نمی‌شود یا دکمه‌ها غیرفعال هستند
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _MoreButton(),
+            const SizedBox(width: 8),
+            _ActionButton(
+              color: AppColors.success.withValues(alpha: 0.5),
+              icon: Assets.images.done.svg(
+                width: 16,
+                height: 16,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+              onTap: () {}, // غیرفعال
+            ),
+            const SizedBox(width: 8),
+            _ActionButton(
+              color: AppColors.error.withValues(alpha: 0.5),
+              icon: Assets.images.xFill.svg(
+                width: 16,
+                height: 16,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+              onTap: () {}, // غیرفعال
+            ),
+          ],
+        );
     }
   }
 }

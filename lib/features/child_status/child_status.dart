@@ -95,8 +95,15 @@ class _ChildStatusState extends State<ChildStatus> {
     String childName,
     List<AttendanceChildEntity> attendanceList,
   ) {
-    final attendance = ChildStatusHelper.getChildAttendance(childId, attendanceList);
-    if (attendance == null || attendance.id == null || classId == null) {
+    if (classId == null) {
+      return;
+    }
+    final attendance = ChildStatusHelper.getChildAttendance(
+      childId,
+      attendanceList,
+      classId: classId,
+    );
+    if (attendance == null || attendance.id == null) {
       return;
     }
 
@@ -176,7 +183,7 @@ class _ChildStatusState extends State<ChildStatus> {
                                 attendanceList = attendanceState.attendanceList;
                               }
 
-                            if (children != null && contacts != null) {
+                            if (children != null && contacts != null && classId != null) {
                               final childrenInClass = ChildStatusHelper.getChildrenInClass(
                                 children,
                                 contacts,
@@ -184,10 +191,14 @@ class _ChildStatusState extends State<ChildStatus> {
                               
                               final totalCount = childrenInClass.length;
                               final presentCount = childrenInClass
-                                  .where((child) => ChildStatusHelper.isChildPresent(
-                                        child.id ?? '',
-                                        attendanceList,
-                                      ))
+                                  .where((child) {
+                                    final status = ChildStatusHelper.getChildStatusToday(
+                                      childId: child.id ?? '',
+                                      classId: classId!,
+                                      attendanceList: attendanceList,
+                                    );
+                                    return status == ChildAttendanceStatus.present;
+                                  })
                                   .length;
 
                               return Column(
@@ -224,15 +235,16 @@ class _ChildStatusState extends State<ChildStatus> {
                                         child.contactId,
                                         contacts,
                                       );
-                                      final isPresent = ChildStatusHelper.isChildPresent(
-                                        child.id ?? '',
-                                        attendanceList,
+                                      final status = ChildStatusHelper.getChildStatusToday(
+                                        childId: child.id ?? '',
+                                        classId: classId!,
+                                        attendanceList: attendanceList,
                                       );
 
                                       return ChildStatusListItem(
                                         child: child,
                                         contact: contact,
-                                        isPresent: isPresent,
+                                        status: status,
                                         onPresentTap: () => _handlePresentClick(child.id ?? ''),
                                         onAbsentTap: () => _handleAbsentClick(child.id ?? ''),
                                         onCheckOutTap: () => _handleCheckOutClick(

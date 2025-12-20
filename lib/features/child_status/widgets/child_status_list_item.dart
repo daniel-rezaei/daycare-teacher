@@ -4,6 +4,7 @@ import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/utils/contact_utils.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_profile/child_profile_screen.dart';
+import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/widgets/child_status_actions.dart';
 import 'package:teacher_app/features/child_status/widgets/child_status_badge.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -11,7 +12,7 @@ import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 class ChildStatusListItem extends StatelessWidget {
   final ChildEntity child;
   final ContactEntity? contact;
-  final bool isPresent;
+  final ChildAttendanceStatus status;
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
@@ -20,7 +21,7 @@ class ChildStatusListItem extends StatelessWidget {
     super.key,
     required this.child,
     this.contact,
-    required this.isPresent,
+    required this.status,
     required this.onPresentTap,
     required this.onAbsentTap,
     required this.onCheckOutTap,
@@ -78,12 +79,12 @@ class ChildStatusListItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                ChildStatusBadge(isPresent: isPresent),
+                ChildStatusBadge(status: status),
               ],
             ),
           ),
           ChildStatusActions(
-            isPresent: isPresent,
+            status: status,
             onPresentTap: onPresentTap,
             onAbsentTap: onAbsentTap,
             onCheckOutTap: onCheckOutTap,
