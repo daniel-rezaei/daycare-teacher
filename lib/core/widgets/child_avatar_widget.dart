@@ -27,13 +27,13 @@ class ChildAvatarWidget extends StatelessWidget {
               width: size,
               height: size,
               fit: fit,
-              placeholder: (_, __) => Container(
+              placeholder: (context, url) => Container(
                 width: size,
                 height: size,
                 color: Colors.grey.shade200,
                 child: const CupertinoActivityIndicator(),
               ),
-              errorWidget: (_, __, ___) => Container(
+              errorWidget: (context, url, error) => Container(
                 width: size,
                 height: size,
                 color: Colors.grey.shade300,

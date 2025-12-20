@@ -1,6 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -85,27 +83,28 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
     if (staffId == null || staffId!.isEmpty) {
       final prefs = await SharedPreferences.getInstance();
       final savedStaffId = prefs.getString('staff_id');
-      if (mounted) {
-        setState(() {
-          staffId = savedStaffId;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        staffId = savedStaffId;
+      });
       debugPrint('[CARD_NOTIFICATIONS_DEBUG] Reloaded staffId: $staffId');
     }
 
+    if (!mounted) return;
     if (classId == null || staffId == null || staffId!.isEmpty) {
       debugPrint('[CARD_NOTIFICATIONS_DEBUG] classId or staffId is null. classId: $classId, staffId: $staffId');
       return;
     }
 
     final isCheckedIn = _isCheckedIn(session);
+    final sessionBloc = context.read<SessionBloc>();
 
     if (isCheckedIn) {
       // Check-out: Update existing session
       if (session?.id != null && classId != null) {
         final endAt = _getCurrentDateTime();
         debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-out: sessionId=${session!.id}, endAt=$endAt');
-        context.read<SessionBloc>().add(
+        sessionBloc.add(
           UpdateSessionEvent(
             sessionId: session.id!,
             endAt: endAt,
@@ -117,7 +116,7 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
       // Check-in: Create new session
       final startAt = _getCurrentDateTime();
       debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-in: staffId=$staffId, classId=$classId, startAt=$startAt');
-      context.read<SessionBloc>().add(
+      sessionBloc.add(
         CreateSessionEvent(
           staffId: staffId!,
           classId: classId!,

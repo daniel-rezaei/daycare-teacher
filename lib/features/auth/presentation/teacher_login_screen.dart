@@ -120,12 +120,14 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
           debugPrint('[LOGIN] Exception fetching contact_id and class_id: $e');
         }
 
+        if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MyHomePage()),
           (_) => false,
         );
       }
     } on AuthError catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message)));

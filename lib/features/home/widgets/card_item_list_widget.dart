@@ -240,13 +240,13 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
                   width: 24,
                   height: 24,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(
+                  placeholder: (context, url) => Container(
                     width: 24,
                     height: 24,
                     color: Colors.grey.shade200,
                     child: const CupertinoActivityIndicator(radius: 8),
                   ),
-                  errorWidget: (_, __, ___) => Container(
+                  errorWidget: (context, url, error) => Container(
                     width: 24,
                     height: 24,
                     color: Colors.grey.shade300,

@@ -9,7 +9,7 @@ import 'package:teacher_app/features/activity/choose_photo_screen.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 import 'package:uuid/uuid.dart';
-import 'package:image/image.dart' as IMG;
+import 'package:image/image.dart' as img;
 
 class AddPhotoScreen extends StatelessWidget {
   const AddPhotoScreen({super.key});
@@ -142,6 +142,7 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
               );
 
               if (file != null) {
+                if (!context.mounted) return;
                 showLoadingDialog(context); // <- نمایش لودینگ
 
                 final dir = await getApplicationDocumentsDirectory();
@@ -159,7 +160,9 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
                 // کمی تأخیر برای طبیعی‌تر شدن تجربه
                 await Future.delayed(Duration(milliseconds: 300));
 
+                if (!context.mounted) return;
                 Navigator.pop(context); // بستن لودینگ
+                if (!context.mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ChoosePhotoScreen()),
@@ -187,10 +190,10 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
   void _createThumbnail(String sourcePath, String thumbPath) async {
     try {
       final bytes = await File(sourcePath).readAsBytes();
-      IMG.Image? img = IMG.decodeImage(bytes);
-      if (img != null) {
-        final resized = IMG.copyResize(img, width: 300);
-        await File(thumbPath).writeAsBytes(IMG.encodeJpg(resized, quality: 80));
+      img.Image? image = img.decodeImage(bytes);
+      if (image != null) {
+        final resized = img.copyResize(image, width: 300);
+        await File(thumbPath).writeAsBytes(img.encodeJpg(resized, quality: 80));
       }
     } catch (e) {
       if (kDebugMode) {

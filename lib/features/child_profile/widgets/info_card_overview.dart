@@ -59,13 +59,13 @@ class InfoCardOverview extends StatelessWidget {
                             width: 32,
                             height: 32,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(
+                            placeholder: (context, url) => Container(
                               width: 32,
                               height: 32,
                               color: Colors.grey.shade200,
                               child: const CupertinoActivityIndicator(),
                             ),
-                            errorWidget: (_, __, ___) =>
+                            errorWidget: (context, url, error) =>
                                 Assets.images.image.image(),
                           ),
                         )

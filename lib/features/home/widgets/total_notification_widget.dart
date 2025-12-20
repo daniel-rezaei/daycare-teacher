@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -98,7 +97,6 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     List<ContactEntity> contacts,
   ) {
     // فعلاً همان تعداد کل را برمی‌گردانیم
-    // TODO: باید API attendance اضافه شود
     return _getTotalChildrenCount(children, contacts);
   }
 

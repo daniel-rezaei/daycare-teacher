@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -213,8 +212,8 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
         width: 48,
         height: 48,
         fit: BoxFit.cover,
-        placeholder: (_, __) => _buildLoadingAvatar(),
-        errorWidget: (_, __, ___) => _buildPlaceholderAvatar(),
+        placeholder: (context, url) => _buildLoadingAvatar(),
+        errorWidget: (context, url, error) => _buildPlaceholderAvatar(),
       ),
     );
   }

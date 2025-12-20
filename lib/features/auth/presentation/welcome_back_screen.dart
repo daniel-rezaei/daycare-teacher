@@ -64,12 +64,14 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
         await prefs.setString('auth_mode', 'shared');
         await prefs.setString('class_id', widget.classId);
 
+        if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MyHomePage()),
           (_) => false,
         );
       }
     } on AuthError catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message)));

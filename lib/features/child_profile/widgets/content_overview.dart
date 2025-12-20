@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
@@ -102,7 +101,7 @@ class _ContentOverviewState extends State<ContentOverview> {
                               (c) => c.contactId == widget.childId,
                             );
                             actualChildId = foundChild.id;
-                            debugPrint('[CONTENT_OVERVIEW_DEBUG] Found child.id=${actualChildId} from children list for contactId=${widget.childId}');
+                            debugPrint('[CONTENT_OVERVIEW_DEBUG] Found child.id=$actualChildId from children list for contactId=${widget.childId}');
                           } catch (e) {
                             debugPrint('[CONTENT_OVERVIEW_DEBUG] Child not found in children list for contactId: ${widget.childId}');
                           }
@@ -208,7 +207,7 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    if (parents.length >= 1)
+                                    if (parents.isNotEmpty)
                                       InfoCardOverview(
                                         guardian: parents[0],
                                         contact: _getContactById(
@@ -216,7 +215,7 @@ class _ContentOverviewState extends State<ContentOverview> {
                                           contacts,
                                         ),
                                       ),
-                                    if (parents.length >= 1) SizedBox(width: 12),
+                                    if (parents.isNotEmpty) SizedBox(width: 12),
                                     if (parents.length >= 2)
                                       InfoCardOverview(
                                         guardian: parents[1],
