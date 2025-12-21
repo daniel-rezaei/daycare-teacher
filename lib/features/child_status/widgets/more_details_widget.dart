@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/widgets/add_note_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/transfer_class_widget.dart';
 
 class MoreDetailsWidget extends StatelessWidget {
-  const MoreDetailsWidget({super.key});
+  final String childId;
+  final String classId;
+  final String? childImage; // photoId
+  final String childFirstName;
+  final String childLastName;
+  final ChildAttendanceStatus childAttendanceStatus;
+  final String? attendanceId;
+
+  const MoreDetailsWidget({
+    super.key,
+    required this.childId,
+    required this.classId,
+    required this.childFirstName,
+    required this.childLastName,
+    this.childImage,
+    required this.childAttendanceStatus,
+    this.attendanceId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +39,21 @@ class MoreDetailsWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: GestureDetector(
               onTap: () {
+                Navigator.pop(context); // بستن MoreDetailsWidget
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   useSafeArea: true,
-                  builder: (context) => const AddNoteWidget(),
+                  builder: (context) => AddNoteWidget(
+                    childId: childId,
+                    classId: classId,
+                    childImage: childImage,
+                    childFirstName: childFirstName,
+                    childLastName: childLastName,
+                    childAttendanceStatus: childAttendanceStatus,
+                    attendanceId: attendanceId,
+                  ),
                 );
               },
               child: Container(

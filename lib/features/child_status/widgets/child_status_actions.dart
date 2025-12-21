@@ -10,7 +10,10 @@ class ChildStatusActions extends StatelessWidget {
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
-  final VoidCallback? onMoreTap;
+  final void Function(String childId, String childName, String? childPhoto)? onMoreTap;
+  final String? childId;
+  final String? childName;
+  final String? childPhoto;
 
   const ChildStatusActions({
     super.key,
@@ -20,6 +23,9 @@ class ChildStatusActions extends StatelessWidget {
     required this.onAbsentTap,
     required this.onCheckOutTap,
     this.onMoreTap,
+    this.childId,
+    this.childName,
+    this.childPhoto,
   });
 
   @override
@@ -53,7 +59,11 @@ class ChildStatusActions extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            _MoreButton(onTap: onMoreTap),
+            _MoreButton(
+              onTap: onMoreTap != null && childId != null && childName != null
+                  ? () => onMoreTap!(childId!, childName!, childPhoto)
+                  : null,
+            ),
           ],
         );
 
@@ -62,7 +72,11 @@ class ChildStatusActions extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _MoreButton(onTap: onMoreTap),
+            _MoreButton(
+              onTap: onMoreTap != null && childId != null && childName != null
+                  ? () => onMoreTap!(childId!, childName!, childPhoto)
+                  : null,
+            ),
             const SizedBox(width: 8),
             _ActionButton(
               color: Color(0xffDAFEE8),
@@ -109,7 +123,11 @@ class ChildStatusActions extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _MoreButton(onTap: onMoreTap),
+            _MoreButton(
+              onTap: onMoreTap != null && childId != null && childName != null
+                  ? () => onMoreTap!(childId!, childName!, childPhoto)
+                  : null,
+            ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

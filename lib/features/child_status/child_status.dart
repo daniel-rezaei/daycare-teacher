@@ -17,6 +17,7 @@ import 'package:teacher_app/features/child_status/widgets/check_out_widget.dart'
 import 'package:teacher_app/features/child_status/widgets/child_status_list_item.dart';
 import 'package:teacher_app/features/child_status/widgets/more_details_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
+import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 
 class ChildStatus extends StatefulWidget {
   const ChildStatus({super.key});
@@ -156,13 +157,37 @@ class _ChildStatusState extends State<ChildStatus> {
     );
   }
 
-  void _handleMoreClick() {
+  void _handleMoreClick(
+    String childId,
+    String childName,
+    String? childPhoto,
+    String classId,
+    ChildAttendanceStatus status,
+    AttendanceChildEntity? attendance,
+    ContactEntity? contact,
+  ) {
+    if (classId.isEmpty) {
+      return;
+    }
+
+    final firstName = contact?.firstName ?? '';
+    final lastName = contact?.lastName ?? '';
+    final attendanceId = attendance?.id;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder: (context) => const MoreDetailsWidget(),
+      builder: (context) => MoreDetailsWidget(
+        childId: childId,
+        classId: classId,
+        childImage: childPhoto,
+        childFirstName: firstName,
+        childLastName: lastName,
+        childAttendanceStatus: status,
+        attendanceId: attendanceId,
+      ),
     );
   }
 
@@ -308,7 +333,15 @@ class _ChildStatusState extends State<ChildStatus> {
                                           ContactUtils.getContactName(contact),
                                           attendanceList,
                                         ),
-                                        onMoreTap: _handleMoreClick,
+                                        onMoreTap: (childId, childName, childPhoto) => _handleMoreClick(
+                                          child.id ?? '',
+                                          ContactUtils.getContactName(contact),
+                                          child.photo,
+                                          classId!,
+                                          status,
+                                          attendance,
+                                          contact,
+                                        ),
                                       );
                                     },
                                   ),
