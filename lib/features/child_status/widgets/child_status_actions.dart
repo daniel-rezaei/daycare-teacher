@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
-import 'package:intl/intl.dart';
 
 class ChildStatusActions extends StatelessWidget {
   final ChildAttendanceStatus status;
@@ -107,19 +106,7 @@ class ChildStatusActions extends StatelessWidget {
         );
 
       case ChildAttendanceStatus.checkedOut:
-        // اگر امروز آمده و رفته، "Checked out" نمایش داده می‌شود
-        String checkedOutText = 'Checked out';
-        if (checkOutAt != null && checkOutAt!.isNotEmpty) {
-          try {
-            final checkOutDateTime = DateTime.parse(checkOutAt!);
-            final timeFormat = DateFormat('HH:mm');
-            checkedOutText = 'Checked out at ${timeFormat.format(checkOutDateTime)}';
-          } catch (e) {
-            // اگر parse نشد، فقط "Checked out" نمایش می‌دهیم
-            checkedOutText = 'Checked out';
-          }
-        }
-        
+        // اگر امروز آمده و رفته، "Checked Out" با آیکون Subtract2 نمایش داده می‌شود
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -135,13 +122,20 @@ class ChildStatusActions extends StatelessWidget {
                 color: AppColors.backgroundWhite,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                checkedOutText,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Assets.images.subtract2.svg(),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Checked Out',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
