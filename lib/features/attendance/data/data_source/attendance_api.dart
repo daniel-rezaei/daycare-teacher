@@ -86,16 +86,17 @@ class AttendanceApi {
 
     // اضافه کردن فیلدهای اختیاری فقط در صورت وجود
     if (notes != null && notes.isNotEmpty) {
-      data['notes'] = notes; // استفاده از 'notes' به جای 'Notes'
+      data['Notes'] = notes; // استفاده از 'Notes' با N بزرگ
     }
 
     if (photo != null && photo.isNotEmpty) {
       data['photo'] = photo;
     }
 
-    if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
-      data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
-    }
+    // checkout_pickup_contact_id موقتاً حذف شده برای تست
+    // if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
+    //   data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
+    // }
 
     if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
       data['checkout_pickup_contact_type'] = checkoutPickupContactType;
