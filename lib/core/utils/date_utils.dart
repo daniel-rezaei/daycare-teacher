@@ -20,7 +20,7 @@ class DateUtils {
     debugPrint('[DATE_UTILS] UTC DateTime: $nowUtc');
     final formatted = DateFormat('yyyy-MM-ddTHH:mm:ss').format(nowUtc);
     debugPrint('[DATE_UTILS] Formatted (without .000Z): $formatted');
-    final finalResult = formatted + '.000Z';
+    final finalResult = '$formatted.000Z';
     debugPrint('[DATE_UTILS] Final result: "$finalResult"');
     debugPrint('[DATE_UTILS] Final result length: ${finalResult.length}');
     return finalResult;

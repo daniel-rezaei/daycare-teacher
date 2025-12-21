@@ -200,14 +200,14 @@ class HomeApi {
       data['photo'] = photo;
     }
 
-    // checkout_pickup_contact_id موقتاً حذف شده برای تست
-    // if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
-    //   data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
-    // }
-
-    if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
-      data['checkout_pickup_contact_type'] = checkoutPickupContactType;
+    if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
+      data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
     }
+
+    // checkout_pickup_contact_type موقتاً حذف شده برای تست
+    // if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
+    //   data['checkout_pickup_contact_type'] = checkoutPickupContactType;
+    // }
 
     // PATCH مستقیم بدون wrapper - مشابه createAttendance
     return await httpclient.patch(
