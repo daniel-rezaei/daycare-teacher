@@ -21,6 +21,9 @@ import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pick
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/core/data_state.dart';
+import 'package:get_it/get_it.dart';
 
 class CheckOutWidget extends StatefulWidget {
   final String childId;
@@ -116,30 +119,46 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
     });
 
     try {
-      // widget.childId در واقع Child.id است (نه contactId)
-      // چون در child_status.dart، child.id به CheckOutWidget پاس داده می‌شود
-      final actualChildId = widget.childId;
-      
-      debugPrint('[CHECKOUT_DEBUG] Using widget.childId as Child.id: $actualChildId');
-
-      if (actualChildId.isEmpty) {
-        debugPrint('[CHECKOUT_DEBUG] actualChildId is empty');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('خطا در پیدا کردن اطلاعات بچه')),
+      // Step 1: Upload images if any
+      List<String> uploadedFileIds = [];
+      if (_images.isNotEmpty) {
+        debugPrint('[CHECKOUT_DEBUG] Starting image upload, count: ${_images.length}');
+        final fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
+        
+        for (int i = 0; i < _images.length; i++) {
+          final imageFile = _images[i];
+          debugPrint('[CHECKOUT_DEBUG] Uploading image ${i + 1}/${_images.length}: ${imageFile.path}');
+          
+          final uploadResult = await fileUploadUsecase.uploadFile(
+            filePath: imageFile.path,
           );
+          
+          if (uploadResult is DataSuccess && uploadResult.data != null) {
+            uploadedFileIds.add(uploadResult.data!);
+            debugPrint('[CHECKOUT_DEBUG] Image ${i + 1} uploaded successfully, fileId: ${uploadResult.data}');
+          } else {
+            debugPrint('[CHECKOUT_DEBUG] Failed to upload image ${i + 1}');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('خطا در آپلود تصویر ${i + 1}')),
+              );
+            }
+            setState(() {
+              _isSubmitting = false;
+            });
+            return;
+          }
         }
-        setState(() {
-          _isSubmitting = false;
-        });
-        return;
+        debugPrint('[CHECKOUT_DEBUG] All images uploaded successfully, total: ${uploadedFileIds.length}');
+      } else {
+        debugPrint('[CHECKOUT_DEBUG] No images to upload');
       }
 
-      // به‌روزرسانی Attendance_Child (Check-Out)
-      // ❌ هیچ PickupAuthorization جدیدی ساخته نمی‌شود
-      // ✅ فقط Attendance_Child به‌روزرسانی می‌شود
+      // Step 2: Update Attendance_Child
       final checkOutAt = DateUtils.getCurrentDateTime();
       final note = _noteController.text.isNotEmpty ? _noteController.text : null;
+      // فقط اولین file_id را به صورت string ارسال می‌کنیم
+      final photoFileId = uploadedFileIds.isNotEmpty ? uploadedFileIds.first : null;
       
       debugPrint('[CHECKOUT_DEBUG] Dispatching UpdateAttendanceEvent');
       debugPrint('[CHECKOUT_DEBUG] - attendanceId: ${widget.attendanceId}');
@@ -148,6 +167,8 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       debugPrint('[CHECKOUT_DEBUG] - checkoutPickupContactId: $_selectedContactId');
       debugPrint('[CHECKOUT_DEBUG] - checkoutPickupContactType: $_selectedRelationToChild');
       debugPrint('[CHECKOUT_DEBUG] - notes: $note');
+      debugPrint('[CHECKOUT_DEBUG] - photo fileId (first): $photoFileId');
+      debugPrint('[CHECKOUT_DEBUG] - total uploaded files: ${uploadedFileIds.length}');
       
       context.read<AttendanceBloc>().add(
             UpdateAttendanceEvent(
@@ -157,7 +178,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
               notes: note,
               checkoutPickupContactId: _selectedContactId!,
               checkoutPickupContactType: _selectedRelationToChild,
-              photo: null,
+              photo: photoFileId,
             ),
           );
     } catch (e, stackTrace) {

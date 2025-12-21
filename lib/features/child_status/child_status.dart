@@ -289,10 +289,18 @@ class _ChildStatusState extends State<ChildStatus> {
                                         locallyAbsentChildIds: _locallyAbsentChildIds,
                                       );
 
+                                      // پیدا کردن attendance مربوط به این کودک برای امروز
+                                      final attendance = ChildStatusHelper.getChildAttendance(
+                                        child.id ?? '',
+                                        attendanceList,
+                                        classId: classId,
+                                      );
+
                                       return ChildStatusListItem(
                                         child: child,
                                         contact: contact,
                                         status: status,
+                                        attendance: attendance,
                                         onPresentTap: () => _handlePresentClick(child.id ?? ''),
                                         onAbsentTap: () => _handleAbsentClick(child.id ?? ''),
                                         onCheckOutTap: () => _handleCheckOutClick(

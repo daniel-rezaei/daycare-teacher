@@ -55,7 +55,7 @@ abstract class HomeRepository {
     required String attendanceId,
     required String checkOutAt,
     String? notes,
-    String? photo,
+    String? photo, // String of file ID (first file ID if multiple)
     String? checkoutPickupContactId,
     String? checkoutPickupContactType,
   });

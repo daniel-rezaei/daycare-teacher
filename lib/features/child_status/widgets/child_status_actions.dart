@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 class ChildStatusActions extends StatelessWidget {
   final ChildAttendanceStatus status;
+  final String? checkOutAt; // زمان check-out برای نمایش
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
@@ -13,6 +15,7 @@ class ChildStatusActions extends StatelessWidget {
   const ChildStatusActions({
     super.key,
     required this.status,
+    this.checkOutAt,
     required this.onPresentTap,
     required this.onAbsentTap,
     required this.onCheckOutTap,
@@ -90,36 +93,38 @@ class ChildStatusActions extends StatelessWidget {
         );
 
       case ChildAttendanceStatus.checkedOut:
-        // اگر امروز آمده و رفته، هیچ دکمه‌ای نمایش داده نمی‌شود یا دکمه‌ها غیرفعال هستند
+        // اگر امروز آمده و رفته، "Checked out" نمایش داده می‌شود
+        String checkedOutText = 'Checked out';
+        if (checkOutAt != null && checkOutAt!.isNotEmpty) {
+          try {
+            final checkOutDateTime = DateTime.parse(checkOutAt!);
+            final timeFormat = DateFormat('HH:mm');
+            checkedOutText = 'Checked out at ${timeFormat.format(checkOutDateTime)}';
+          } catch (e) {
+            // اگر parse نشد، فقط "Checked out" نمایش می‌دهیم
+            checkedOutText = 'Checked out';
+          }
+        }
+        
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             _MoreButton(onTap: onMoreTap),
             const SizedBox(width: 8),
-            _ActionButton(
-              color: AppColors.success.withValues(alpha: 0.5),
-              icon: Assets.images.done.svg(
-                width: 16,
-                height: 16,
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundWhite,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                checkedOutText,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              onTap: () {}, // غیرفعال
-            ),
-            const SizedBox(width: 8),
-            _ActionButton(
-              color: AppColors.error.withValues(alpha: 0.5),
-              icon: Assets.images.xFill.svg(
-                width: 16,
-                height: 16,
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
-              ),
-              onTap: () {}, // غیرفعال
             ),
           ],
         );

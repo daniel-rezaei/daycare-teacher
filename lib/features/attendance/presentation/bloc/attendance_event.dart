@@ -45,7 +45,7 @@ class UpdateAttendanceEvent extends AttendanceEvent {
   final String classId;
   final String checkOutAt;
   final String? notes;
-  final String? photo;
+  final String? photo; // String of file ID (first file ID if multiple)
   final String? checkoutPickupContactId;
   final String? checkoutPickupContactType;
 

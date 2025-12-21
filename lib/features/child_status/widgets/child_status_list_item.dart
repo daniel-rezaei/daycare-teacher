@@ -8,11 +8,13 @@ import 'package:teacher_app/features/child_status/utils/child_status_helper.dart
 import 'package:teacher_app/features/child_status/widgets/child_status_actions.dart';
 import 'package:teacher_app/features/child_status/widgets/child_status_badge.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 
 class ChildStatusListItem extends StatelessWidget {
   final ChildEntity child;
   final ContactEntity? contact;
   final ChildAttendanceStatus status;
+  final AttendanceChildEntity? attendance; // برای نمایش زمان check_out_at
   final VoidCallback onPresentTap;
   final VoidCallback onAbsentTap;
   final VoidCallback onCheckOutTap;
@@ -23,6 +25,7 @@ class ChildStatusListItem extends StatelessWidget {
     required this.child,
     this.contact,
     required this.status,
+    this.attendance,
     required this.onPresentTap,
     required this.onAbsentTap,
     required this.onCheckOutTap,
@@ -87,6 +90,7 @@ class ChildStatusListItem extends StatelessWidget {
           ),
           ChildStatusActions(
             status: status,
+            checkOutAt: attendance?.checkOutAt,
             onPresentTap: onPresentTap,
             onAbsentTap: onAbsentTap,
             onCheckOutTap: onCheckOutTap,

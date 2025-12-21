@@ -93,7 +93,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         attendanceId: event.attendanceId,
         checkOutAt: event.checkOutAt,
         notes: event.notes,
-        photo: event.photo,
+        photo: event.photo, // List<String>?
         checkoutPickupContactId: event.checkoutPickupContactId,
         checkoutPickupContactType: event.checkoutPickupContactType,
       );

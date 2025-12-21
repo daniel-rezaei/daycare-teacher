@@ -181,7 +181,7 @@ class HomeApi {
     required String attendanceId,
     required String checkOutAt,
     String? notes,
-    String? photo,
+    String? photo, // String of file ID (first file ID if multiple)
     String? checkoutPickupContactId,
     String? checkoutPickupContactType,
     String? childId,
@@ -190,6 +190,7 @@ class HomeApi {
     String? staffId,
     String? checkInMethod,
   }) async {
+    // همه فیلدها باید ارسال شوند
     final data = <String, dynamic>{
       'check_out_at': checkOutAt,
       'check_out_method': 'manually',
@@ -201,17 +202,24 @@ class HomeApi {
     if (staffId != null && staffId.isNotEmpty) data['staff_id'] = staffId;
     if (checkInMethod != null && checkInMethod.isNotEmpty) data['check_in_method'] = checkInMethod;
     if (notes != null && notes.isNotEmpty) data['Notes'] = notes;
-    if (photo != null && photo.isNotEmpty) data['photo'] = photo;
+    
+    // photo به صورت string ارسال می‌شود
+    if (photo != null && photo.isNotEmpty) {
+      data['photo'] = photo;
+    }
+    
+    // checkout_pickup_contact_id به صورت array ارسال می‌شود
     if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
-      data['checkout_pickup_contact_id'] = checkoutPickupContactId;
+      data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
     }
     if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
       data['checkout_pickup_contact_type'] = checkoutPickupContactType;
     }
 
-    return await httpclient.post(
+    // استفاده از PATCH و ساختار {"data": {...}}
+    return await httpclient.patch(
       '/items/Attendance_Child/$attendanceId',
-      data: data,
+      data: {'data': data},
     );
   }
 
