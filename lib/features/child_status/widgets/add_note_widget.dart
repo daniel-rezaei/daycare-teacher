@@ -40,7 +40,7 @@ class AddNoteWidget extends StatefulWidget {
     this.attendanceId,
   });
 
-  String get childName => '${childFirstName} ${childLastName}'.trim();
+  String get childName => '$childFirstName $childLastName'.trim();
 
   @override
   State<AddNoteWidget> createState() => _AddNoteWidgetState();
@@ -57,8 +57,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
   // برای مدیریت مراحل submit
   bool _needsCheckIn = false;
   bool _isCheckingIn = false;
-  bool _isUploadingImages = false;
-  bool _isSubmittingNote = false;
 
   @override
   void initState() {
@@ -194,7 +192,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
     }
 
     setState(() {
-      _isUploadingImages = true;
     });
 
     List<String> uploadedFileIds = [];
@@ -215,7 +212,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
         } else {
           debugPrint('[NOTE_UPLOAD] Failed to upload image ${i + 1}');
           setState(() {
-            _isUploadingImages = false;
             _isSubmitting = false;
           });
           if (mounted) {
@@ -229,12 +225,10 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
       debugPrint('[NOTE_UPLOAD] All images uploaded successfully, total: ${uploadedFileIds.length}');
       setState(() {
-        _isUploadingImages = false;
       });
       return uploadedFileIds;
     } catch (e) {
       setState(() {
-        _isUploadingImages = false;
         _isSubmitting = false;
       });
       rethrow;
@@ -251,7 +245,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
     if (_currentAttendanceId == null) {
       debugPrint('[NOTE_SUBMIT] attendanceId is null, cannot submit');
       setState(() {
-        _isSubmittingNote = false;
         _isSubmitting = false;
       });
       if (mounted) {
@@ -263,7 +256,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
     }
 
     setState(() {
-      _isSubmittingNote = true;
     });
 
     try {
@@ -285,7 +277,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
       debugPrint('[NOTE_SUBMIT] Dispatching UpdateAttendanceEvent');
       debugPrint('[NOTE_SUBMIT] - attendanceId: $_currentAttendanceId');
-      debugPrint('[NOTE_SUBMIT] - classId: ${widget.classId}');
       debugPrint('[NOTE_SUBMIT] - checkOutAt: $checkOutAt');
       debugPrint('[NOTE_SUBMIT] - notes: $note');
       debugPrint('[NOTE_SUBMIT] - photo: $photoFileId');
@@ -293,7 +284,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       context.read<AttendanceBloc>().add(
             UpdateAttendanceEvent(
               attendanceId: _currentAttendanceId!,
-              classId: widget.classId,
               checkOutAt: checkOutAt,
               notes: note,
               photo: photoFileId,
@@ -303,7 +293,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       debugPrint('[NOTE_SUBMIT] Exception: $e');
       debugPrint('[NOTE_SUBMIT] StackTrace: $stackTrace');
       setState(() {
-        _isSubmittingNote = false;
         _isSubmitting = false;
       });
       if (mounted) {
@@ -351,8 +340,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       setState(() {
         _isSubmitting = false;
         _isCheckingIn = false;
-        _isUploadingImages = false;
-        _isSubmittingNote = false;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -390,8 +377,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       debugPrint('[NOTE_CONTINUE] Exception: $e');
       setState(() {
         _isSubmitting = false;
-        _isUploadingImages = false;
-        _isSubmittingNote = false;
       });
       rethrow;
     }
@@ -447,7 +432,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           debugPrint('[NOTE_LISTENER] UpdateAttendanceSuccess - Navigating to MyHomePage');
           setState(() {
             _isSubmitting = false;
-            _isSubmittingNote = false;
           });
           // بعد از موفقیت، به MyHomePage منتقل می‌شویم
           if (mounted) {
@@ -460,7 +444,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           debugPrint('[NOTE_LISTENER] UpdateAttendanceFailure: ${state.message}');
           setState(() {
             _isSubmitting = false;
-            _isSubmittingNote = false;
           });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

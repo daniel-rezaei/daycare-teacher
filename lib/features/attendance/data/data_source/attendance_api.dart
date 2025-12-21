@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
@@ -13,7 +14,7 @@ class AttendanceApi {
   }) async {
     final queryParams = <String, dynamic>{
       'filter[class_id][_eq]': classId,
-      'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method',
+      'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
       'sort': '-date_created',
     };
 
@@ -54,12 +55,13 @@ class AttendanceApi {
     return await httpclient.get(
       '/items/Attendance_Child/$attendanceId',
       queryParameters: {
-        'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method',
+        'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
       },
     );
   }
 
   // به‌روزرسانی attendance (برای check out) - استفاده از PATCH
+  // مشابه createAttendance: ساده و مستقیم، بدون wrapper و فیلدهای غیرضروری
   Future<Response> updateAttendance({
     required String attendanceId,
     required String checkOutAt,
@@ -67,49 +69,30 @@ class AttendanceApi {
     String? photo, // String of file ID (first file ID if multiple)
     String? checkoutPickupContactId,
     String? checkoutPickupContactType,
-    String? childId,
-    String? classId,
-    String? checkInAt,
-    String? staffId,
-    String? checkInMethod,
   }) async {
-    // همه فیلدها باید ارسال شوند
+    debugPrint('[ATTENDANCE_API] ========== updateAttendance called ==========');
+    debugPrint('[ATTENDANCE_API] attendanceId: $attendanceId');
+    debugPrint('[ATTENDANCE_API] checkOutAt: "$checkOutAt"');
+    debugPrint('[ATTENDANCE_API] notes: $notes');
+    debugPrint('[ATTENDANCE_API] photo: $photo');
+    debugPrint('[ATTENDANCE_API] checkoutPickupContactId: $checkoutPickupContactId');
+    debugPrint('[ATTENDANCE_API] checkoutPickupContactType: $checkoutPickupContactType');
+    
+    // فقط فیلدهای لازم برای Check Out - مشابه createAttendance
     final data = <String, dynamic>{
       'check_out_at': checkOutAt,
       'check_out_method': 'manually',
     };
 
-    // اضافه کردن فیلدهای موجود (همه باید ارسال شوند)
-    if (childId != null && childId.isNotEmpty) {
-      data['child_id'] = childId;
-    }
-
-    if (classId != null && classId.isNotEmpty) {
-      data['class_id'] = classId;
-    }
-
-    if (checkInAt != null && checkInAt.isNotEmpty) {
-      data['check_in_at'] = checkInAt;
-    }
-
-    if (staffId != null && staffId.isNotEmpty) {
-      data['staff_id'] = staffId;
-    }
-
-    if (checkInMethod != null && checkInMethod.isNotEmpty) {
-      data['check_in_method'] = checkInMethod;
-    }
-
+    // اضافه کردن فیلدهای اختیاری فقط در صورت وجود
     if (notes != null && notes.isNotEmpty) {
-      data['Notes'] = notes;
+      data['notes'] = notes; // استفاده از 'notes' به جای 'Notes'
     }
 
-    // photo به صورت string ارسال می‌شود
     if (photo != null && photo.isNotEmpty) {
       data['photo'] = photo;
     }
 
-    // checkout_pickup_contact_id به صورت array ارسال می‌شود
     if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
       data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
     }
@@ -118,11 +101,22 @@ class AttendanceApi {
       data['checkout_pickup_contact_type'] = checkoutPickupContactType;
     }
 
-    // استفاده از PATCH و ساختار {"data": {...}}
-    return await httpclient.patch(
+    debugPrint('[ATTENDANCE_API] ========== Final Request Body ==========');
+    debugPrint('[ATTENDANCE_API] Request URL: /items/Attendance_Child/$attendanceId');
+    debugPrint('[ATTENDANCE_API] Request Method: PATCH');
+    debugPrint('[ATTENDANCE_API] Request Body (direct, no wrapper): $data');
+    
+    // PATCH مستقیم بدون wrapper - مشابه createAttendance
+    final response = await httpclient.patch(
       '/items/Attendance_Child/$attendanceId',
-      data: {'data': data},
+      data: data,
     );
+    
+    debugPrint('[ATTENDANCE_API] ========== Response Received ==========');
+    debugPrint('[ATTENDANCE_API] Response status: ${response.statusCode}');
+    debugPrint('[ATTENDANCE_API] Response data: ${response.data}');
+    
+    return response;
   }
 }
 

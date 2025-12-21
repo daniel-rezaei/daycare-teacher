@@ -315,12 +315,7 @@ class HomeRepositoryImpl extends HomeRepository {
     String? checkoutPickupContactType,
   }) async {
     try {
-      // ابتدا attendance موجود را دریافت می‌کنیم
-      final getResponse = await homeApi.getAttendanceById(attendanceId: attendanceId);
-      final Map<String, dynamic> existingData = getResponse.data['data'] as Map<String, dynamic>;
-      final AttendanceChildEntity existingAttendance = AttendanceChildModel.fromJson(existingData);
-
-      // سپس با POST و همه فیلدها به‌روزرسانی می‌کنیم
+      // مشابه createAttendance: مستقیم و ساده، بدون دریافت attendance موجود
       final response = await homeApi.updateAttendance(
         attendanceId: attendanceId,
         checkOutAt: checkOutAt,
@@ -328,11 +323,6 @@ class HomeRepositoryImpl extends HomeRepository {
         photo: photo,
         checkoutPickupContactId: checkoutPickupContactId,
         checkoutPickupContactType: checkoutPickupContactType,
-        childId: existingAttendance.childId,
-        classId: existingAttendance.classId,
-        checkInAt: existingAttendance.checkInAt,
-        staffId: existingAttendance.staffId,
-        checkInMethod: existingAttendance.checkInMethod,
       );
 
       final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;

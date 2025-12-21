@@ -155,25 +155,32 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       }
 
       // Step 2: Update Attendance_Child
-      final checkOutAt = DateUtils.getCurrentDateTime();
+      debugPrint('[CHECKOUT_STEP2] ========== Step 2: Preparing Check Out Data ==========');
+      debugPrint('[CHECKOUT_STEP2] Calling DateUtils.getCurrentDateTimeForCheckOut()...');
+      final checkOutAt = DateUtils.getCurrentDateTimeForCheckOut();
+      debugPrint('[CHECKOUT_STEP2] checkOutAt generated: "$checkOutAt"');
+      debugPrint('[CHECKOUT_STEP2] checkOutAt type: ${checkOutAt.runtimeType}');
+      debugPrint('[CHECKOUT_STEP2] checkOutAt length: ${checkOutAt.length}');
+      debugPrint('[CHECKOUT_STEP2] checkOutAt isEmpty: ${checkOutAt.isEmpty}');
+      
       final note = _noteController.text.isNotEmpty ? _noteController.text : null;
       // فقط اولین file_id را به صورت string ارسال می‌کنیم
       final photoFileId = uploadedFileIds.isNotEmpty ? uploadedFileIds.first : null;
       
-      debugPrint('[CHECKOUT_DEBUG] Dispatching UpdateAttendanceEvent');
-      debugPrint('[CHECKOUT_DEBUG] - attendanceId: ${widget.attendanceId}');
-      debugPrint('[CHECKOUT_DEBUG] - classId: ${widget.classId}');
-      debugPrint('[CHECKOUT_DEBUG] - checkOutAt: $checkOutAt');
-      debugPrint('[CHECKOUT_DEBUG] - checkoutPickupContactId: $_selectedContactId');
-      debugPrint('[CHECKOUT_DEBUG] - checkoutPickupContactType: $_selectedRelationToChild');
-      debugPrint('[CHECKOUT_DEBUG] - notes: $note');
-      debugPrint('[CHECKOUT_DEBUG] - photo fileId (first): $photoFileId');
-      debugPrint('[CHECKOUT_DEBUG] - total uploaded files: ${uploadedFileIds.length}');
+      debugPrint('[CHECKOUT_STEP2] ========== All Check Out Data Prepared ==========');
+      debugPrint('[CHECKOUT_STEP2] - attendanceId: ${widget.attendanceId}');
+      debugPrint('[CHECKOUT_STEP2] - checkOutAt: "$checkOutAt"');
+      debugPrint('[CHECKOUT_STEP2] - checkoutPickupContactId: $_selectedContactId');
+      debugPrint('[CHECKOUT_STEP2] - checkoutPickupContactType: $_selectedRelationToChild');
+      debugPrint('[CHECKOUT_STEP2] - notes: $note');
+      debugPrint('[CHECKOUT_STEP2] - photo fileId (first): $photoFileId');
+      debugPrint('[CHECKOUT_STEP2] - total uploaded files: ${uploadedFileIds.length}');
+      
+      debugPrint('[CHECKOUT_STEP2] ========== Dispatching UpdateAttendanceEvent ==========');
       
       context.read<AttendanceBloc>().add(
             UpdateAttendanceEvent(
               attendanceId: widget.attendanceId,
-              classId: widget.classId,
               checkOutAt: checkOutAt,
               notes: note,
               checkoutPickupContactId: _selectedContactId!,

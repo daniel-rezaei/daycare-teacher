@@ -86,9 +86,21 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     UpdateAttendanceEvent event,
     Emitter<AttendanceState> emit,
   ) async {
+    debugPrint('[ATTENDANCE_BLOC] ========== _updateAttendanceEvent called ==========');
+    debugPrint('[ATTENDANCE_BLOC] event.attendanceId: ${event.attendanceId}');
+    debugPrint('[ATTENDANCE_BLOC] event.checkOutAt: "${event.checkOutAt}"');
+    debugPrint('[ATTENDANCE_BLOC] event.checkOutAt type: ${event.checkOutAt.runtimeType}');
+    debugPrint('[ATTENDANCE_BLOC] event.checkOutAt isEmpty: ${event.checkOutAt.isEmpty}');
+    debugPrint('[ATTENDANCE_BLOC] event.notes: ${event.notes}');
+    debugPrint('[ATTENDANCE_BLOC] event.photo: ${event.photo}');
+    debugPrint('[ATTENDANCE_BLOC] event.checkoutPickupContactId: ${event.checkoutPickupContactId}');
+    debugPrint('[ATTENDANCE_BLOC] event.checkoutPickupContactType: ${event.checkoutPickupContactType}');
+    
     emit(const UpdateAttendanceLoading());
 
     try {
+      debugPrint('[ATTENDANCE_BLOC] Calling attendanceUsecase.updateAttendance...');
+      debugPrint('[ATTENDANCE_BLOC] Passing checkOutAt: "${event.checkOutAt}"');
       DataState dataState = await attendanceUsecase.updateAttendance(
         attendanceId: event.attendanceId,
         checkOutAt: event.checkOutAt,

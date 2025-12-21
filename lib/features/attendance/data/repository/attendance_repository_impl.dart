@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -71,18 +72,17 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
     String? checkoutPickupContactId,
     String? checkoutPickupContactType,
   }) async {
+    debugPrint('[ATTENDANCE_REPO] ========== updateAttendance called ==========');
+    debugPrint('[ATTENDANCE_REPO] attendanceId: $attendanceId');
+    debugPrint('[ATTENDANCE_REPO] checkOutAt: "$checkOutAt"');
+    debugPrint('[ATTENDANCE_REPO] notes: $notes');
+    debugPrint('[ATTENDANCE_REPO] photo: $photo');
+    debugPrint('[ATTENDANCE_REPO] checkoutPickupContactId: $checkoutPickupContactId');
+    debugPrint('[ATTENDANCE_REPO] checkoutPickupContactType: $checkoutPickupContactType');
+    
     try {
-      // ابتدا attendance موجود را دریافت می‌کنیم
-      final getResponse = await attendanceApi.getAttendanceById(
-        attendanceId: attendanceId,
-      );
-
-      final Map<String, dynamic> existingData =
-          getResponse.data['data'] as Map<String, dynamic>;
-      final AttendanceChildEntity existingAttendance =
-          AttendanceChildModel.fromJson(existingData);
-
-      // سپس با POST و همه فیلدها به‌روزرسانی می‌کنیم
+      // مشابه createAttendance: مستقیم و ساده، بدون دریافت attendance موجود
+      debugPrint('[ATTENDANCE_REPO] Calling attendanceApi.updateAttendance (direct, no pre-fetch)...');
       final Response response = await attendanceApi.updateAttendance(
         attendanceId: attendanceId,
         checkOutAt: checkOutAt,
@@ -90,17 +90,16 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
         photo: photo,
         checkoutPickupContactId: checkoutPickupContactId,
         checkoutPickupContactType: checkoutPickupContactType,
-        childId: existingAttendance.childId,
-        classId: existingAttendance.classId,
-        checkInAt: existingAttendance.checkInAt,
-        staffId: existingAttendance.staffId,
-        checkInMethod: existingAttendance.checkInMethod,
       );
 
       final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
       final AttendanceChildEntity attendanceEntity =
           AttendanceChildModel.fromJson(data);
 
+      debugPrint('[ATTENDANCE_REPO] Update successful:');
+      debugPrint('[ATTENDANCE_REPO] - checkOutAt: ${attendanceEntity.checkOutAt}');
+      debugPrint('[ATTENDANCE_REPO] - notes: ${attendanceEntity.notes}');
+      
       return DataSuccess(attendanceEntity);
     } on DioException catch (e) {
       return _handleDioError(e);

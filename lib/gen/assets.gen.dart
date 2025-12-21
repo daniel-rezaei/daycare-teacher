@@ -114,6 +114,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/Done.svg
   SvgGenImage get done => const SvgGenImage('assets/images/Done.svg');
 
+  /// File path: assets/images/Done2.svg
+  SvgGenImage get done2 => const SvgGenImage('assets/images/Done2.svg');
+
   /// File path: assets/images/Drink.png
   AssetGenImage get drink => const AssetGenImage('assets/images/Drink.png');
 
@@ -428,6 +431,7 @@ class $AssetsImagesGen {
     checkout,
     dietaryRestrictions,
     done,
+    done2,
     drink,
     edit,
     emergencyContacts,

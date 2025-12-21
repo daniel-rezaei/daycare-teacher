@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 
@@ -7,6 +8,22 @@ class DateUtils {
   /// Get current date and time in ISO 8601 format
   static String getCurrentDateTime() {
     return DateFormat(AppConstants.dateTimeFormat).format(DateTime.now());
+  }
+
+  /// Get current date and time in ISO 8601 format with milliseconds and Z (for Check Out)
+  /// Format: yyyy-MM-ddTHH:mm:ss.000Z
+  static String getCurrentDateTimeForCheckOut() {
+    debugPrint('[DATE_UTILS] ========== getCurrentDateTimeForCheckOut called ==========');
+    final now = DateTime.now();
+    debugPrint('[DATE_UTILS] Local DateTime.now(): $now');
+    final nowUtc = now.toUtc();
+    debugPrint('[DATE_UTILS] UTC DateTime: $nowUtc');
+    final formatted = DateFormat('yyyy-MM-ddTHH:mm:ss').format(nowUtc);
+    debugPrint('[DATE_UTILS] Formatted (without .000Z): $formatted');
+    final finalResult = formatted + '.000Z';
+    debugPrint('[DATE_UTILS] Final result: "$finalResult"');
+    debugPrint('[DATE_UTILS] Final result length: ${finalResult.length}');
+    return finalResult;
   }
 
   /// Format date string to display format (MMM d)

@@ -40,9 +40,9 @@ class CreateAttendanceEvent extends AttendanceEvent {
 }
 
 /// Event for updating attendance (check out)
+/// مشابه CreateAttendanceEvent: فقط فیلدهای لازم
 class UpdateAttendanceEvent extends AttendanceEvent {
   final String attendanceId;
-  final String classId;
   final String checkOutAt;
   final String? notes;
   final String? photo; // String of file ID (first file ID if multiple)
@@ -51,7 +51,6 @@ class UpdateAttendanceEvent extends AttendanceEvent {
 
   const UpdateAttendanceEvent({
     required this.attendanceId,
-    required this.classId,
     required this.checkOutAt,
     this.notes,
     this.photo,
@@ -62,7 +61,6 @@ class UpdateAttendanceEvent extends AttendanceEvent {
   @override
   List<Object> get props => [
         attendanceId,
-        classId,
         checkOutAt,
         notes ?? '',
         photo ?? '',

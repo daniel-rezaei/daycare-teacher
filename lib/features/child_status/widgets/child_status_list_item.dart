@@ -84,7 +84,10 @@ class ChildStatusListItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                ChildStatusBadge(status: status),
+                ChildStatusBadge(
+                  status: status,
+                  hasNote: attendance?.notes != null && attendance!.notes!.isNotEmpty,
+                ),
               ],
             ),
           ),

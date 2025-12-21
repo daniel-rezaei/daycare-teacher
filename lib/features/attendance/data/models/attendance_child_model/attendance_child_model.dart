@@ -10,6 +10,7 @@ class AttendanceChildModel extends AttendanceChildEntity {
     super.staffId,
     super.checkInMethod,
     super.checkOutMethod,
+    super.notes,
   });
 
   factory AttendanceChildModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +23,7 @@ class AttendanceChildModel extends AttendanceChildEntity {
       staffId: json['staff_id'] as String?,
       checkInMethod: json['check_in_method'] as String?,
       checkOutMethod: json['check_out_method'] as String?,
+      notes: json['Notes'] as String?, // API از 'Notes' استفاده می‌کند
     );
   }
 }

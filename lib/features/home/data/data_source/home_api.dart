@@ -135,7 +135,7 @@ class HomeApi {
   }) async {
     final queryParams = <String, dynamic>{
       'filter[class_id][_eq]': classId,
-      'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method',
+      'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
       'sort': '-date_created',
     };
 
@@ -172,7 +172,7 @@ class HomeApi {
     return await httpclient.get(
       '/items/Attendance_Child/$attendanceId',
       queryParameters: {
-        'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method',
+        'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
       },
     );
   }
@@ -184,42 +184,34 @@ class HomeApi {
     String? photo, // String of file ID (first file ID if multiple)
     String? checkoutPickupContactId,
     String? checkoutPickupContactType,
-    String? childId,
-    String? classId,
-    String? checkInAt,
-    String? staffId,
-    String? checkInMethod,
   }) async {
-    // همه فیلدها باید ارسال شوند
+    // مشابه createAttendance: ساده و مستقیم، بدون wrapper و فیلدهای غیرضروری
     final data = <String, dynamic>{
       'check_out_at': checkOutAt,
       'check_out_method': 'manually',
     };
 
-    if (childId != null && childId.isNotEmpty) data['child_id'] = childId;
-    if (classId != null && classId.isNotEmpty) data['class_id'] = classId;
-    if (checkInAt != null && checkInAt.isNotEmpty) data['check_in_at'] = checkInAt;
-    if (staffId != null && staffId.isNotEmpty) data['staff_id'] = staffId;
-    if (checkInMethod != null && checkInMethod.isNotEmpty) data['check_in_method'] = checkInMethod;
-    if (notes != null && notes.isNotEmpty) data['Notes'] = notes;
-    
-    // photo به صورت string ارسال می‌شود
+    // اضافه کردن فیلدهای اختیاری فقط در صورت وجود
+    if (notes != null && notes.isNotEmpty) {
+      data['notes'] = notes; // استفاده از 'notes' به جای 'Notes'
+    }
+
     if (photo != null && photo.isNotEmpty) {
       data['photo'] = photo;
     }
-    
-    // checkout_pickup_contact_id به صورت array ارسال می‌شود
+
     if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
       data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
     }
+
     if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
       data['checkout_pickup_contact_type'] = checkoutPickupContactType;
     }
 
-    // استفاده از PATCH و ساختار {"data": {...}}
+    // PATCH مستقیم بدون wrapper - مشابه createAttendance
     return await httpclient.patch(
       '/items/Attendance_Child/$attendanceId',
-      data: {'data': data},
+      data: data,
     );
   }
 

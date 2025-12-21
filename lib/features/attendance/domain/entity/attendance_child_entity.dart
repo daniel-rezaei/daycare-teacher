@@ -7,6 +7,7 @@ class AttendanceChildEntity {
   final String? staffId;
   final String? checkInMethod;
   final String? checkOutMethod;
+  final String? notes; // Note ثبت شده برای این attendance
 
   const AttendanceChildEntity({
     this.id,
@@ -17,6 +18,7 @@ class AttendanceChildEntity {
     this.staffId,
     this.checkInMethod,
     this.checkOutMethod,
+    this.notes,
   });
 }
 
