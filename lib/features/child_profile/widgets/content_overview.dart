@@ -8,8 +8,16 @@ import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/emergency_contacts.dart';
 import 'package:teacher_app/features/child_profile/widgets/info_card_overview.dart';
+// ignore: unused_import
+import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+// ignore: unused_import
+import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
+// ignore: unused_import
+import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+// ignore: unused_import
+import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 
 class ContentOverview extends StatefulWidget {
   final String childId;
@@ -191,28 +199,24 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 ?.where((dr) => dr.childId == actualChildId)
                                 .toList() ??
                             [];
-                        final dietaryRestrictionsCount = dietaryRestrictions.length;
 
                         // Medications
                         final medications = childState.medications
                                 ?.where((m) => m.childId == actualChildId)
                                 .toList() ??
                             [];
-                        final medicationsCount = medications.length;
 
                         // Physical Requirements
                         final physicalRequirements = childState.physicalRequirements
                                 ?.where((pr) => pr.childId == actualChildId)
                                 .toList() ??
                             [];
-                        final physicalRequirementsCount = physicalRequirements.length;
 
                         // Reportable Diseases
                         final reportableDiseases = childState.reportableDiseases
                                 ?.where((rd) => rd.childId == actualChildId)
                                 .toList() ??
                             [];
-                        final reportableDiseasesCount = reportableDiseases.length;
 
                         // درخواست داده‌ها اگر هنوز درخواست نشده
                         if (actualChildId != null && 
@@ -309,14 +313,64 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 ),
                                 SizedBox(height: 32),
                               ],
-                              _InfoSectionRow(
+                              _ExpandableInfoSection(
                                 title: 'Dietary Restrictions',
-                                itemCount: dietaryRestrictionsCount,
+                                items: dietaryRestrictions,
+                                itemBuilder: (context, item) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF7F7F8),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: const Color(0xffFAFAFA),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      item.restrictionName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               SizedBox(height: 12),
-                              _InfoSectionRow(
+                              _ExpandableInfoSection(
                                 title: 'Medication',
-                                itemCount: medicationsCount,
+                                items: medications,
+                                itemBuilder: (context, item) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF7F7F8),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: const Color(0xffFAFAFA),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      item.medicationName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               SizedBox(height: 12),
                               _InfoSectionRow(
@@ -324,14 +378,65 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 itemCount: 0, // TODO: Add when API is available
                               ),
                               SizedBox(height: 12),
-                              _InfoSectionRow(
+                              _ExpandableInfoSection(
                                 title: 'Physical Requirements',
-                                itemCount: physicalRequirementsCount,
+                                items: physicalRequirements,
+                                itemBuilder: (context, item) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF7F7F8),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: const Color(0xffFAFAFA),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      item.requirementName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               SizedBox(height: 12),
-                              _InfoSectionRow(
+                              _ExpandableInfoSection(
                                 title: 'Reportable Diseases',
-                                itemCount: reportableDiseasesCount,
+                                items: reportableDiseases,
+                                itemIcon: Icons.sick_rounded,
+                                itemBuilder: (context, item) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF7F7F8),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: const Color(0xffFAFAFA),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      item.diseaseName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               SizedBox(height: 12),
                               // نمایش زبان
@@ -437,6 +542,128 @@ class _InfoSectionRow extends StatelessWidget {
             ],
           ),
       ],
+    );
+  }
+}
+
+class _ExpandableInfoSection<T> extends StatelessWidget {
+  final String title;
+  final List<T> items;
+  final Widget Function(BuildContext context, T item) itemBuilder;
+  final IconData? itemIcon;
+
+  const _ExpandableInfoSection({
+    required this.title,
+    required this.items,
+    required this.itemBuilder,
+    this.itemIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final itemCount = items.length;
+
+    if (itemCount == 0) {
+      return _InfoSectionRow(title: title, itemCount: 0);
+    }
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        hoverColor: Colors.transparent,
+        focusColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        dividerColor: Colors.transparent,
+      ),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: EdgeInsets.zero,
+        backgroundColor: Colors.transparent,
+        collapsedBackgroundColor: Colors.transparent,
+        iconColor: const Color(0xff444349),
+        collapsedIconColor: const Color(0xff444349),
+        shape: const RoundedRectangleBorder(),
+        collapsedShape: const RoundedRectangleBorder(),
+          title: Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xff444349),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xffF9F5FF),
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                child: Text(
+                  '$itemCount Items',
+                  style: const TextStyle(
+                    color: Color(0xff9C5CFF),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: ListView.builder(
+              itemCount: items.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final widget = itemBuilder(context, item);
+                
+                // اگر itemIcon مشخص شده، آیکون را اضافه کن
+                if (itemIcon != null) {
+                  if (widget is Container && widget.child != null) {
+                    return Container(
+                      decoration: widget.decoration,
+                      padding: widget.padding,
+                      margin: widget.margin,
+                      child: Row(
+                        children: [
+                          Icon(
+                            itemIcon,
+                            color: const Color(0xff444349),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(child: widget.child!),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return Row(
+                      children: [
+                        Icon(
+                          itemIcon,
+                          color: const Color(0xff444349),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(child: widget),
+                      ],
+                    );
+                  }
+                }
+                
+                return widget;
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
