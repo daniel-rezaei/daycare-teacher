@@ -107,38 +107,28 @@ class ChildStatusActions extends StatelessWidget {
 
       case ChildAttendanceStatus.checkedOut:
         // اگر امروز آمده و رفته، "Checked Out" با آیکون Subtract2 نمایش داده می‌شود
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _MoreButton(
-              onTap: onMoreTap != null && childId != null && childName != null
-                  ? () => onMoreTap!(childId!, childName!, childPhoto)
-                  : null,
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.backgroundWhite,
-                borderRadius: BorderRadius.circular(8),
+        // آیکون سه نقطه نمایش داده نمی‌شود
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.backgroundWhite,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Assets.images.subtract2.svg(),
+              const SizedBox(width: 8),
+              const Text(
+                'Checked Out',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Assets.images.subtract2.svg(),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Checked Out',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         );
 
       case ChildAttendanceStatus.absent:
