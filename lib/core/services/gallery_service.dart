@@ -21,6 +21,17 @@ class GalleryService {
       }
 
       final dir = await getApplicationDocumentsDirectory();
+      final imagePath = imageFile.path;
+      
+      // بررسی اینکه آیا تصویر از گالری داخلی آمده یا نه
+      // اگر مسیر فایل در getApplicationDocumentsDirectory باشد، یعنی از گالری داخلی آمده
+      if (imagePath.startsWith(dir.path) && imagePath.endsWith('.jpg') && !imagePath.endsWith('_thumb.jpg')) {
+        debugPrint('[GALLERY_SERVICE] Image is already in internal gallery: $imagePath');
+        // تصویر از گالری داخلی آمده، نیازی به ذخیره مجدد نیست
+        return imagePath;
+      }
+
+      // تصویر از جای دیگری آمده (مثلاً دوربین یا cache موقت)، باید ذخیره شود
       final id = _uuid.v4();
       final originalPath = "${dir.path}/$id.jpg";
       final thumbPath = "${dir.path}/${id}_thumb.jpg";
