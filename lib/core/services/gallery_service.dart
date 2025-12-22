@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -28,11 +29,14 @@ class GalleryService {
       await imageFile.copy(originalPath);
       debugPrint('[GALLERY_SERVICE] Original image saved: $originalPath');
 
-      // ساخت thumbnail در پس‌زمینه (از فایل اصلی که کپی شده)
-      _createThumbnail(originalPath, thumbPath);
-
       // ریفرش کردن کش
       PhotoCacheService.refresh();
+
+      // ساخت thumbnail در پس‌زمینه (از فایل اصلی که کپی شده) - بدون await
+      // این کار در پس‌زمینه انجام می‌شود و UI را block نمی‌کند
+      _createThumbnail(originalPath, thumbPath).catchError((e) {
+        debugPrint('[GALLERY_SERVICE] Thumbnail creation error: $e');
+      });
 
       return originalPath;
     } catch (e) {
@@ -41,18 +45,36 @@ class GalleryService {
     }
   }
 
-  /// ساخت thumbnail در پس‌زمینه
+  /// ساخت thumbnail در پس‌زمینه (در isolate جداگانه)
   static Future<void> _createThumbnail(String sourcePath, String thumbPath) async {
     try {
+      // خواندن فایل در isolate اصلی (سریع است)
       final bytes = await File(sourcePath).readAsBytes();
-      final image = img.decodeImage(bytes);
-      if (image != null) {
-        final resized = img.copyResize(image, width: 300);
-        await File(thumbPath).writeAsBytes(img.encodeJpg(resized, quality: 80));
+      
+      // پردازش تصویر در isolate جداگانه برای جلوگیری از block شدن UI
+      final thumbnailBytes = await compute(_processThumbnail, bytes);
+      
+      if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
+        await File(thumbPath).writeAsBytes(thumbnailBytes);
         debugPrint('[GALLERY_SERVICE] Thumbnail created: $thumbPath');
       }
     } catch (e) {
       debugPrint('[GALLERY_SERVICE] Thumbnail creation failed: $e');
+    }
+  }
+
+  /// پردازش thumbnail در isolate جداگانه
+  static Uint8List? _processThumbnail(Uint8List bytes) {
+    try {
+      final image = img.decodeImage(bytes);
+      if (image != null) {
+        final resized = img.copyResize(image, width: 300);
+        return Uint8List.fromList(img.encodeJpg(resized, quality: 80));
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[GALLERY_SERVICE] Thumbnail processing failed: $e');
+      return null;
     }
   }
 
