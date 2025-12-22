@@ -23,6 +23,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:get_it/get_it.dart';
+import 'package:teacher_app/core/services/gallery_service.dart';
 
 class CheckOutWidget extends StatefulWidget {
   final String childId;
@@ -136,6 +137,15 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
           if (uploadResult is DataSuccess && uploadResult.data != null) {
             uploadedFileIds.add(uploadResult.data!);
             debugPrint('[CHECKOUT_DEBUG] Image ${i + 1} uploaded successfully, fileId: ${uploadResult.data}');
+            
+            // ذخیره تصویر در گالری داخلی بعد از آپلود موفق
+            try {
+              await GalleryService.saveImageToGallery(imageFile);
+              debugPrint('[CHECKOUT_DEBUG] Image ${i + 1} saved to internal gallery');
+            } catch (e) {
+              debugPrint('[CHECKOUT_DEBUG] Failed to save image ${i + 1} to gallery: $e');
+              // ادامه می‌دهیم حتی اگر ذخیره در گالری با خطا مواجه شود
+            }
           } else {
             debugPrint('[CHECKOUT_DEBUG] Failed to upload image ${i + 1}');
             if (mounted) {

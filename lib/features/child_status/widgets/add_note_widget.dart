@@ -19,6 +19,7 @@ import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usec
 import 'package:teacher_app/core/data_state.dart';
 import 'package:get_it/get_it.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
+import 'package:teacher_app/core/services/gallery_service.dart';
 
 class AddNoteWidget extends StatefulWidget {
   final String childId;
@@ -210,6 +211,15 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
         if (uploadResult is DataSuccess && uploadResult.data != null) {
           uploadedFileIds.add(uploadResult.data!);
           debugPrint('[NOTE_UPLOAD] Image ${i + 1} uploaded successfully, fileId: ${uploadResult.data}');
+          
+          // ذخیره تصویر در گالری داخلی بعد از آپلود موفق
+          try {
+            await GalleryService.saveImageToGallery(imageFile);
+            debugPrint('[NOTE_UPLOAD] Image ${i + 1} saved to internal gallery');
+          } catch (e) {
+            debugPrint('[NOTE_UPLOAD] Failed to save image ${i + 1} to gallery: $e');
+            // ادامه می‌دهیم حتی اگر ذخیره در گالری با خطا مواجه شود
+          }
         } else {
           debugPrint('[NOTE_UPLOAD] Failed to upload image ${i + 1}');
           setState(() {

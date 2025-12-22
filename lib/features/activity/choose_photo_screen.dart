@@ -5,7 +5,14 @@ import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class ChoosePhotoScreen extends StatefulWidget {
-  const ChoosePhotoScreen({super.key});
+  final bool allowMultipleSelection;
+  final int? maxSelection;
+  
+  const ChoosePhotoScreen({
+    super.key,
+    this.allowMultipleSelection = true,
+    this.maxSelection,
+  });
 
   @override
   State<ChoosePhotoScreen> createState() => _ChoosePhotoScreenState();
@@ -27,13 +34,24 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
         .where((f) => f is File && f.path.endsWith("_thumb.jpg"))
         .map((f) => File(f.path))
         .toList();
+    
+    // Sort by modification time (newest first)
+    files.sort((a, b) {
+      final aTime = a.lastModifiedSync();
+      final bTime = b.lastModifiedSync();
+      return bTime.compareTo(aTime);
+    });
+    
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       for (var f in files) {
         await precacheImage(FileImage(f), context);
       }
-      setState(() {
-        photos = files.reversed.toList();
-      });
+      if (mounted) {
+        setState(() {
+          photos = files;
+        });
+      }
     });
   }
 
@@ -49,25 +67,26 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 16),
-                      Assets.images.arrowLeft.svg(),
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          'Choose a Photo',
-                          style: TextStyle(
-                            color: Color(0xff444349),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
+                Row(
+                  children: [
+                    SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Assets.images.arrowLeft.svg(),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        'Choose a Photo',
+                        style: TextStyle(
+                          color: Color(0xff444349),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    Spacer(),
+                  ],
                 ),
                 SizedBox(height: 12),
                 Expanded(
@@ -129,6 +148,15 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
                                           if (isSelected) {
                                             selectedPhotos.remove(file);
                                           } else {
+                                            // اگر maxSelection مشخص شده و به حد رسیده، اجازه انتخاب بیشتر نده
+                                            if (widget.maxSelection != null && 
+                                                selectedPhotos.length >= widget.maxSelection!) {
+                                              return;
+                                            }
+                                            // اگر allowMultipleSelection false است و قبلاً یکی انتخاب شده، آن را حذف کن
+                                            if (!widget.allowMultipleSelection && selectedPhotos.isNotEmpty) {
+                                              selectedPhotos.clear();
+                                            }
                                             selectedPhotos.add(file);
                                           }
                                           allSelected =
@@ -199,13 +227,40 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
         padding: EdgeInsets.all(20),
         child: Row(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(width: 1, color: Color(0xffDBDADD)),
-                borderRadius: BorderRadius.circular(8),
+            GestureDetector(
+              onTap: selectedPhotos.isNotEmpty
+                  ? () {
+                      // تبدیل thumbnail به فایل اصلی
+                      final selectedOriginalFiles = selectedPhotos.map((thumbFile) {
+                        // تبدیل _thumb.jpg به .jpg
+                        final thumbPath = thumbFile.path;
+                        final originalPath = thumbPath.replaceAll('_thumb.jpg', '.jpg');
+                        return File(originalPath);
+                      }).where((file) => file.existsSync()).toList();
+                      
+                      Navigator.pop(context, selectedOriginalFiles);
+                    }
+                  : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 1,
+                    color: selectedPhotos.isNotEmpty
+                        ? Color(0xff7B2AF3)
+                        : Color(0xffDBDADD),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  color: selectedPhotos.isNotEmpty
+                      ? Color(0xff7B2AF3).withValues(alpha: 0.1)
+                      : Colors.transparent,
+                ),
+                padding: EdgeInsets.all(8),
+                child: Assets.images.squareArrowRight.svg(
+                  color: selectedPhotos.isNotEmpty
+                      ? Color(0xff7B2AF3)
+                      : null,
+                ),
               ),
-              padding: EdgeInsets.all(8),
-              child: Assets.images.squareArrowRight.svg(),
             ),
             SizedBox(width: 18),
             Text(
@@ -217,34 +272,35 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
               ),
             ),
             Spacer(),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (allSelected) {
-                    selectedPhotos.clear();
-                  } else {
-                    selectedPhotos = photos.toSet();
-                  }
-                  allSelected = !allSelected;
-                });
-              },
-              child: Row(
-                children: [
-                  allSelected
-                      ? Assets.images.checkbox.svg()
-                      : Assets.images.checkbox2.svg(),
-                  SizedBox(width: 8),
-                  Text(
-                    'Select All',
-                    style: TextStyle(
-                      color: Color(0xff444349),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+            if (widget.allowMultipleSelection)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (allSelected) {
+                      selectedPhotos.clear();
+                    } else {
+                      selectedPhotos = photos.toSet();
+                    }
+                    allSelected = !allSelected;
+                  });
+                },
+                child: Row(
+                  children: [
+                    allSelected
+                        ? Assets.images.checkbox.svg()
+                        : Assets.images.checkbox2.svg(),
+                    SizedBox(width: 8),
+                    Text(
+                      'Select All',
+                      style: TextStyle(
+                        color: Color(0xff444349),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

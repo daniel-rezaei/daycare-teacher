@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:teacher_app/features/activity/choose_photo_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class AttachPhotoWidget extends StatefulWidget {
@@ -67,15 +68,23 @@ class _AttachPhotoWidgetState extends State<AttachPhotoWidget> {
               ),
               ListTile(
                 leading: Icon(Icons.photo_library),
-                title: Text('Choose from Gallery'),
+                title: Text('Choose from App Gallery'),
                 onTap: () async {
                   Navigator.pop(context);
-                  final XFile? image = await _picker.pickImage(
-                    source: ImageSource.gallery,
+                  final result = await Navigator.push<List<File>>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChoosePhotoScreen(
+                        allowMultipleSelection: true,
+                      ),
+                    ),
                   );
-                  if (image != null) {
+                  if (result != null && result.isNotEmpty) {
                     setState(() {
-                      _images.insert(0, File(image.path));
+                      // اضافه کردن عکس‌های انتخاب شده به ابتدای لیست
+                      for (var file in result.reversed) {
+                        _images.insert(0, file);
+                      }
                       _notifyChange();
                     });
                   }
