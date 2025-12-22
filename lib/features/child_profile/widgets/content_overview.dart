@@ -264,28 +264,30 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 ),
                                 SizedBox(height: 32),
                               ],
-                              Row(children: [
-                                Text('Dietary Restrictions',style: TextStyle(
-                                  color: Color(0xff444349),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),),
-                                Spacer(),
-Container(
-  decoration: BoxDecoration(
-    color: Color(0xffF9F5FF),
-    borderRadius: BorderRadius.circular(9999),
-  ),
-  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-  child: Text('2 Items',style: TextStyle(
-    color: Color(0xff9C5CFF),
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-  ),),
-),
-SizedBox(width: 4),
-Icon(Icons.keyboard_arrow_down_rounded)
-                              ],),
+                              _InfoSectionRow(
+                                title: 'Dietary Restrictions',
+                                itemCount: 2,
+                              ),
+                              SizedBox(height: 12),
+                              _InfoSectionRow(
+                                title: 'Medication',
+                                itemCount: 2,
+                              ),
+                              SizedBox(height: 12),
+                              _InfoSectionRow(
+                                title: 'Immunization',
+                                itemCount: 2,
+                              ),
+                              SizedBox(height: 12),
+                              _InfoSectionRow(
+                                title: 'Physical Requirements',
+                                itemCount: 2,
+                              ),
+                              SizedBox(height: 12),
+                              _InfoSectionRow(
+                                title: 'Reportable Diseases',
+                                itemCount: 2,
+                              ),
                               SizedBox(height: 12),
                               // نمایش زبان
                               Container(
@@ -332,6 +334,50 @@ Icon(Icons.keyboard_arrow_down_rounded)
           },
         );
       },
+    );
+  }
+}
+
+class _InfoSectionRow extends StatelessWidget {
+  final String title;
+  final int itemCount;
+
+  const _InfoSectionRow({
+    required this.title,
+    required this.itemCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xff444349),
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Spacer(),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xffF9F5FF),
+            borderRadius: BorderRadius.circular(9999),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          child: Text(
+            '$itemCount Items',
+            style: const TextStyle(
+              color: Color(0xff9C5CFF),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        const Icon(Icons.keyboard_arrow_down_rounded),
+      ],
     );
   }
 }
