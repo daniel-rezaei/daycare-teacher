@@ -18,6 +18,7 @@ import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pick
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 // ignore: unused_import
 import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
+import 'package:teacher_app/gen/assets.gen.dart';
 
 class ContentOverview extends StatefulWidget {
   final String childId;
@@ -331,13 +332,18 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Text(
-                                      item.restrictionName ?? 'Unknown',
-                                      style: const TextStyle(
-                                        color: Color(0xff444349),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.assignment_late_outlined),
+                                        Text(
+                                          item.restrictionName ?? 'Unknown',
+                                          style: const TextStyle(
+                                            color: Color(0xff444349),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
@@ -361,13 +367,18 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Text(
-                                      item.medicationName ?? 'Unknown',
-                                      style: const TextStyle(
-                                        color: Color(0xff444349),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                       Icon(Icons.assignment_late_outlined),
+                                        Text(
+                                          item.medicationName ?? 'Unknown',
+                                          style: const TextStyle(
+                                            color: Color(0xff444349),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
@@ -396,13 +407,18 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Text(
-                                      item.requirementName ?? 'Unknown',
-                                      style: const TextStyle(
-                                        color: Color(0xff444349),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.assignment_late_outlined),
+                                        Text(
+                                          item.requirementName ?? 'Unknown',
+                                          style: const TextStyle(
+                                            color: Color(0xff444349),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
@@ -427,13 +443,18 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Text(
-                                      item.diseaseName ?? 'Unknown',
-                                      style: const TextStyle(
-                                        color: Color(0xff444349),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.assignment_late_outlined),
+                                        Text(
+                                          item.diseaseName ?? 'Unknown',
+                                          style: const TextStyle(
+                                            color: Color(0xff444349),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   );
                                 },
