@@ -21,6 +21,16 @@ class ChildApi {
     return await httpclient.get('/items/Medication');
   }
 
+  // دریافت لیست همه نیازمندی‌های فیزیکی
+  Future<Response> getAllPhysicalRequirements() async {
+    return await httpclient.get('/items/child_physical_requirements');
+  }
+
+  // دریافت لیست همه بیماری‌های قابل گزارش
+  Future<Response> getAllReportableDiseases() async {
+    return await httpclient.get('/items/child_reportable_diseases');
+  }
+
   // دریافت بچه بر اساس ID
   Future<Response> getChildById({required String childId}) async {
     return await httpclient.get(

@@ -27,6 +27,16 @@ class GetAllMedicationsEvent extends ChildEvent {
   const GetAllMedicationsEvent();
 }
 
+/// Event for fetching all physical requirements
+class GetAllPhysicalRequirementsEvent extends ChildEvent {
+  const GetAllPhysicalRequirementsEvent();
+}
+
+/// Event for fetching all reportable diseases
+class GetAllReportableDiseasesEvent extends ChildEvent {
+  const GetAllReportableDiseasesEvent();
+}
+
 /// Event for fetching a child by ID
 class GetChildByIdEvent extends ChildEvent {
   final String childId;

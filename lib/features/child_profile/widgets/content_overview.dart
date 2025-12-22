@@ -25,6 +25,7 @@ class _ContentOverviewState extends State<ContentOverview> {
   String? _lastRequestedPickupChildId;
   bool _hasRequestedGuardians = false;
   bool _hasRequestedPickup = false;
+  bool _hasRequestedChildData = false;
 
   /// پیدا کردن Contact بر اساس contact_id
   /// ارتباط: Contacts.id == Child_Guardian.contact_id
@@ -184,6 +185,50 @@ class _ContentOverviewState extends State<ContentOverview> {
                         // فیلتر authorized pickup
                         final authorizedPickup = _getAuthorizedPickup(guardians);
 
+                        // دریافت و فیلتر داده‌های child
+                        // Dietary Restrictions
+                        final dietaryRestrictions = childState.dietaryRestrictions
+                                ?.where((dr) => dr.childId == actualChildId)
+                                .toList() ??
+                            [];
+                        final dietaryRestrictionsCount = dietaryRestrictions.length;
+
+                        // Medications
+                        final medications = childState.medications
+                                ?.where((m) => m.childId == actualChildId)
+                                .toList() ??
+                            [];
+                        final medicationsCount = medications.length;
+
+                        // Physical Requirements
+                        final physicalRequirements = childState.physicalRequirements
+                                ?.where((pr) => pr.childId == actualChildId)
+                                .toList() ??
+                            [];
+                        final physicalRequirementsCount = physicalRequirements.length;
+
+                        // Reportable Diseases
+                        final reportableDiseases = childState.reportableDiseases
+                                ?.where((rd) => rd.childId == actualChildId)
+                                .toList() ??
+                            [];
+                        final reportableDiseasesCount = reportableDiseases.length;
+
+                        // درخواست داده‌ها اگر هنوز درخواست نشده
+                        if (actualChildId != null && 
+                            actualChildId.isNotEmpty && 
+                            !_hasRequestedChildData) {
+                          _hasRequestedChildData = true;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              context.read<ChildBloc>().add(const GetAllDietaryRestrictionsEvent());
+                              context.read<ChildBloc>().add(const GetAllMedicationsEvent());
+                              context.read<ChildBloc>().add(const GetAllPhysicalRequirementsEvent());
+                              context.read<ChildBloc>().add(const GetAllReportableDiseasesEvent());
+                            }
+                          });
+                        }
+
                         return Container(
                           decoration: BoxDecoration(
                             color: Color(0xffFFFFFF),
@@ -266,27 +311,27 @@ class _ContentOverviewState extends State<ContentOverview> {
                               ],
                               _InfoSectionRow(
                                 title: 'Dietary Restrictions',
-                                itemCount: 2,
+                                itemCount: dietaryRestrictionsCount,
                               ),
                               SizedBox(height: 12),
                               _InfoSectionRow(
                                 title: 'Medication',
-                                itemCount: 2,
+                                itemCount: medicationsCount,
                               ),
                               SizedBox(height: 12),
                               _InfoSectionRow(
                                 title: 'Immunization',
-                                itemCount: 2,
+                                itemCount: 0, // TODO: Add when API is available
                               ),
                               SizedBox(height: 12),
                               _InfoSectionRow(
                                 title: 'Physical Requirements',
-                                itemCount: 2,
+                                itemCount: physicalRequirementsCount,
                               ),
                               SizedBox(height: 12),
                               _InfoSectionRow(
                                 title: 'Reportable Diseases',
-                                itemCount: 2,
+                                itemCount: reportableDiseasesCount,
                               ),
                               SizedBox(height: 12),
                               // نمایش زبان
@@ -360,23 +405,37 @@ class _InfoSectionRow extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xffF9F5FF),
-            borderRadius: BorderRadius.circular(9999),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          child: Text(
-            '$itemCount Items',
-            style: const TextStyle(
-              color: Color(0xff9C5CFF),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+        if (itemCount == 0)
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xffDBDADD), width: 2),
+              borderRadius: BorderRadius.circular(9999),
             ),
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: const Text('No Items'),
+          )
+        else
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xffF9F5FF),
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                child: Text(
+                  '$itemCount Items',
+                  style: const TextStyle(
+                    color: Color(0xff9C5CFF),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down_rounded),
+            ],
           ),
-        ),
-        const SizedBox(width: 4),
-        const Icon(Icons.keyboard_arrow_down_rounded),
       ],
     );
   }
