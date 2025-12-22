@@ -78,11 +78,14 @@ class AttendanceApi {
     debugPrint('[ATTENDANCE_API] checkoutPickupContactId: $checkoutPickupContactId');
     debugPrint('[ATTENDANCE_API] checkoutPickupContactType: $checkoutPickupContactType');
     
-    // فقط فیلدهای لازم برای Check Out - مشابه createAttendance
-    final data = <String, dynamic>{
-      'check_out_at': checkOutAt,
-      'check_out_method': 'manually',
-    };
+    // فقط فیلدهای لازم - اگر checkOutAt خالی است، فقط note/photo را به‌روز می‌کنیم
+    final data = <String, dynamic>{};
+    
+    // فقط اگر checkOutAt خالی نباشد، آن را اضافه می‌کنیم
+    if (checkOutAt.isNotEmpty) {
+      data['check_out_at'] = checkOutAt;
+      data['check_out_method'] = 'manually';
+    }
 
     // اضافه کردن فیلدهای اختیاری فقط در صورت وجود
     if (notes != null && notes.isNotEmpty) {

@@ -32,6 +32,17 @@ class _ChildStatusState extends State<ChildStatus> {
   bool _hasRequestedData = false;
   bool _hasRequestedAttendance = false;
   Set<String> _locallyAbsentChildIds = {};
+  List<AttendanceChildEntity> _lastAttendanceList = []; // حفظ آخرین لیست attendance
+  
+  // Helper method برای مقایسه دو لیست attendance
+  bool _listsAreEqual(List<AttendanceChildEntity> list1, List<AttendanceChildEntity> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].id != list2[i].id) return false;
+      if (list1[i].checkOutAt != list2[i].checkOutAt) return false;
+    }
+    return true;
+  }
 
   @override
   void initState() {
@@ -221,7 +232,37 @@ class _ChildStatusState extends State<ChildStatus> {
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
                       child: BlocBuilder<AttendanceBloc, AttendanceState>(
+                        buildWhen: (previous, current) {
+                          // فقط rebuild کن اگر state واقعاً تغییر کرده باشد
+                          return true;
+                        },
                         builder: (context, attendanceState) {
+                          // حفظ آخرین لیست موفق attendance
+                          // همیشه سعی می‌کنیم آخرین GetAttendanceByClassIdSuccess را از bloc بگیریم
+                          final bloc = context.read<AttendanceBloc>();
+                          
+                          // اگر state فعلی GetAttendanceByClassIdSuccess است، لیست را به‌روز می‌کنیم
+                          if (bloc.state is GetAttendanceByClassIdSuccess) {
+                            final currentState = bloc.state as GetAttendanceByClassIdSuccess;
+                            final newListLength = currentState.attendanceList.length;
+                            final oldListLength = _lastAttendanceList.length;
+                            
+                            // فقط اگر لیست تغییر کرده باشد، به‌روز می‌کنیم
+                            if (newListLength != oldListLength || 
+                                !_listsAreEqual(_lastAttendanceList, currentState.attendanceList)) {
+                              debugPrint('[CHILD_STATUS] 📋 Updating _lastAttendanceList: $oldListLength -> $newListLength items');
+                              _lastAttendanceList = List.from(currentState.attendanceList); // کپی کردن لیست
+                              debugPrint('[CHILD_STATUS] 📋 _lastAttendanceList updated. First 3 IDs: ${_lastAttendanceList.take(3).map((a) => '${a.id}(${a.childId})').join(', ')}');
+                            } else {
+                              debugPrint('[CHILD_STATUS] 📋 _lastAttendanceList unchanged: $newListLength items');
+                            }
+                          } else {
+                            debugPrint('[CHILD_STATUS] 📋 Current bloc state is not GetAttendanceByClassIdSuccess: ${bloc.state.runtimeType}');
+                            debugPrint('[CHILD_STATUS] 📋 Keeping _lastAttendanceList: ${_lastAttendanceList.length} items');
+                          }
+                          
+                          debugPrint('[CHILD_STATUS] 🔄 BlocBuilder rebuild - attendanceState: ${attendanceState.runtimeType}, _lastAttendanceList.length: ${_lastAttendanceList.length}');
+                          
                           return BlocBuilder<ChildBloc, ChildState>(
                             builder: (context, state) {
                               // بررسی لودینگ برای children و contacts
@@ -234,10 +275,10 @@ class _ChildStatusState extends State<ChildStatus> {
                                 );
                               }
 
-                              // بررسی لودینگ برای attendance
-                              if (attendanceState is GetAttendanceByClassIdLoading ||
-                                  attendanceState is AttendanceInitial ||
-                                  attendanceState is CreateAttendanceLoading) {
+                              // بررسی لودینگ برای attendance - فقط برای بارگذاری اولیه
+                              // اگر در حال loading هستیم و لیست قبلی خالی است، loading نشان می‌دهیم
+                              if (attendanceState is GetAttendanceByClassIdLoading && _lastAttendanceList.isEmpty) {
+                                debugPrint('[CHILD_STATUS] ⏳ Showing loading (initial load)');
                                 return const Center(
                                   child: Padding(
                                     padding: EdgeInsets.all(32.0),
@@ -245,13 +286,37 @@ class _ChildStatusState extends State<ChildStatus> {
                                   ),
                                 );
                               }
+                              
+                              // اگر در حالت initial هستیم و لیست خالی است، loading نشان می‌دهیم
+                              if (attendanceState is AttendanceInitial && _lastAttendanceList.isEmpty) {
+                                debugPrint('[CHILD_STATUS] ⏳ Showing loading (initial state)');
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(32.0),
+                                    child: CupertinoActivityIndicator(),
+                                  ),
+                                );
+                              }
+                              
+                              // اگر در حال loading هستیم اما لیست قبلی وجود دارد، از لیست قبلی استفاده می‌کنیم
+                              if (attendanceState is GetAttendanceByClassIdLoading && _lastAttendanceList.isNotEmpty) {
+                                debugPrint('[CHILD_STATUS] ⚠️ Loading but using previous list: ${_lastAttendanceList.length} items');
+                              }
 
                               final children = state.children;
                               final contacts = state.contacts;
                               List<AttendanceChildEntity> attendanceList = [];
 
+                              // استفاده از آخرین لیست موفق یا لیست فعلی
                               if (attendanceState is GetAttendanceByClassIdSuccess) {
                                 attendanceList = attendanceState.attendanceList;
+                                debugPrint('[CHILD_STATUS] ✅ Using GetAttendanceByClassIdSuccess list: ${attendanceList.length} items');
+                              } else if (_lastAttendanceList.isNotEmpty) {
+                                // اگر در حالت loading هستیم، از آخرین لیست موفق استفاده می‌کنیم
+                                attendanceList = _lastAttendanceList;
+                                debugPrint('[CHILD_STATUS] ⚠️ Using _lastAttendanceList (state: ${attendanceState.runtimeType}): ${attendanceList.length} items');
+                              } else {
+                                debugPrint('[CHILD_STATUS] ❌ No attendance list available! State: ${attendanceState.runtimeType}, _lastAttendanceList: ${_lastAttendanceList.length}');
                               }
 
                             if (children != null && contacts != null && classId != null) {
@@ -307,12 +372,17 @@ class _ChildStatusState extends State<ChildStatus> {
                                         child.contactId,
                                         contacts,
                                       );
+                                      
+                                      debugPrint('[CHILD_STATUS] 👶 Building item for child: ${child.id}, attendanceList.length: ${attendanceList.length}');
+                                      
                                       final status = ChildStatusHelper.getChildStatusToday(
                                         childId: child.id ?? '',
                                         classId: classId!,
                                         attendanceList: attendanceList,
                                         locallyAbsentChildIds: _locallyAbsentChildIds,
                                       );
+                                      
+                                      debugPrint('[CHILD_STATUS] 👶 Child ${child.id} status: $status');
 
                                       // پیدا کردن attendance مربوط به این کودک برای امروز
                                       final attendance = ChildStatusHelper.getChildAttendance(
@@ -320,6 +390,12 @@ class _ChildStatusState extends State<ChildStatus> {
                                         attendanceList,
                                         classId: classId,
                                       );
+                                      
+                                      if (attendance != null) {
+                                        debugPrint('[CHILD_STATUS] 👶 Child ${child.id} attendance: id=${attendance.id}, checkIn=${attendance.checkInAt}, checkOut=${attendance.checkOutAt}');
+                                      } else {
+                                        debugPrint('[CHILD_STATUS] 👶 Child ${child.id} attendance: null');
+                                      }
 
                                       return ChildStatusListItem(
                                         child: child,

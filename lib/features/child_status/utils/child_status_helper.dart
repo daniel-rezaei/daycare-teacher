@@ -194,6 +194,10 @@ class ChildStatusHelper {
 
     // اگر رکورد attendance معتبری برای امروز وجود دارد
     if (validTodayAttendance.isNotEmpty) {
+      debugPrint(
+        '[CHILD_STATUS_DEBUG] Child $childId: Found ${validTodayAttendance.length} valid attendance(s) for today',
+      );
+      
       // بررسی اینکه آیا رکوردی با check_out_at == null وجود دارد
       final hasActiveAttendance = validTodayAttendance.any(
         (attendance) => attendance.checkOutAt == null || attendance.checkOutAt!.isEmpty,

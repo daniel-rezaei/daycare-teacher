@@ -15,7 +15,6 @@ import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
-import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -50,6 +49,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   String? _selectedContactId;
   String? _selectedRelationToChild; // برای checkoutPickupContactType
   bool _isSubmitting = false;
+  bool _checkoutSubmitted = false; // برای جلوگیری از pop چندباره
 
   @override
   void initState() {
@@ -178,6 +178,11 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       
       debugPrint('[CHECKOUT_STEP2] ========== Dispatching UpdateAttendanceEvent ==========');
       
+      // علامت‌گذاری که checkout در حال ارسال است
+      setState(() {
+        _checkoutSubmitted = true;
+      });
+      
       context.read<AttendanceBloc>().add(
             UpdateAttendanceEvent(
               attendanceId: widget.attendanceId,
@@ -206,38 +211,47 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   Widget build(BuildContext context) {
     return BlocListener<AttendanceBloc, AttendanceState>(
       listener: (context, state) {
-        if (state is UpdateAttendanceSuccess) {
-          // بعد از موفقیت Check-Out، به MyHomePage منتقل می‌شویم
-          // و تمام صفحات قبلی از navigation stack حذف می‌شوند
-          debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceSuccess - Navigating to MyHomePage');
-          if (mounted) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const MyHomePage()),
-              (_) => false, // تمام صفحات قبلی را حذف می‌کند
-            );
+        // بررسی اینکه آیا attendance مربوط به این widget به‌روز شده است
+        if (state is GetAttendanceByClassIdSuccess) {
+          // پیدا کردن attendance مربوط به این attendanceId
+          final matchingAttendances = state.attendanceList.where(
+            (att) => att.id == widget.attendanceId,
+          ).toList();
+          
+          if (matchingAttendances.isEmpty) {
+            debugPrint('❌ Attendance not found for attendanceId: ${widget.attendanceId}');
+            return;
+          }
+          
+          final updatedAttendance = matchingAttendances.first;
+          
+          // اگر این attendance به‌روز شده و checkOutAt دارد، یعنی checkout موفق بوده
+          // فقط اگر در حال submit هستیم و attendance مربوط به این widget است
+          if (_isSubmitting &&
+              _checkoutSubmitted &&
+              updatedAttendance.id == widget.attendanceId && 
+              updatedAttendance.checkOutAt != null && 
+              updatedAttendance.checkOutAt!.isNotEmpty) {
+            debugPrint('[CHECKOUT_DEBUG] Attendance updated with checkOutAt - Popping back to previous page');
+            setState(() {
+              _isSubmitting = false;
+              _checkoutSubmitted = false; // reset flag
+            });
+            if (mounted) {
+              // به جای رفتن به HomePage، به صفحه قبلی برگرد
+              Navigator.of(context).pop();
+            }
           }
         } else if (state is UpdateAttendanceFailure) {
           setState(() {
             _isSubmitting = false;
+            _checkoutSubmitted = false;
           });
           // نمایش خطا به کاربر
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
-            // بعد از نمایش خطا (با کمی تاخیر)، به MyHomePage منتقل می‌شویم
-            // و تمام صفحات قبلی از navigation stack حذف می‌شوند
-            debugPrint('[CHECKOUT_DEBUG] UpdateAttendanceFailure - Navigating to MyHomePage after error');
-            if (!mounted) return;
-            final navigator = Navigator.of(context);
-            Future.delayed(const Duration(milliseconds: 200), () {
-              if (mounted) {
-                navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const MyHomePage()),
-                  (_) => false, // تمام صفحات قبلی را حذف می‌کند
-                );
-              }
-            });
           }
         }
       },

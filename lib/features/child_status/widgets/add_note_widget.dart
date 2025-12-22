@@ -14,7 +14,7 @@ import 'package:teacher_app/features/child_status/utils/child_status_helper.dart
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
-import 'package:teacher_app/features/home/my_home_page.dart';
+import 'package:teacher_app/features/child_status/services/local_absent_storage_service.dart';
 import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:get_it/get_it.dart';
@@ -57,6 +57,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
   // برای مدیریت مراحل submit
   bool _needsCheckIn = false;
   bool _isCheckingIn = false;
+  bool _noteSubmitted = false; // برای جلوگیری از pop چندباره
 
   @override
   void initState() {
@@ -143,7 +144,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
     try {
       // استفاده از همان منطق Check In که در صفحه لیست کودکان استفاده می‌شود
       // حذف از لیست غایبین محلی (اگر وجود داشته باشد)
-      // این بخش را می‌توانیم skip کنیم چون فقط برای UI است
+      await LocalAbsentStorageService.removeAbsent(widget.classId, widget.childId);
 
       final checkInAt = DateUtils.getCurrentDateTime();
       debugPrint('[NOTE_CHECKIN] Dispatching CreateAttendanceEvent');
@@ -264,27 +265,52 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       final photoFileId = imageCodes.isNotEmpty ? imageCodes.first : null;
 
       // دریافت attendance موجود برای گرفتن checkOutAt
+      // اگر بچه تازه check-in شده (از طریق Add Note)، نباید checkOutAt را ارسال کنیم
       final attendanceState = context.read<AttendanceBloc>().state;
-      String checkOutAt = '';
+      String? checkOutAt;
       if (attendanceState is GetAttendanceByClassIdSuccess) {
-        final attendance = attendanceState.attendanceList.firstWhere(
+        // پیدا کردن attendance مربوط به این attendanceId
+        final matchingAttendances = attendanceState.attendanceList.where(
           (att) => att.id == _currentAttendanceId,
-          orElse: () => attendanceState.attendanceList.first,
-        );
-        // اگر checkOutAt null است، string خالی می‌فرستیم (API نیاز به checkOutAt دارد)
-        checkOutAt = attendance.checkOutAt ?? '';
+        ).toList();
+        
+        if (matchingAttendances.isEmpty) {
+          debugPrint('❌ Child not found for attendanceId: $_currentAttendanceId');
+          setState(() {
+            _isSubmitting = false;
+            _noteSubmitted = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('خطا: attendance یافت نشد')),
+            );
+          }
+          return;
+        }
+        
+        final attendance = matchingAttendances.first;
+        // فقط اگر checkOutAt از قبل وجود داشته باشد، آن را ارسال می‌کنیم
+        // اگر null است یا خالی است، یعنی بچه هنوز check-out نشده و نباید checkOutAt را ارسال کنیم
+        if (attendance.checkOutAt != null && attendance.checkOutAt!.isNotEmpty) {
+          checkOutAt = attendance.checkOutAt;
+        }
       }
 
       debugPrint('[NOTE_SUBMIT] Dispatching UpdateAttendanceEvent');
       debugPrint('[NOTE_SUBMIT] - attendanceId: $_currentAttendanceId');
-      debugPrint('[NOTE_SUBMIT] - checkOutAt: $checkOutAt');
+      debugPrint('[NOTE_SUBMIT] - checkOutAt: $checkOutAt (null if not checked out)');
       debugPrint('[NOTE_SUBMIT] - notes: $note');
       debugPrint('[NOTE_SUBMIT] - photo: $photoFileId');
 
+      // علامت‌گذاری که note در حال ارسال است
+      setState(() {
+        _noteSubmitted = true;
+      });
+      
       context.read<AttendanceBloc>().add(
             UpdateAttendanceEvent(
               attendanceId: _currentAttendanceId!,
-              checkOutAt: checkOutAt,
+              checkOutAt: checkOutAt ?? '', // اگر null باشد، string خالی می‌فرستیم
               notes: note,
               photo: photoFileId,
             ),
@@ -396,54 +422,75 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       listener: (context, state) {
         debugPrint('[NOTE_LISTENER] State changed: ${state.runtimeType}');
 
-        // Handle CreateAttendanceSuccess - بعد از Check In
-        if (state is CreateAttendanceSuccess) {
-          debugPrint('[NOTE_LISTENER] CreateAttendanceSuccess received');
-          debugPrint('[NOTE_LISTENER] New attendance ID: ${state.attendance.id}');
-
+        // Handle GetAttendanceByClassIdSuccess - بعد از Check In یا Update
+        if (state is GetAttendanceByClassIdSuccess) {
+          // اگر در حال Check In هستیم، پیدا کردن attendance جدید
           if (_isCheckingIn) {
-            debugPrint('[NOTE_LISTENER] Check In successful, setting _currentAttendanceId');
-            setState(() {
-              _currentAttendanceId = state.attendance.id;
-              _isCheckingIn = false;
-              _needsCheckIn = false;
-            });
+            // پیدا کردن attendance جدید برای این child (که checkOutAt ندارد)
+            final newAttendance = state.attendanceList.firstWhere(
+              (att) => att.childId == widget.childId && 
+                       att.checkOutAt == null,
+              orElse: () => state.attendanceList.isNotEmpty ? state.attendanceList.last : state.attendanceList.firstWhere(
+                (att) => att.childId == widget.childId,
+                orElse: () => state.attendanceList.first,
+              ),
+            );
+            
+            if (newAttendance.id != null && newAttendance.id != _currentAttendanceId) {
+              debugPrint('[NOTE_LISTENER] Check In successful, setting _currentAttendanceId');
+              debugPrint('[NOTE_LISTENER] New attendance ID: ${newAttendance.id}');
+              setState(() {
+                _currentAttendanceId = newAttendance.id;
+                _isCheckingIn = false;
+                _needsCheckIn = false;
+              });
 
-            // حالا که Check In انجام شد، ادامه می‌دهیم
-            debugPrint('[NOTE_LISTENER] Continuing with upload and submit...');
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (mounted && _currentAttendanceId != null) {
-                _continueAfterCheckIn();
+              // حالا که Check In انجام شد، ادامه می‌دهیم
+              debugPrint('[NOTE_LISTENER] Continuing with upload and submit...');
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted && _currentAttendanceId != null) {
+                  _continueAfterCheckIn();
+                }
+              });
+            }
+          } 
+          // اگر در حال Update هستیم (نه Check In) و attendance به‌روز شده، به صفحه قبلی برگرد
+          else if (!_isCheckingIn && _currentAttendanceId != null && _isSubmitting && _noteSubmitted) {
+            final updatedAttendance = state.attendanceList.firstWhere(
+              (att) => att.id == _currentAttendanceId,
+              orElse: () => state.attendanceList.first,
+            );
+            
+            // اگر attendance به‌روز شده (مثلاً note اضافه شده)، به صفحه قبلی برگرد
+            if (updatedAttendance.id == _currentAttendanceId) {
+              debugPrint('[NOTE_LISTENER] Attendance updated - Popping back to previous page');
+              setState(() {
+                _isSubmitting = false;
+                _noteSubmitted = false; // reset flag
+              });
+              if (mounted) {
+                // به جای رفتن به HomePage، به صفحه قبلی برگرد
+                Navigator.of(context).pop();
               }
-            });
+            }
           }
         } else if (state is CreateAttendanceFailure) {
           debugPrint('[NOTE_LISTENER] CreateAttendanceFailure: ${state.message}');
           setState(() {
             _isSubmitting = false;
             _isCheckingIn = false;
+            _noteSubmitted = false;
           });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
           }
-        } else if (state is UpdateAttendanceSuccess) {
-          debugPrint('[NOTE_LISTENER] UpdateAttendanceSuccess - Navigating to MyHomePage');
-          setState(() {
-            _isSubmitting = false;
-          });
-          // بعد از موفقیت، به MyHomePage منتقل می‌شویم
-          if (mounted) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const MyHomePage()),
-              (_) => false,
-            );
-          }
         } else if (state is UpdateAttendanceFailure) {
           debugPrint('[NOTE_LISTENER] UpdateAttendanceFailure: ${state.message}');
           setState(() {
             _isSubmitting = false;
+            _noteSubmitted = false;
           });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

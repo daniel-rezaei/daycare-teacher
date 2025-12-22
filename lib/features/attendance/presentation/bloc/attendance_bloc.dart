@@ -50,6 +50,10 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     CreateAttendanceEvent event,
     Emitter<AttendanceState> emit,
   ) async {
+    // ذخیره کردن state قبلی قبل از emit کردن CreateAttendanceLoading
+    final previousState = state;
+    debugPrint('[ATTENDANCE_BLOC] 📋 Previous state before loading: ${previousState.runtimeType}');
+    
     emit(CreateAttendanceLoading());
 
     try {
@@ -61,16 +65,23 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint('[ATTENDANCE_DEBUG] CreateAttendanceSuccess: ${dataState.data.id}');
+        debugPrint('[ATTENDANCE_BLOC] ✅ CreateAttendanceSuccess: ${dataState.data.id}');
+        debugPrint('[ATTENDANCE_BLOC] 📋 Previous state (saved): ${previousState.runtimeType}');
         
         // اضافه کردن attendance جدید به لیست موجود، بدون دریافت مجدد کل لیست
-        if (state is GetAttendanceByClassIdSuccess) {
-          final currentState = state as GetAttendanceByClassIdSuccess;
+        // فقط GetAttendanceByClassIdSuccess را emit می‌کنیم تا UI reset نشود
+        // Listener ها می‌توانند از GetAttendanceByClassIdSuccess استفاده کنند
+        if (previousState is GetAttendanceByClassIdSuccess) {
+          final currentState = previousState;
+          debugPrint('[ATTENDANCE_BLOC] 📋 Previous list length: ${currentState.attendanceList.length}');
           final updatedList = <AttendanceChildEntity>[...currentState.attendanceList, dataState.data];
+          debugPrint('[ATTENDANCE_BLOC] 📋 New list length: ${updatedList.length}');
+          debugPrint('[ATTENDANCE_BLOC] 📋 New attendance: id=${dataState.data.id}, childId=${dataState.data.childId}, checkIn=${dataState.data.checkInAt}, checkOut=${dataState.data.checkOutAt}');
           emit(GetAttendanceByClassIdSuccess(updatedList));
         } else {
-          // اگر state قبلی GetAttendanceByClassIdSuccess نبود، فقط success را emit می‌کنیم
-          emit(CreateAttendanceSuccess(dataState.data));
+          // اگر state قبلی GetAttendanceByClassIdSuccess نبود، لیست جدید با یک آیتم ایجاد می‌کنیم
+          debugPrint('[ATTENDANCE_BLOC] ⚠️ Previous state was not GetAttendanceByClassIdSuccess, creating new list');
+          emit(GetAttendanceByClassIdSuccess([dataState.data]));
         }
       } else if (dataState is DataFailed) {
         debugPrint('[ATTENDANCE_DEBUG] CreateAttendanceFailure: ${dataState.error}');
@@ -96,6 +107,10 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     debugPrint('[ATTENDANCE_BLOC] event.checkoutPickupContactId: ${event.checkoutPickupContactId}');
     debugPrint('[ATTENDANCE_BLOC] event.checkoutPickupContactType: ${event.checkoutPickupContactType}');
     
+    // ذخیره کردن state قبلی قبل از emit کردن UpdateAttendanceLoading
+    final previousState = state;
+    debugPrint('[ATTENDANCE_BLOC] 📋 Previous state before loading: ${previousState.runtimeType}');
+    
     emit(const UpdateAttendanceLoading());
 
     try {
@@ -111,25 +126,31 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint('[ATTENDANCE_DEBUG] UpdateAttendanceSuccess: ${dataState.data.id}');
+        debugPrint('[ATTENDANCE_BLOC] ✅ UpdateAttendanceSuccess: ${dataState.data.id}');
+        debugPrint('[ATTENDANCE_BLOC] 📋 Previous state (saved): ${previousState.runtimeType}');
         
         // به‌روزرسانی فقط همان attendance در لیست موجود، بدون دریافت مجدد کل لیست
-        if (state is GetAttendanceByClassIdSuccess) {
-          final currentState = state as GetAttendanceByClassIdSuccess;
+        // فقط GetAttendanceByClassIdSuccess را emit می‌کنیم تا UI reset نشود
+        // Listener ها می‌توانند از GetAttendanceByClassIdSuccess استفاده کنند
+        if (previousState is GetAttendanceByClassIdSuccess) {
+          final currentState = previousState;
+          debugPrint('[ATTENDANCE_BLOC] 📋 Previous list length: ${currentState.attendanceList.length}');
+          debugPrint('[ATTENDANCE_BLOC] 📋 Updating attendanceId: ${event.attendanceId}');
           final updatedList = currentState.attendanceList.map<AttendanceChildEntity>((attendance) {
             if (attendance.id == event.attendanceId) {
+              debugPrint('[ATTENDANCE_BLOC] 📋 Found matching attendance: ${attendance.id}, updating...');
               return dataState.data;
             }
             return attendance;
           }).toList();
           
-          // emit کردن GetAttendanceByClassIdSuccess برای به‌روزرسانی لیست
+          debugPrint('[ATTENDANCE_BLOC] 📋 Updated list length: ${updatedList.length}');
+          debugPrint('[ATTENDANCE_BLOC] 📋 Updated attendance: id=${dataState.data.id}, childId=${dataState.data.childId}, checkIn=${dataState.data.checkInAt}, checkOut=${dataState.data.checkOutAt}');
           emit(GetAttendanceByClassIdSuccess(updatedList));
-          // emit کردن UpdateAttendanceSuccess برای اطلاع CheckOutWidget
-          emit(UpdateAttendanceSuccess(dataState.data));
         } else {
-          // اگر state قبلی GetAttendanceByClassIdSuccess نبود، فقط success را emit می‌کنیم
-          emit(UpdateAttendanceSuccess(dataState.data));
+          // اگر state قبلی GetAttendanceByClassIdSuccess نبود، لیست جدید با یک آیتم ایجاد می‌کنیم
+          debugPrint('[ATTENDANCE_BLOC] ⚠️ Previous state was not GetAttendanceByClassIdSuccess, creating new list');
+          emit(GetAttendanceByClassIdSuccess([dataState.data]));
         }
       } else if (dataState is DataFailed) {
         debugPrint('[ATTENDANCE_DEBUG] UpdateAttendanceFailure: ${dataState.error}');
