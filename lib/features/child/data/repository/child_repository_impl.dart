@@ -8,6 +8,8 @@ import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/domain/repository/child_repository.dart';
 import 'package:teacher_app/features/dietary_restriction/data/models/dietary_restriction_model/dietary_restriction_model.dart';
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/immunization/data/models/immunization_model/immunization_model.dart';
+import 'package:teacher_app/features/immunization/domain/entity/immunization_entity.dart';
 import 'package:teacher_app/features/medication/data/models/medication_model/medication_model.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/physical_requirement/data/models/physical_requirement_model/physical_requirement_model.dart';
@@ -122,6 +124,23 @@ class ChildRepositoryImpl extends ChildRepository {
           .toList();
 
       return DataSuccess(diseasesEntity);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<DataState<List<ImmunizationEntity>>> getAllImmunizations() async {
+    try {
+      final Response response = await childApi.getAllImmunizations();
+
+      final List<dynamic> list = response.data['data'] as List<dynamic>;
+
+      final List<ImmunizationEntity> immunizationsEntity = list
+          .map((e) => ImmunizationModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      return DataSuccess(immunizationsEntity);
     } on DioException catch (e) {
       return _handleDioError(e);
     }

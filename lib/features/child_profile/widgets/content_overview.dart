@@ -11,6 +11,8 @@ import 'package:teacher_app/features/child_profile/widgets/info_card_overview.da
 // ignore: unused_import
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
 // ignore: unused_import
+import 'package:teacher_app/features/immunization/domain/entity/immunization_entity.dart';
+// ignore: unused_import
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 // ignore: unused_import
 import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
@@ -18,7 +20,6 @@ import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pick
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 // ignore: unused_import
 import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
-import 'package:teacher_app/gen/assets.gen.dart';
 
 class ContentOverview extends StatefulWidget {
   final String childId;
@@ -219,6 +220,12 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 .toList() ??
                             [];
 
+                        // Immunizations
+                        final immunizations = childState.immunizations
+                                ?.where((imm) => imm.childId == actualChildId)
+                                .toList() ??
+                            [];
+
                         // درخواست داده‌ها اگر هنوز درخواست نشده
                         if (actualChildId != null && 
                             actualChildId.isNotEmpty && 
@@ -230,6 +237,7 @@ class _ContentOverviewState extends State<ContentOverview> {
                               context.read<ChildBloc>().add(const GetAllMedicationsEvent());
                               context.read<ChildBloc>().add(const GetAllPhysicalRequirementsEvent());
                               context.read<ChildBloc>().add(const GetAllReportableDiseasesEvent());
+                              context.read<ChildBloc>().add(const GetAllImmunizationsEvent());
                             }
                           });
                         }
@@ -332,18 +340,13 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.assignment_late_outlined),
-                                        Text(
-                                          item.restrictionName ?? 'Unknown',
-                                          style: const TextStyle(
-                                            color: Color(0xff444349),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      item.restrictionName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   );
                                 },
@@ -367,26 +370,46 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
-                                      children: [
-                                       Icon(Icons.assignment_late_outlined),
-                                        Text(
-                                          item.medicationName ?? 'Unknown',
-                                          style: const TextStyle(
-                                            color: Color(0xff444349),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      item.medicationName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   );
                                 },
                               ),
                               SizedBox(height: 12),
-                              _InfoSectionRow(
+                              _ExpandableInfoSection(
                                 title: 'Immunization',
-                                itemCount: 0, // TODO: Add when API is available
+                                items: immunizations,
+                                itemBuilder: (context, item) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xffF7F7F8),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: const Color(0xffFAFAFA),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      item.vaccineName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               SizedBox(height: 12),
                               _ExpandableInfoSection(
@@ -407,18 +430,13 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.assignment_late_outlined),
-                                        Text(
-                                          item.requirementName ?? 'Unknown',
-                                          style: const TextStyle(
-                                            color: Color(0xff444349),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      item.requirementName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   );
                                 },
@@ -443,18 +461,13 @@ class _ContentOverviewState extends State<ContentOverview> {
                                       horizontal: 16,
                                     ),
                                     margin: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.assignment_late_outlined),
-                                        Text(
-                                          item.diseaseName ?? 'Unknown',
-                                          style: const TextStyle(
-                                            color: Color(0xff444349),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                    child: Text(
+                                      item.diseaseName ?? 'Unknown',
+                                      style: const TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   );
                                 },

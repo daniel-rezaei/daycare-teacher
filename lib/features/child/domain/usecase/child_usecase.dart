@@ -3,6 +3,7 @@ import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/domain/repository/child_repository.dart';
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/immunization/domain/entity/immunization_entity.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -42,6 +43,11 @@ class ChildUsecase {
   // دریافت همه بیماری‌های قابل گزارش
   Future<DataState<List<ReportableDiseaseEntity>>> getAllReportableDiseases() async {
     return await childRepository.getAllReportableDiseases();
+  }
+
+  // دریافت همه واکسیناسیون‌ها
+  Future<DataState<List<ImmunizationEntity>>> getAllImmunizations() async {
+    return await childRepository.getAllImmunizations();
   }
 
   // دریافت بچه بر اساس ID

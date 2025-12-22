@@ -8,6 +8,7 @@ import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/domain/usecase/child_usecase.dart';
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/immunization/domain/entity/immunization_entity.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -26,6 +27,7 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     on<GetAllMedicationsEvent>(_getAllMedicationsEvent);
     on<GetAllPhysicalRequirementsEvent>(_getAllPhysicalRequirementsEvent);
     on<GetAllReportableDiseasesEvent>(_getAllReportableDiseasesEvent);
+    on<GetAllImmunizationsEvent>(_getAllImmunizationsEvent);
     on<GetChildByIdEvent>(_getChildByIdEvent);
     on<GetChildByContactIdEvent>(_getChildByContactIdEvent);
   }
@@ -354,6 +356,69 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
         isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
         isLoadingMedications: currentState.isLoadingMedications,
         isLoadingPhysicalRequirements: currentState.isLoadingPhysicalRequirements,
+      ));
+    }
+  }
+
+  FutureOr<void> _getAllImmunizationsEvent(
+    GetAllImmunizationsEvent event,
+    Emitter<ChildState> emit,
+  ) async {
+    final previousState = state;
+    emit(GetAllImmunizationsLoading(
+      children: previousState.children,
+      contacts: previousState.contacts,
+      dietaryRestrictions: previousState.dietaryRestrictions,
+      medications: previousState.medications,
+      physicalRequirements: previousState.physicalRequirements,
+      reportableDiseases: previousState.reportableDiseases,
+      immunizations: previousState.immunizations,
+      isLoadingChildren: previousState.isLoadingChildren,
+      isLoadingContacts: previousState.isLoadingContacts,
+      isLoadingDietaryRestrictions: previousState.isLoadingDietaryRestrictions,
+      isLoadingMedications: previousState.isLoadingMedications,
+      isLoadingPhysicalRequirements: previousState.isLoadingPhysicalRequirements,
+      isLoadingReportableDiseases: previousState.isLoadingReportableDiseases,
+    ));
+
+    DataState dataState = await childUsecase.getAllImmunizations();
+
+    final currentState = state;
+
+    if (dataState is DataSuccess) {
+      emit(GetAllImmunizationsSuccess(
+        dataState.data,
+        children: currentState.children ?? previousState.children,
+        contacts: currentState.contacts ?? previousState.contacts,
+        dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+        medications: currentState.medications ?? previousState.medications,
+        physicalRequirements: currentState.physicalRequirements ?? previousState.physicalRequirements,
+        reportableDiseases: currentState.reportableDiseases ?? previousState.reportableDiseases,
+        isLoadingChildren: currentState.isLoadingChildren,
+        isLoadingContacts: currentState.isLoadingContacts,
+        isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+        isLoadingMedications: currentState.isLoadingMedications,
+        isLoadingPhysicalRequirements: currentState.isLoadingPhysicalRequirements,
+        isLoadingReportableDiseases: currentState.isLoadingReportableDiseases,
+      ));
+    }
+
+    if (dataState is DataFailed) {
+      emit(GetAllImmunizationsFailure(
+        dataState.error!,
+        children: currentState.children ?? previousState.children,
+        contacts: currentState.contacts ?? previousState.contacts,
+        dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
+        medications: currentState.medications ?? previousState.medications,
+        physicalRequirements: currentState.physicalRequirements ?? previousState.physicalRequirements,
+        reportableDiseases: currentState.reportableDiseases ?? previousState.reportableDiseases,
+        immunizations: currentState.immunizations ?? previousState.immunizations,
+        isLoadingChildren: currentState.isLoadingChildren,
+        isLoadingContacts: currentState.isLoadingContacts,
+        isLoadingDietaryRestrictions: currentState.isLoadingDietaryRestrictions,
+        isLoadingMedications: currentState.isLoadingMedications,
+        isLoadingPhysicalRequirements: currentState.isLoadingPhysicalRequirements,
+        isLoadingReportableDiseases: currentState.isLoadingReportableDiseases,
       ));
     }
   }

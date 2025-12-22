@@ -37,6 +37,11 @@ class GetAllReportableDiseasesEvent extends ChildEvent {
   const GetAllReportableDiseasesEvent();
 }
 
+/// Event for fetching all immunizations
+class GetAllImmunizationsEvent extends ChildEvent {
+  const GetAllImmunizationsEvent();
+}
+
 /// Event for fetching a child by ID
 class GetChildByIdEvent extends ChildEvent {
   final String childId;

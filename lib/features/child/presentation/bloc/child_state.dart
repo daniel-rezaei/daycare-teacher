@@ -7,6 +7,7 @@ sealed class ChildState extends Equatable {
   final List<MedicationEntity>? medications;
   final List<PhysicalRequirementEntity>? physicalRequirements;
   final List<ReportableDiseaseEntity>? reportableDiseases;
+  final List<ImmunizationEntity>? immunizations;
   final ChildEntity? child;
   final bool isLoadingChildren;
   final bool isLoadingContacts;
@@ -14,6 +15,7 @@ sealed class ChildState extends Equatable {
   final bool isLoadingMedications;
   final bool isLoadingPhysicalRequirements;
   final bool isLoadingReportableDiseases;
+  final bool isLoadingImmunizations;
   final bool isLoadingChild;
   final String? childrenError;
   final String? contactsError;
@@ -21,6 +23,7 @@ sealed class ChildState extends Equatable {
   final String? medicationsError;
   final String? physicalRequirementsError;
   final String? reportableDiseasesError;
+  final String? immunizationsError;
   final String? childError;
 
   const ChildState({
@@ -30,6 +33,7 @@ sealed class ChildState extends Equatable {
     this.medications,
     this.physicalRequirements,
     this.reportableDiseases,
+    this.immunizations,
     this.child,
     this.isLoadingChildren = false,
     this.isLoadingContacts = false,
@@ -37,6 +41,7 @@ sealed class ChildState extends Equatable {
     this.isLoadingMedications = false,
     this.isLoadingPhysicalRequirements = false,
     this.isLoadingReportableDiseases = false,
+    this.isLoadingImmunizations = false,
     this.isLoadingChild = false,
     this.childrenError,
     this.contactsError,
@@ -44,6 +49,7 @@ sealed class ChildState extends Equatable {
     this.medicationsError,
     this.physicalRequirementsError,
     this.reportableDiseasesError,
+    this.immunizationsError,
     this.childError,
   });
 
@@ -55,6 +61,7 @@ sealed class ChildState extends Equatable {
         medications,
         physicalRequirements,
         reportableDiseases,
+        immunizations,
         child,
         isLoadingChildren,
         isLoadingContacts,
@@ -62,6 +69,7 @@ sealed class ChildState extends Equatable {
         isLoadingMedications,
         isLoadingPhysicalRequirements,
         isLoadingReportableDiseases,
+        isLoadingImmunizations,
         isLoadingChild,
         childrenError,
         contactsError,
@@ -69,6 +77,7 @@ sealed class ChildState extends Equatable {
         medicationsError,
         physicalRequirementsError,
         reportableDiseasesError,
+        immunizationsError,
         childError,
       ];
 }
@@ -366,14 +375,80 @@ final class GetAllReportableDiseasesFailure extends ChildState {
     super.medications,
     super.physicalRequirements,
     super.reportableDiseases,
+    super.immunizations,
     super.isLoadingChildren,
     super.isLoadingContacts,
     super.isLoadingDietaryRestrictions,
     super.isLoadingMedications,
     super.isLoadingPhysicalRequirements,
+    super.isLoadingImmunizations,
   }) : super(
           reportableDiseasesError: message,
           isLoadingReportableDiseases: false,
+        );
+}
+
+/// Loading state for getting all immunizations
+final class GetAllImmunizationsLoading extends ChildState {
+  const GetAllImmunizationsLoading({
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.physicalRequirements,
+    super.reportableDiseases,
+    super.immunizations,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+    super.isLoadingPhysicalRequirements,
+    super.isLoadingReportableDiseases,
+  }) : super(isLoadingImmunizations: true);
+}
+
+/// Success state for getting all immunizations
+final class GetAllImmunizationsSuccess extends ChildState {
+  const GetAllImmunizationsSuccess(
+    List<ImmunizationEntity> immunizations, {
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.physicalRequirements,
+    super.reportableDiseases,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+    super.isLoadingPhysicalRequirements,
+    super.isLoadingReportableDiseases,
+  }) : super(
+          immunizations: immunizations,
+          isLoadingImmunizations: false,
+        );
+}
+
+/// Failure state for getting all immunizations
+final class GetAllImmunizationsFailure extends ChildState {
+  const GetAllImmunizationsFailure(
+    String message, {
+    super.children,
+    super.contacts,
+    super.dietaryRestrictions,
+    super.medications,
+    super.physicalRequirements,
+    super.reportableDiseases,
+    super.immunizations,
+    super.isLoadingChildren,
+    super.isLoadingContacts,
+    super.isLoadingDietaryRestrictions,
+    super.isLoadingMedications,
+    super.isLoadingPhysicalRequirements,
+    super.isLoadingReportableDiseases,
+  }) : super(
+          immunizationsError: message,
+          isLoadingImmunizations: false,
         );
 }
 
