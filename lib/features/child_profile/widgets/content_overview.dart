@@ -23,6 +23,8 @@ class ContentOverview extends StatefulWidget {
 class _ContentOverviewState extends State<ContentOverview> {
   String? _lastRequestedChildId;
   String? _lastRequestedPickupChildId;
+  bool _hasRequestedGuardians = false;
+  bool _hasRequestedPickup = false;
 
   /// پیدا کردن Contact بر اساس contact_id
   /// ارتباط: Contacts.id == Child_Guardian.contact_id
@@ -117,9 +119,11 @@ class _ContentOverviewState extends State<ContentOverview> {
                         if (actualChildId != null && 
                             actualChildId.isNotEmpty && 
                             actualChildId != widget.childId &&
+                            !_hasRequestedGuardians &&
                             _lastRequestedChildId != actualChildId) {
                           debugPrint('[CONTENT_OVERVIEW_DEBUG] Requesting guardians with actualChildId: $actualChildId');
                           _lastRequestedChildId = actualChildId;
+                          _hasRequestedGuardians = true;
                           final childIdToRequest = actualChildId;
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (mounted) {
@@ -159,9 +163,11 @@ class _ContentOverviewState extends State<ContentOverview> {
                         if (actualChildId != null && 
                             actualChildId.isNotEmpty && 
                             actualChildId != widget.childId &&
+                            !_hasRequestedPickup &&
                             _lastRequestedPickupChildId != actualChildId) {
                           debugPrint('[CONTENT_OVERVIEW_DEBUG] Requesting pickup authorization with actualChildId: $actualChildId');
                           _lastRequestedPickupChildId = actualChildId;
+                          _hasRequestedPickup = true;
                           final pickupChildIdToRequest = actualChildId;
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (mounted) {
@@ -178,30 +184,24 @@ class _ContentOverviewState extends State<ContentOverview> {
                         // فیلتر authorized pickup
                         final authorizedPickup = _getAuthorizedPickup(guardians);
 
-                        return ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: MediaQuery.of(context).size.height -
-                                MediaQuery.of(context).padding.top -
-                                MediaQuery.of(context).padding.bottom -
-                                200, // ارتفاع تقریبی header و tabs
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Color(0xffFFFFFF),
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(20)),
+                            boxShadow: [
+                              BoxShadow(
+                                blurRadius: 16,
+                                offset: Offset(0, -4),
+                                color: Color(0xff95939D).withValues(alpha: .2),
+                              ),
+                            ],
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Color(0xffFFFFFF),
-                              borderRadius:
-                                  BorderRadius.vertical(top: Radius.circular(20)),
-                              boxShadow: [
-                                BoxShadow(
-                                  blurRadius: 16,
-                                  offset: Offset(0, -4),
-                                  color: Color(0xff95939D).withValues(alpha: .2),
-                                ),
-                              ],
-                            ),
-                            padding: EdgeInsets.fromLTRB(16, 20, 16, 36),
-                            child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                          padding: EdgeInsets.fromLTRB(16, 20, 16, 36),
+                          child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                               // نمایش والدین
                               if (parents.isNotEmpty)
                                 Row(
@@ -298,7 +298,6 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 ),
                               ),
                             ],
-                            ),
                           ),
                         );
                       },
