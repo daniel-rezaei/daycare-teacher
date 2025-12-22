@@ -264,6 +264,29 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 ),
                                 SizedBox(height: 32),
                               ],
+                              Row(children: [
+                                Text('Dietary Restrictions',style: TextStyle(
+                                  color: Color(0xff444349),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),),
+                                Spacer(),
+Container(
+  decoration: BoxDecoration(
+    color: Color(0xffF9F5FF),
+    borderRadius: BorderRadius.circular(9999),
+  ),
+  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+  child: Text('2 Items',style: TextStyle(
+    color: Color(0xff9C5CFF),
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+  ),),
+),
+SizedBox(width: 4),
+Icon(Icons.keyboard_arrow_down_rounded)
+                              ],),
+                              SizedBox(height: 12),
                               // نمایش زبان
                               Container(
                                 decoration: BoxDecoration(
