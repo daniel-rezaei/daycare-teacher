@@ -8,7 +8,8 @@ import 'package:teacher_app/features/child_status/widgets/transfer_class_widget.
 
 class MoreDetailsWidget extends StatelessWidget {
   final String childId;
-  final String classId;
+  final String classId; // Teacher's current class
+  final String childCurrentClassId; // Child's current class (primaryRoomId)
   final String? childImage; // photoId
   final String childFirstName;
   final String childLastName;
@@ -19,6 +20,7 @@ class MoreDetailsWidget extends StatelessWidget {
     super.key,
     required this.childId,
     required this.classId,
+    required this.childCurrentClassId,
     required this.childFirstName,
     required this.childLastName,
     this.childImage,
@@ -76,12 +78,16 @@ class MoreDetailsWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: GestureDetector(
               onTap: () {
+                Navigator.pop(context); // بستن MoreDetailsWidget
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   useSafeArea: true,
-                  builder: (context) => const TransferClassWidget(),
+                  builder: (context) => TransferClassWidget(
+                  studentId: childId,
+                  currentClassId: childCurrentClassId,
+                ),
                 );
               },
               child: Container(

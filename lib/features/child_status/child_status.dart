@@ -18,6 +18,9 @@ import 'package:teacher_app/features/child_status/widgets/child_status_list_item
 import 'package:teacher_app/features/child_status/widgets/more_details_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/class_transfer_request/presentation/bloc/class_transfer_request_bloc.dart';
+import 'package:teacher_app/features/class_transfer_request/domain/entity/class_transfer_request_entity.dart';
+import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 
 class ChildStatus extends StatefulWidget {
   const ChildStatus({super.key});
@@ -33,6 +36,7 @@ class _ChildStatusState extends State<ChildStatus> {
   bool _hasRequestedAttendance = false;
   Set<String> _locallyAbsentChildIds = {};
   List<AttendanceChildEntity> _lastAttendanceList = []; // حفظ آخرین لیست attendance
+  Map<String, ClassTransferRequestEntity> _transferRequestsByStudentId = {}; // Map of studentId -> transfer request
   
   // Helper method برای مقایسه دو لیست attendance
   bool _listsAreEqual(List<AttendanceChildEntity> list1, List<AttendanceChildEntity> list2) {
@@ -85,6 +89,11 @@ class _ChildStatusState extends State<ChildStatus> {
           GetAttendanceByClassIdEvent(classId: savedClassId),
         );
       }
+
+      // دریافت transfer requests برای کلاس فعلی
+      context.read<ClassTransferRequestBloc>().add(
+        GetTransferRequestsByClassIdEvent(classId: savedClassId),
+      );
 
       // بارگذاری لیست غایبین محلی
       _loadLocallyAbsentChildren(savedClassId);
@@ -176,6 +185,7 @@ class _ChildStatusState extends State<ChildStatus> {
     ChildAttendanceStatus status,
     AttendanceChildEntity? attendance,
     ContactEntity? contact,
+    ChildEntity? childEntity,
   ) {
     if (classId.isEmpty) {
       return;
@@ -184,6 +194,8 @@ class _ChildStatusState extends State<ChildStatus> {
     final firstName = contact?.firstName ?? '';
     final lastName = contact?.lastName ?? '';
     final attendanceId = attendance?.id;
+    // Use child's primaryRoomId as current class, fallback to teacher's classId
+    final childCurrentClassId = childEntity?.primaryRoomId ?? classId;
 
     showModalBottomSheet(
       context: context,
@@ -193,6 +205,7 @@ class _ChildStatusState extends State<ChildStatus> {
       builder: (context) => MoreDetailsWidget(
         childId: childId,
         classId: classId,
+        childCurrentClassId: childCurrentClassId,
         childImage: childPhoto,
         childFirstName: firstName,
         childLastName: lastName,
@@ -202,18 +215,96 @@ class _ChildStatusState extends State<ChildStatus> {
     );
   }
 
+  void _handleAcceptTransfer(String requestId) {
+    context.read<ClassTransferRequestBloc>().add(
+          UpdateTransferRequestStatusEvent(
+            requestId: requestId,
+            status: 'accepted',
+          ),
+        );
+  }
+
+  void _handleDeclineTransfer(String requestId) {
+    context.read<ClassTransferRequestBloc>().add(
+          UpdateTransferRequestStatusEvent(
+            requestId: requestId,
+            status: 'declined',
+          ),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          BackgroundWidget(),
-          SafeArea(
-            child: Column(
-              children: [
-                AppBarChild(),
-                Expanded(
-                  child: Container(
+    return BlocListener<ClassTransferRequestBloc, ClassTransferRequestState>(
+      listener: (context, state) {
+        debugPrint('[CHILD_STATUS] ========== ClassTransferRequestBloc State Changed ==========');
+        debugPrint('[CHILD_STATUS] 📊 New State Type: ${state.runtimeType}');
+        
+        if (state is GetTransferRequestsByClassIdSuccess) {
+          debugPrint('[CHILD_STATUS] ✅ GetTransferRequestsByClassIdSuccess received');
+          debugPrint('[CHILD_STATUS] 📊 Requests Count: ${state.requests.length}');
+          
+          // Update transfer requests map
+          setState(() {
+            _transferRequestsByStudentId = {
+              for (var request in state.requests)
+                if (request.studentId != null) request.studentId!: request
+            };
+          });
+          
+          debugPrint('[CHILD_STATUS] 📋 Updated _transferRequestsByStudentId map:');
+          _transferRequestsByStudentId.forEach((studentId, request) {
+            debugPrint('[CHILD_STATUS]   studentId: $studentId -> requestId: ${request.id}, fromClassId: ${request.fromClassId}, toClassId: ${request.toClassId}, status: ${request.status}');
+          });
+          debugPrint('[CHILD_STATUS] ✅ Transfer requests map updated');
+        } else if (state is CreateTransferRequestSuccess) {
+          debugPrint('[CHILD_STATUS] ✅ CreateTransferRequestSuccess received');
+          debugPrint('[CHILD_STATUS] 📋 Created Request: id=${state.request.id}, studentId=${state.request.studentId}, fromClassId=${state.request.fromClassId}, toClassId=${state.request.toClassId}');
+          // Refresh transfer requests after creating a new request
+          if (classId != null) {
+            debugPrint('[CHILD_STATUS] 🔄 Refreshing transfer requests for classId: $classId');
+            context.read<ClassTransferRequestBloc>().add(
+                  GetTransferRequestsByClassIdEvent(classId: classId!),
+                );
+          } else {
+            debugPrint('[CHILD_STATUS] ⚠️ classId is null, cannot refresh transfer requests');
+          }
+        } else if (state is UpdateTransferRequestStatusSuccess) {
+          debugPrint('[CHILD_STATUS] ✅ UpdateTransferRequestStatusSuccess received');
+          debugPrint('[CHILD_STATUS] 📋 Updated Request: id=${state.request.id}, status=${state.request.status}');
+          // Refresh transfer requests after accept/decline
+          if (classId != null) {
+            debugPrint('[CHILD_STATUS] 🔄 Refreshing transfer requests for classId: $classId');
+            context.read<ClassTransferRequestBloc>().add(
+                  GetTransferRequestsByClassIdEvent(classId: classId!),
+                );
+          }
+          // Refresh children and attendance to reflect changes
+          if (classId != null) {
+            debugPrint('[CHILD_STATUS] 🔄 Refreshing children and attendance');
+            context.read<ChildBloc>().add(const GetAllChildrenEvent());
+            context.read<AttendanceBloc>().add(
+                  GetAttendanceByClassIdEvent(classId: classId!),
+                );
+          }
+        } else if (state is GetTransferRequestsByClassIdFailure) {
+          debugPrint('[CHILD_STATUS] ❌ GetTransferRequestsByClassIdFailure received');
+          debugPrint('[CHILD_STATUS] 🐛 Error: ${state.message}');
+        } else if (state is GetTransferRequestsByClassIdLoading) {
+          debugPrint('[CHILD_STATUS] ⏳ GetTransferRequestsByClassIdLoading received');
+        }
+        debugPrint('[CHILD_STATUS] ========== ClassTransferRequestBloc State Change End ==========');
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            BackgroundWidget(),
+            SafeArea(
+              child: Column(
+                children: [
+                  AppBarChild(),
+                  Expanded(
+                    child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColors.backgroundWhite,
@@ -397,11 +488,19 @@ class _ChildStatusState extends State<ChildStatus> {
                                         debugPrint('[CHILD_STATUS] 👶 Child ${child.id} attendance: null');
                                       }
 
+                                      final transferRequest = child.id != null
+                                          ? _transferRequestsByStudentId[child.id]
+                                          : null;
+                                      
+                                      debugPrint('[CHILD_STATUS] 👶 Child ${child.id} transferRequest: ${transferRequest != null ? "id=${transferRequest.id}, fromClassId=${transferRequest.fromClassId}, toClassId=${transferRequest.toClassId}, status=${transferRequest.status}" : "null"}');
+
                                       return ChildStatusListItem(
                                         child: child,
                                         contact: contact,
                                         status: status,
                                         attendance: attendance,
+                                        currentClassId: classId!,
+                                        transferRequest: transferRequest,
                                         onPresentTap: () => _handlePresentClick(child.id ?? ''),
                                         onAbsentTap: () => _handleAbsentClick(child.id ?? ''),
                                         onCheckOutTap: () => _handleCheckOutClick(
@@ -417,7 +516,14 @@ class _ChildStatusState extends State<ChildStatus> {
                                           status,
                                           attendance,
                                           contact,
+                                          child,
                                         ),
+                                        onAcceptTransfer: transferRequest?.id != null
+                                            ? () => _handleAcceptTransfer(transferRequest!.id!)
+                                            : null,
+                                        onDeclineTransfer: transferRequest?.id != null
+                                            ? () => _handleDeclineTransfer(transferRequest!.id!)
+                                            : null,
                                       );
                                     },
                                   ),
@@ -453,9 +559,8 @@ class _ChildStatusState extends State<ChildStatus> {
               ),
             ),
           ]),
-          
         bottomNavigationBar: BottomNavigationBarChild(),
-      );
-    
+      ),
+    );
   }
 }

@@ -17,6 +17,7 @@ import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
+import 'package:teacher_app/features/class_transfer_request/presentation/bloc/class_transfer_request_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => getIt<StaffScheduleBloc>()),
         BlocProvider(create: (_) => getIt<ChildGuardianBloc>()),
         BlocProvider(create: (_) => getIt<ChildEmergencyContactBloc>()),
+        BlocProvider(create: (_) => getIt<ClassTransferRequestBloc>()),
       ],
       child: MaterialApp(
         title: 'Teacher App',

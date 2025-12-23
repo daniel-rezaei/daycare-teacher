@@ -63,6 +63,16 @@ import 'package:teacher_app/features/child_guardian/domain/usecase/child_guardia
     as _i793;
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart'
     as _i98;
+import 'package:teacher_app/features/class_transfer_request/data/data_source/class_transfer_request_api.dart'
+    as _i295;
+import 'package:teacher_app/features/class_transfer_request/data/repository/class_transfer_request_repository_impl.dart'
+    as _i98;
+import 'package:teacher_app/features/class_transfer_request/domain/repository/class_transfer_request_repository.dart'
+    as _i491;
+import 'package:teacher_app/features/class_transfer_request/domain/usecase/class_transfer_request_usecase.dart'
+    as _i39;
+import 'package:teacher_app/features/class_transfer_request/presentation/bloc/class_transfer_request_bloc.dart'
+    as _i650;
 import 'package:teacher_app/features/file_upload/data/data_source/file_upload_api.dart'
     as _i357;
 import 'package:teacher_app/features/file_upload/data/repository/file_upload_repository_impl.dart'
@@ -144,6 +154,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i2.ChildGuardianApi>(
       () => _i2.ChildGuardianApi(gh<_i361.Dio>()),
     );
+    gh.singleton<_i295.ClassTransferRequestApi>(
+      () => _i295.ClassTransferRequestApi(gh<_i361.Dio>()),
+    );
     gh.singleton<_i357.FileUploadApi>(
       () => _i357.FileUploadApi(gh<_i361.Dio>()),
     );
@@ -200,6 +213,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i18.StaffAttendanceUsecase>(
       () => _i18.StaffAttendanceUsecase(gh<_i910.StaffAttendanceRepository>()),
     );
+    gh.singleton<_i491.ClassTransferRequestRepository>(
+      () => _i98.ClassTransferRequestRepositoryImpl(
+        gh<_i295.ClassTransferRequestApi>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.singleton<_i570.AttendanceRepository>(
       () => _i954.AttendanceRepositoryImpl(gh<_i472.AttendanceApi>()),
       registerFor: {_prod},
@@ -228,6 +247,11 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
+    );
+    gh.singleton<_i39.ClassTransferRequestUsecase>(
+      () => _i39.ClassTransferRequestUsecase(
+        gh<_i491.ClassTransferRequestRepository>(),
+      ),
     );
     gh.singleton<_i471.StaffScheduleUsecase>(
       () => _i471.StaffScheduleUsecase(gh<_i1057.StaffScheduleRepository>()),
@@ -263,6 +287,11 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i811.AttendanceBloc>(
       () => _i811.AttendanceBloc(gh<_i905.AttendanceUsecase>()),
+    );
+    gh.factory<_i650.ClassTransferRequestBloc>(
+      () => _i650.ClassTransferRequestBloc(
+        gh<_i39.ClassTransferRequestUsecase>(),
+      ),
     );
     gh.factory<_i135.ChildBloc>(() => _i135.ChildBloc(gh<_i68.ChildUsecase>()));
     gh.factory<_i1025.PickupAuthorizationBloc>(
