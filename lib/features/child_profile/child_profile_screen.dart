@@ -81,23 +81,14 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                 ),
                 SizedBox(height: 12),
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return ValueListenableBuilder(
-                        valueListenable: tabIndex,
-                        builder: (context, value, child) {
-                          return SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: constraints.maxHeight,
-                              ),
-                              child: value == 0
-                                  ? ContentOverview(childId: widget.childId)
-                                  : ContentActivity(childId: widget.childId),
-                            ),
-                          );
-                        },
-                      );
+                  child: ValueListenableBuilder(
+                    valueListenable: tabIndex,
+                    builder: (context, value, child) {
+                      return value == 0
+                          ? SingleChildScrollView(
+                              child: ContentOverview(childId: widget.childId),
+                            )
+                          : ContentActivity(childId: widget.childId);
                     },
                   ),
                 ),

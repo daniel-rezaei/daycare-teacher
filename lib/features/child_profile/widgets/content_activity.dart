@@ -188,114 +188,117 @@ class _ContentActivityState extends State<ContentActivity> {
             ],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               DayStripWidget(
                 onDateSelected: _onDateSelected,
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Color(0xffFFFFFF).withValues(alpha: .8),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0xff000000).withValues(alpha: .1),
-                      offset: Offset(0, -4),
-                      blurRadius: 16,
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 36),
-                child: BlocBuilder<AttendanceBloc, AttendanceState>(
-                  builder: (context, attendanceState) {
-                    List<AttendanceChildEntity> attendanceList = [];
-                    
-                    if (attendanceState is GetAttendanceByClassIdSuccess) {
-                      attendanceList = attendanceState.attendanceList;
-                    }
-                    
-                    final activities = _getActivitiesForDate(
-                      attendanceList,
-                      _selectedDate,
-                    );
-                    
-                    if (activities.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: Text(
-                            'No activity for this date',
-                            style: TextStyle(
-                              color: Color(0xff6D6B76),
-                              fontSize: 14,
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xffFFFFFF).withValues(alpha: .8),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xff000000).withValues(alpha: .1),
+                        offset: Offset(0, -4),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 36),
+                  child: BlocBuilder<AttendanceBloc, AttendanceState>(
+                    builder: (context, attendanceState) {
+                      List<AttendanceChildEntity> attendanceList = [];
+                      
+                      if (attendanceState is GetAttendanceByClassIdSuccess) {
+                        attendanceList = attendanceState.attendanceList;
+                      }
+                      
+                      final activities = _getActivitiesForDate(
+                        attendanceList,
+                        _selectedDate,
+                      );
+                      
+                      if (activities.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Text(
+                              'No activity for this date',
+                              style: TextStyle(
+                                color: Color(0xff6D6B76),
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }
-                    
-                    return BlocBuilder<AuthBloc, AuthState>(
-                      builder: (context, authState) {
-                        List<StaffClassEntity> staffClasses = [];
-                        if (authState is GetStaffClassSuccess) {
-                          staffClasses = authState.staffClasses;
-                        }
-                        final contacts = childState.contacts ?? [];
-                        
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ...activities.map((activity) {
-                              // پیدا کردن StaffClassEntity از staffId
-                              StaffClassEntity? staffClass;
-                              if (activity.attendance.staffId != null && 
-                                  activity.attendance.staffId!.isNotEmpty) {
-                                try {
-                                  staffClass = staffClasses.firstWhere(
-                                    (sc) => sc.staffId == activity.attendance.staffId,
-                                  );
-                                } catch (e) {
-                                  // StaffClass not found
-                                }
-                              }
-                              
-                              // پیدا کردن ContactEntity از contactId
-                              ContactEntity? contact;
-                              if (staffClass?.contactId != null && 
-                                  staffClass!.contactId!.isNotEmpty) {
-                                contact = ContactUtils.getContactById(
-                                  staffClass.contactId,
-                                  contacts,
-                                );
-                              }
-                              
-                              // ساخت یک attendance entity موقت برای نمایش
-                              final displayAttendance = AttendanceChildEntity(
-                                id: activity.attendance.id,
-                                checkInAt: activity.isCheckOut ? null : activity.attendance.checkInAt,
-                                checkOutAt: activity.isCheckOut ? activity.attendance.checkOutAt : null,
-                                childId: activity.attendance.childId,
-                                classId: activity.attendance.classId,
-                                staffId: activity.attendance.staffId,
-                                checkInMethod: activity.isCheckOut ? null : activity.attendance.checkInMethod,
-                                checkOutMethod: activity.isCheckOut ? activity.attendance.checkOutMethod : null,
-                                notes: activity.attendance.notes,
-                              );
-                              
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: ActivitySectionWidget(
-                                  attendance: displayAttendance,
-                                  contact: contact,
-                                ),
-                              );
-                            }).toList(),
-                          ],
                         );
-                      },
-                    );
-                  },
+                      }
+                      
+                      return BlocBuilder<AuthBloc, AuthState>(
+                        builder: (context, authState) {
+                          List<StaffClassEntity> staffClasses = [];
+                          if (authState is GetStaffClassSuccess) {
+                            staffClasses = authState.staffClasses;
+                          }
+                          final contacts = childState.contacts ?? [];
+                          
+                          return SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...activities.map((activity) {
+                                  // پیدا کردن StaffClassEntity از staffId
+                                  StaffClassEntity? staffClass;
+                                  if (activity.attendance.staffId != null && 
+                                      activity.attendance.staffId!.isNotEmpty) {
+                                    try {
+                                      staffClass = staffClasses.firstWhere(
+                                        (sc) => sc.staffId == activity.attendance.staffId,
+                                      );
+                                    } catch (e) {
+                                      // StaffClass not found
+                                    }
+                                  }
+                                  
+                                  // پیدا کردن ContactEntity از contactId
+                                  ContactEntity? contact;
+                                  if (staffClass?.contactId != null && 
+                                      staffClass!.contactId!.isNotEmpty) {
+                                    contact = ContactUtils.getContactById(
+                                      staffClass.contactId,
+                                      contacts,
+                                    );
+                                  }
+                                  
+                                  // ساخت یک attendance entity موقت برای نمایش
+                                  final displayAttendance = AttendanceChildEntity(
+                                    id: activity.attendance.id,
+                                    checkInAt: activity.isCheckOut ? null : activity.attendance.checkInAt,
+                                    checkOutAt: activity.isCheckOut ? activity.attendance.checkOutAt : null,
+                                    childId: activity.attendance.childId,
+                                    classId: activity.attendance.classId,
+                                    staffId: activity.attendance.staffId,
+                                    checkInMethod: activity.isCheckOut ? null : activity.attendance.checkInMethod,
+                                    checkOutMethod: activity.isCheckOut ? activity.attendance.checkOutMethod : null,
+                                    notes: activity.attendance.notes,
+                                  );
+                                  
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: ActivitySectionWidget(
+                                      attendance: displayAttendance,
+                                      contact: contact,
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
