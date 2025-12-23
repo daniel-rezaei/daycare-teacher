@@ -65,12 +65,10 @@ class ProfileChildSectionWidget extends StatelessWidget {
                 border: Border.all(width: 2, color: Colors.white),
                 shape: BoxShape.circle,
               ),
-              child: childPhoto != null && childPhoto!.isNotEmpty
-                  ? ChildAvatarWidget(
-                      photoId: childPhoto,
-                      size: 68,
-                    )
-                  : Assets.images.a6fadd07775295cc625abaf33feed2e172cf00a8c.image(),
+              child: ChildAvatarWidget(
+                photoId: childPhoto,
+                size: 68,
+              ),
             ),
             const SizedBox(width: 12),
             Column(
