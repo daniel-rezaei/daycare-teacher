@@ -8,7 +8,6 @@ import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/home/widgets/upcoming_events_header_widget.dart';
-import 'package:teacher_app/features/personal_information/utils/staff_attendance_helper.dart';
 import 'package:teacher_app/features/personal_information/utils/staff_schedule_helper.dart';
 import 'package:teacher_app/features/personal_information/widgets/day_strip_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/mail_card_widget.dart';
@@ -145,14 +144,45 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                               attendanceList = attendanceState.attendanceList;
                             }
 
-                            final checkInTime = StaffAttendanceHelper.getCheckInTime(
-                              attendanceList,
-                              selectedDate,
-                            );
-                            final checkOutTime = StaffAttendanceHelper.getCheckOutTime(
-                              attendanceList,
-                              selectedDate,
-                            );
+                            // دریافت datetime کامل و استخراج فقط ساعت
+                            String? checkInTime;
+                            String? checkInAmPm;
+                            String? checkOutTime;
+                            String? checkOutAmPm;
+                            
+                            try {
+                              final checkIn = attendanceList.firstWhere(
+                                (attendance) =>
+                                    attendance.eventType == 'time_in' &&
+                                    attendance.eventAt != null &&
+                                    DateUtils.isSameDate(attendance.eventAt!, selectedDate),
+                              );
+                              
+                              if (checkIn.eventAt != null && checkIn.eventAt!.isNotEmpty) {
+                                final dateTime = DateTime.parse(checkIn.eventAt!);
+                                checkInTime = DateFormat('h:mm').format(dateTime);
+                                checkInAmPm = DateFormat('a').format(dateTime).toUpperCase();
+                              }
+                            } catch (e) {
+                              // No check-in found
+                            }
+                            
+                            try {
+                              final checkOut = attendanceList.firstWhere(
+                                (attendance) =>
+                                    attendance.eventType == 'time_out' &&
+                                    attendance.eventAt != null &&
+                                    DateUtils.isSameDate(attendance.eventAt!, selectedDate),
+                              );
+                              
+                              if (checkOut.eventAt != null && checkOut.eventAt!.isNotEmpty) {
+                                final dateTime = DateTime.parse(checkOut.eventAt!);
+                                checkOutTime = DateFormat('h:mm').format(dateTime);
+                                checkOutAmPm = DateFormat('a').format(dateTime).toUpperCase();
+                              }
+                            } catch (e) {
+                              // No check-out found
+                            }
 
                             return Container(
                             decoration: BoxDecoration(
@@ -179,15 +209,13 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                                     checkInTime ?? '--',
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
-                                      fontSize: 16,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    checkInTime != null
-                                        ? DateUtils.getAmPm(checkInTime)
-                                        : '',
+                                    checkInAmPm ?? '',
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 14,
@@ -210,15 +238,13 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                                     checkOutTime ?? '--',
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
-                                      fontSize: 16,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    checkOutTime != null
-                                        ? DateUtils.getAmPm(checkOutTime)
-                                        : '',
+                                    checkOutAmPm ?? '',
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 14,
