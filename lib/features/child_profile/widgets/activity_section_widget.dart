@@ -110,23 +110,13 @@ class ActivitySectionWidget extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: activityType == 'Check_In' 
-                              ? Color(0xffEFFAFF) 
-                              : Color(0xffFFF4E6),
-                          shape: BoxShape.circle,
-                        ),
-                        padding: EdgeInsets.all(6),
-                        child: Assets.images.subtract.svg(
-                          colorFilter: ColorFilter.mode(
-                            activityType == 'Check_In' 
-                                ? Color(0xff4A90E2) 
-                                : Color(0xffFF9500),
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                      ),
+                      activityType == 'Check_In'
+                          ? Assets.images.checkin.svg(
+                             height: 32,
+                            )
+                          : Assets.images.checkout.svg(
+                            height: 32,
+                            ),
                       SizedBox(width: 8),
                       Text(
                         activityType,
