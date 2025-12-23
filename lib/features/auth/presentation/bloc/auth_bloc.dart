@@ -38,7 +38,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       debugPrint('[AUTH_DEBUG] Exception getting class rooms: $e');
-      emit(GetClassRoomsFailure('خطا در دریافت کلاس‌ها'));
+      emit(GetClassRoomsFailure('Error retrieving classes'));
     }
   }
 

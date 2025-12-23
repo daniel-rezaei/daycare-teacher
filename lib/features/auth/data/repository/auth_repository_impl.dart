@@ -64,14 +64,14 @@ class AuthRepositoryImpl extends AuthRepository {
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
 
       if (dataList.isEmpty) {
-        return DataFailed('کلاسی برای این کاربر یافت نشد');
+        return DataFailed('No class found for this user');
       }
 
       final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
       final String? classId = data['class_id'] as String?;
 
       if (classId == null || classId.isEmpty) {
-        return DataFailed('کلاس ID یافت نشد');
+        return DataFailed('Class ID not found');
       }
 
       return DataSuccess(classId);
@@ -92,7 +92,7 @@ class AuthRepositoryImpl extends AuthRepository {
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
 
       if (dataList.isEmpty) {
-        return DataFailed('کاربری با این ایمیل یافت نشد');
+        return DataFailed('No user found with this email');
       }
 
       final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
@@ -108,7 +108,7 @@ class AuthRepositoryImpl extends AuthRepository {
       }
 
       if (classId == null || classId.isEmpty) {
-        return DataFailed('کلاس ID یافت نشد');
+        return DataFailed('Class ID not found');
       }
 
       return DataSuccess({

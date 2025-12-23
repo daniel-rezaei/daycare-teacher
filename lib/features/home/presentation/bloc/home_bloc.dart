@@ -86,7 +86,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading class rooms: $e');
       emit(state.copyWith(
         isLoadingClassRooms: false,
-        classRoomsError: 'خطا در دریافت کلاس‌ها',
+        classRoomsError: 'Error retrieving classes',
       ));
     }
   }
@@ -117,7 +117,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading contact: $e');
       emit(state.copyWith(
         isLoadingContact: false,
-        contactError: 'خطا در دریافت اطلاعات پروفایل',
+        contactError: 'Error retrieving profile information',
       ));
     }
   }
@@ -153,7 +153,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading session: $e');
       emit(state.copyWith(
         isLoadingSession: false,
-        sessionError: 'خطا در دریافت اطلاعات session',
+        sessionError: 'Error retrieving session information',
       ));
     }
   }
@@ -192,7 +192,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception creating session: $e');
       emit(state.copyWith(
         isProcessingSession: false,
-        sessionError: 'خطا در ایجاد session',
+        sessionError: 'Error creating session',
       ));
     }
   }
@@ -230,7 +230,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception updating session: $e');
       emit(state.copyWith(
         isProcessingSession: false,
-        sessionError: 'خطا در به‌روزرسانی session',
+        sessionError: 'Error updating session',
       ));
     }
   }
@@ -261,7 +261,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading children: $e');
       emit(state.copyWith(
         isLoadingChildren: false,
-        childrenError: 'خطا در دریافت اطلاعات بچه‌ها',
+        childrenError: 'Error retrieving children information',
       ));
     }
   }
@@ -292,7 +292,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading contacts: $e');
       emit(state.copyWith(
         isLoadingContacts: false,
-        contactsError: 'خطا در دریافت اطلاعات Contacts',
+        contactsError: 'Error retrieving Contacts information',
       ));
     }
   }
@@ -327,7 +327,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading dietary restrictions: $e');
       emit(state.copyWith(
         isLoadingDietaryRestrictions: false,
-        dietaryRestrictionsError: 'خطا در دریافت محدودیت‌های غذایی',
+        dietaryRestrictionsError: 'Error retrieving dietary restrictions',
       ));
     }
   }
@@ -358,7 +358,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading medications: $e');
       emit(state.copyWith(
         isLoadingMedications: false,
-        medicationsError: 'خطا در دریافت اطلاعات داروها',
+        medicationsError: 'Error retrieving medications information',
       ));
     }
   }
@@ -392,7 +392,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading attendance: $e');
       emit(state.copyWith(
         isLoadingAttendance: false,
-        attendanceError: 'خطا در دریافت اطلاعات attendance',
+        attendanceError: 'Error retrieving attendance information',
       ));
     }
   }
@@ -424,7 +424,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading notifications: $e');
       emit(state.copyWith(
         isLoadingNotifications: false,
-        notificationsError: 'خطا در دریافت اطلاعات نوتیفیکیشن‌ها',
+        notificationsError: 'Error retrieving notifications information',
       ));
     }
   }
@@ -455,7 +455,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('[HOME_DEBUG] Exception loading events: $e');
       emit(state.copyWith(
         isLoadingEvents: false,
-        eventsError: 'خطا در دریافت اطلاعات رویدادها',
+        eventsError: 'Error retrieving events information',
       ));
     }
   }

@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _lastBackPressTime = now;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('اگر می‌خواهید از اپ خارج شوید، دوباره دکمه back را بزنید'),
+          content: Text('Press back again to exit the app'),
           duration: Duration(seconds: 2),
         ),
       );

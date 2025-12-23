@@ -44,7 +44,7 @@ class ChildEmergencyContactBloc
       debugPrint(
           '[CHILD_EMERGENCY_CONTACT_DEBUG] Exception getting all child emergency contacts: $e');
       emit(const GetAllChildEmergencyContactsFailure(
-          'خطا در دریافت اطلاعات'));
+          'Error retrieving information'));
     }
   }
 }

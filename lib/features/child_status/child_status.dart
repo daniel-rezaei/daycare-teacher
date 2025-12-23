@@ -538,7 +538,7 @@ class _ChildStatusState extends State<ChildStatus> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(32.0),
                                   child: Text(
-                                    state.childrenError ?? state.contactsError ?? 'خطا در دریافت اطلاعات',
+                                    state.childrenError ?? state.contactsError ?? 'Error retrieving information',
                                     style: const TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 16,

@@ -43,7 +43,7 @@ class PickupAuthorizationBloc
       }
     } catch (e) {
       debugPrint('[PICKUP_AUTH_DEBUG] Exception getting pickup authorization: $e');
-      emit(const GetPickupAuthorizationByChildIdFailure('خطا در دریافت اطلاعات'));
+      emit(const GetPickupAuthorizationByChildIdFailure('Error retrieving information'));
     }
   }
 
@@ -78,7 +78,7 @@ class PickupAuthorizationBloc
     } catch (e, stackTrace) {
       debugPrint('[CHECKOUT_DEBUG] Exception creating pickup authorization: $e');
       debugPrint('[CHECKOUT_DEBUG] StackTrace: $stackTrace');
-      emit(const CreatePickupAuthorizationFailure('خطا در ایجاد مجوز'));
+      emit(const CreatePickupAuthorizationFailure('Error creating authorization'));
     }
   }
 }

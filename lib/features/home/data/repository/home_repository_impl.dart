@@ -66,12 +66,12 @@ class HomeRepositoryImpl extends HomeRepository {
       final response = await homeApi.getClassIdByContactId(contactId: contactId);
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
       if (dataList.isEmpty) {
-        return DataFailed('کلاسی برای این کاربر یافت نشد');
+        return DataFailed('No class found for this user');
       }
       final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
       final String? classId = data['class_id'] as String?;
       if (classId == null || classId.isEmpty) {
-        return DataFailed('کلاس ID یافت نشد');
+        return DataFailed('Class ID not found');
       }
       return DataSuccess(classId);
     } on DioException catch (e) {
@@ -85,7 +85,7 @@ class HomeRepositoryImpl extends HomeRepository {
       final response = await homeApi.getContactIdAndClassIdByEmail(email: email);
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
       if (dataList.isEmpty) {
-        return DataFailed('کاربری با این ایمیل یافت نشد');
+        return DataFailed('No user found with this email');
       }
       final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
       final String? classId = data['class_id'] as String?;
@@ -97,7 +97,7 @@ class HomeRepositoryImpl extends HomeRepository {
         return DataFailed('Contact ID یافت نشد');
       }
       if (classId == null || classId.isEmpty) {
-        return DataFailed('کلاس ID یافت نشد');
+        return DataFailed('Class ID not found');
       }
       return DataSuccess({
         'contact_id': contactId,
@@ -380,16 +380,16 @@ class HomeRepositoryImpl extends HomeRepository {
         'The server is currently under maintenance. Please be patient.',
       );
     } else {
-      String errorMessage = 'خطا در دریافت اطلاعات';
+      String errorMessage = 'Error retrieving information';
       if (e.response != null) {
         errorMessage = e.response?.data['message'] ??
             e.response?.statusMessage ??
-            'خطا در ارتباط با سرور';
+            'Error connecting to server';
       } else if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
-        errorMessage = 'زمان اتصال به سرور به پایان رسید';
+        errorMessage = 'Connection timeout';
       } else if (e.type == DioExceptionType.connectionError) {
-        errorMessage = 'خطا در اتصال به سرور';
+        errorMessage = 'Error connecting to server';
       }
       return DataFailed<T>(errorMessage);
     }

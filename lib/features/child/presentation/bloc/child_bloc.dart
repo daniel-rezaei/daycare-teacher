@@ -82,7 +82,7 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
       debugPrint('[CHILD_BLOC_DEBUG] Exception getting children: $e');
       final currentState = state;
       emit(GetAllChildrenFailure(
-        'خطا در دریافت اطلاعات بچه‌ها',
+        'Error retrieving children information',
         children: currentState.children ?? previousState.children,
         contacts: currentState.contacts ?? previousState.contacts,
         dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
@@ -144,7 +144,7 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
       debugPrint('[CHILD_BLOC_DEBUG] Exception getting contacts: $e');
       final currentState = state;
       emit(GetAllContactsFailure(
-        'خطا در دریافت اطلاعات Contacts',
+        'Error retrieving Contacts information',
         children: currentState.children ?? previousState.children,
         contacts: currentState.contacts ?? previousState.contacts,
         dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
@@ -477,7 +477,7 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
       debugPrint('[CHILD_BLOC_DEBUG] Exception getting child by id: $e');
       final currentState = state;
       emit(GetChildByIdFailure(
-        'خطا در دریافت اطلاعات بچه',
+        'Error retrieving child information',
         children: currentState.children ?? previousState.children,
         contacts: currentState.contacts ?? previousState.contacts,
         dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,
@@ -545,7 +545,7 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
       debugPrint('[CHILD_BLOC_DEBUG] Exception getting child by contactId: $e');
       final currentState = state;
       emit(GetChildByContactIdFailure(
-        'خطا در دریافت اطلاعات بچه',
+        'Error retrieving child information',
         children: currentState.children ?? previousState.children,
         contacts: currentState.contacts ?? previousState.contacts,
         dietaryRestrictions: currentState.dietaryRestrictions ?? previousState.dietaryRestrictions,

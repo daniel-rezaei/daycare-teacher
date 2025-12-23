@@ -46,7 +46,7 @@ class StaffAttendanceBloc
       }
     } catch (e) {
       debugPrint('[STAFF_ATTENDANCE_DEBUG] Exception getting staff attendance: $e');
-      emit(const GetStaffAttendanceByStaffIdFailure('خطا در دریافت اطلاعات'));
+      emit(const GetStaffAttendanceByStaffIdFailure('Error retrieving information'));
     }
   }
 
@@ -72,7 +72,7 @@ class StaffAttendanceBloc
       }
     } catch (e) {
       debugPrint('[STAFF_ATTENDANCE_DEBUG] Exception getting latest staff attendance: $e');
-      emit(const GetLatestStaffAttendanceFailure('خطا در دریافت اطلاعات'));
+      emit(const GetLatestStaffAttendanceFailure('Error retrieving information'));
     }
   }
 
@@ -108,7 +108,7 @@ class StaffAttendanceBloc
       }
     } catch (e) {
       debugPrint('[STAFF_ATTENDANCE_DEBUG] Exception creating staff attendance: $e');
-      emit(const CreateStaffAttendanceFailure('خطا در ثبت اطلاعات'));
+      emit(const CreateStaffAttendanceFailure('Error saving information'));
     }
   }
 }

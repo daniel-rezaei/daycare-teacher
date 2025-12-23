@@ -104,7 +104,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
     if (_selectedContactId == null || _selectedContactId!.isEmpty) {
       debugPrint('[CHECKOUT_DEBUG] No contact selected');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لطفاً شخصی که بچه را برمی‌دارد انتخاب کنید')),
+        const SnackBar(content: Text('Please select the person picking up the child')),
       );
       return;
     }
@@ -150,7 +150,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
             debugPrint('[CHECKOUT_DEBUG] Failed to upload image ${i + 1}');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('خطا در آپلود تصویر ${i + 1}')),
+                SnackBar(content: Text('Error uploading image ${i + 1}')),
               );
             }
             setState(() {
@@ -208,7 +208,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       debugPrint('[CHECKOUT_DEBUG] StackTrace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا: $e')),
+          SnackBar(content: Text('Error: $e')),
         );
         setState(() {
           _isSubmitting = false;
@@ -315,7 +315,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                               return const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
-                                  child: Text('هیچ مجوزی برای این بچه یافت نشد'),
+                                  child: Text('No authorization found for this child'),
                                 ),
                               );
                             }

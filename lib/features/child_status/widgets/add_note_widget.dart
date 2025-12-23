@@ -132,7 +132,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       debugPrint('[NOTE_CHECKIN] Missing classId or staffId');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('خطا: اطلاعات لازم برای Check In یافت نشد')),
+          const SnackBar(content: Text('Error: Required information for Check In not found')),
         );
       }
       return false;
@@ -177,7 +177,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در Check In: $e')),
+          SnackBar(content: Text('Error in Check In: $e')),
         );
       }
       return false;
@@ -227,7 +227,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('خطا در آپلود تصویر ${i + 1}')),
+              SnackBar(content: Text('Error uploading image ${i + 1}')),
             );
           }
           throw Exception('Failed to upload image ${i + 1}');
@@ -260,7 +260,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('خطا: attendanceId یافت نشد')),
+          const SnackBar(content: Text('Error: attendanceId not found')),
         );
       }
       return;
@@ -292,7 +292,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           });
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('خطا: attendance یافت نشد')),
+              const SnackBar(content: Text('Error: attendance not found')),
             );
           }
           return;
@@ -333,7 +333,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در ارسال Note: $e')),
+          SnackBar(content: Text('Error submitting Note: $e')),
         );
       }
     }
@@ -379,7 +379,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا: $e')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     }
@@ -397,7 +397,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('خطا: attendanceId یافت نشد')),
+          const SnackBar(content: Text('Error: attendanceId not found')),
         );
       }
       return;

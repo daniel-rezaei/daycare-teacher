@@ -296,7 +296,7 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                       if (!isClassStarted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('لطفاً ابتدا کلاس را استارت کنید'),
+                            content: Text('Please start the class first'),
                             duration: Duration(seconds: 2),
                           ),
                         );

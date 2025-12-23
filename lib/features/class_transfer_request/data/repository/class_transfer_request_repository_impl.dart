@@ -25,7 +25,7 @@ class ClassTransferRequestRepositoryImpl extends ClassTransferRequestRepository 
       
       final errorMessage = e.response?.data['errors']?[0]?['message'] as String? ??
           e.response?.data['message'] as String? ??
-          'خطا در ارتباط با سرور';
+          'Error connecting to server';
       
       debugPrint('[TRANSFER_REPO] ❌ Error Message: $errorMessage');
       debugPrint('[TRANSFER_REPO] ========== _handleDioError END ==========');
@@ -33,7 +33,7 @@ class ClassTransferRequestRepositoryImpl extends ClassTransferRequestRepository 
     } else {
       debugPrint('[TRANSFER_REPO] ❌ No response data, using default error message');
       debugPrint('[TRANSFER_REPO] ========== _handleDioError END ==========');
-      return DataFailed<T>('خطا در ارتباط با سرور');
+      return DataFailed<T>('Error connecting to server');
     }
   }
 
@@ -204,7 +204,7 @@ class ClassTransferRequestRepositoryImpl extends ClassTransferRequestRepository 
       debugPrint('[TRANSFER_REPO] 📍 Stack Trace:');
       debugPrint('[TRANSFER_REPO] $stackTrace');
       debugPrint('[TRANSFER_REPO] ========== getTransferRequestsByClassId ERROR ==========');
-      return DataFailed<List<ClassTransferRequestEntity>>('خطا غیرمنتظره: $e');
+      return DataFailed<List<ClassTransferRequestEntity>>('Unexpected error: $e');
     }
   }
 }

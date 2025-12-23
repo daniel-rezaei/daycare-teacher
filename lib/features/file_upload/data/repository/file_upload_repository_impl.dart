@@ -26,7 +26,7 @@ class FileUploadRepositoryImpl extends FileUploadRepository {
       if (fileId != null && fileId.isNotEmpty) {
         return DataSuccess(fileId);
       } else {
-        return DataFailed('خطا در آپلود فایل');
+        return DataFailed('Error uploading file');
       }
     } on DioException catch (e) {
       return _handleDioError(e);
@@ -34,17 +34,17 @@ class FileUploadRepositoryImpl extends FileUploadRepository {
   }
 
   DataFailed<T> _handleDioError<T>(DioException e) {
-    String errorMessage = 'خطا در آپلود فایل';
+    String errorMessage = 'Error uploading file';
 
     if (e.response != null) {
       errorMessage = e.response?.data['message'] ??
           e.response?.statusMessage ??
-          'خطا در ارتباط با سرور';
+          'Error connecting to server';
     } else if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
-      errorMessage = 'زمان اتصال به سرور به پایان رسید';
+      errorMessage = 'Connection timeout';
     } else if (e.type == DioExceptionType.connectionError) {
-      errorMessage = 'خطا در اتصال به سرور';
+      errorMessage = 'Error connecting to server';
     }
 
     return DataFailed(errorMessage);

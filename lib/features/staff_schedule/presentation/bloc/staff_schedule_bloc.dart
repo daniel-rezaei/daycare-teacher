@@ -65,7 +65,7 @@ class StaffScheduleBloc extends Bloc<StaffScheduleEvent, StaffScheduleState> {
       }
     } catch (e) {
       debugPrint('[STAFF_SCHEDULE_DEBUG] Exception getting staff schedule: $e');
-      emit(const GetStaffScheduleByStaffIdFailure('خطا در دریافت اطلاعات'));
+      emit(const GetStaffScheduleByStaffIdFailure('Error retrieving information'));
     }
   }
 }

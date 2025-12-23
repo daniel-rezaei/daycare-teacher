@@ -42,7 +42,7 @@ class ChildGuardianBloc
       }
     } catch (e) {
       debugPrint('[CHILD_GUARDIAN_DEBUG] Exception getting child guardian: $e');
-      emit(const GetChildGuardianByChildIdFailure('خطا در دریافت اطلاعات'));
+      emit(const GetChildGuardianByChildIdFailure('Error retrieving information'));
     }
   }
 }

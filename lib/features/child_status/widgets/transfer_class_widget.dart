@@ -72,7 +72,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
     if (_existingRequest != null && _existingRequest!.status == 'pending') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('یک درخواست انتقال در حال بررسی وجود دارد'),
+          content: Text('A transfer request is currently under review'),
         ),
       );
       return;
@@ -82,7 +82,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
     if (_staffId == null || _staffId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('خطا: شناسه کارمند یافت نشد'),
+          content: Text('Error: Staff ID not found'),
         ),
       );
       return;
@@ -114,7 +114,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
           if (state.request != null && state.request!.status == 'pending') {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('یک درخواست انتقال در حال بررسی وجود دارد'),
+                content: Text('A transfer request is currently under review'),
                 duration: Duration(seconds: 2),
               ),
             );
@@ -132,7 +132,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('درخواست انتقال با موفقیت ثبت شد'),
+              content: Text('Transfer request submitted successfully'),
             ),
           );
         } else if (state is CreateTransferRequestFailure) {
@@ -182,7 +182,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
                           child: Text(
-                            'هیچ کلاسی یافت نشد',
+                            'No classes found',
                             style: TextStyle(
                               color: AppColors.textTertiary,
                               fontSize: 14,
@@ -214,7 +214,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'یک درخواست انتقال در حال بررسی وجود دارد',
+                                      'A transfer request is currently under review',
                                       style: TextStyle(
                                         color: Colors.orange.shade700,
                                         fontSize: 12,
@@ -292,7 +292,7 @@ class TransferClassList extends StatelessWidget {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Text(
-          'هیچ کلاسی یافت نشد',
+          'No classes found',
           style: TextStyle(color: AppColors.textTertiary, fontSize: 14),
         ),
       );

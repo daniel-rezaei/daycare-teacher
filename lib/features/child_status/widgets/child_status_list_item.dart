@@ -112,7 +112,7 @@ class ChildStatusListItem extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
-                      'در انتظار بررسی',
+                      'Pending review',
                       style: TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 12,

@@ -42,7 +42,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       }
     } catch (e) {
       debugPrint('[ATTENDANCE_DEBUG] Exception getting attendance: $e');
-      emit(GetAttendanceByClassIdFailure('خطا در دریافت اطلاعات attendance'));
+      emit(GetAttendanceByClassIdFailure('Error retrieving attendance information'));
     }
   }
 
@@ -89,7 +89,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       }
     } catch (e) {
       debugPrint('[ATTENDANCE_DEBUG] Exception creating attendance: $e');
-      emit(CreateAttendanceFailure('خطا در ایجاد attendance'));
+      emit(CreateAttendanceFailure('Error creating attendance'));
     }
   }
 
@@ -158,7 +158,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       }
     } catch (e) {
       debugPrint('[ATTENDANCE_DEBUG] Exception updating attendance: $e');
-      emit(const UpdateAttendanceFailure('خطا در به‌روزرسانی attendance'));
+      emit(const UpdateAttendanceFailure('Error updating attendance'));
     }
   }
 }

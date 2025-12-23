@@ -35,7 +35,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
     } catch (e) {
       debugPrint('[PROFILE_DEBUG] Exception getting contact: $e');
-      emit(GetContactFailure('خطا در دریافت اطلاعات پروفایل'));
+      emit(GetContactFailure('Error retrieving profile information'));
     }
   }
 }

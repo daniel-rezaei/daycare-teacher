@@ -205,22 +205,22 @@ class ChildRepositoryImpl extends ChildRepository {
       debugPrint('[CHILD_REPO] ❌ Unexpected error: $e');
       debugPrint('[CHILD_REPO] Stack trace: $stackTrace');
       debugPrint('[CHILD_REPO] ========== getChildByContactId ERROR ==========');
-      return DataFailed('خطا در دریافت اطلاعات بچه: $e');
+      return DataFailed('Error retrieving child information: $e');
     }
   }
 
   DataFailed<T> _handleDioError<T>(DioException e) {
-    String errorMessage = 'خطا در دریافت اطلاعات';
+    String errorMessage = 'Error retrieving information';
     
     if (e.response != null) {
       errorMessage = e.response?.data['message'] ?? 
                      e.response?.statusMessage ?? 
-                     'خطا در ارتباط با سرور';
+                     'Error connecting to server';
     } else if (e.type == DioExceptionType.connectionTimeout ||
                e.type == DioExceptionType.receiveTimeout) {
-      errorMessage = 'زمان اتصال به سرور به پایان رسید';
+      errorMessage = 'Connection timeout';
     } else if (e.type == DioExceptionType.connectionError) {
-      errorMessage = 'خطا در اتصال به سرور';
+      errorMessage = 'Error connecting to server';
     }
 
     return DataFailed(errorMessage);

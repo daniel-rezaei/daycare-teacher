@@ -48,7 +48,7 @@ class ClassTransferRequestBloc
       }
     } catch (e) {
       debugPrint('[TRANSFER_REQUEST] Exception creating transfer request: $e');
-      emit(const CreateTransferRequestFailure('خطا در ایجاد درخواست انتقال'));
+      emit(const CreateTransferRequestFailure('Error creating transfer request'));
     }
   }
 
@@ -77,7 +77,7 @@ class ClassTransferRequestBloc
       debugPrint(
           '[TRANSFER_REQUEST] Exception updating transfer request: $e');
       emit(const UpdateTransferRequestStatusFailure(
-          'خطا در به‌روزرسانی درخواست انتقال'));
+          'Error updating transfer request'));
     }
   }
 
@@ -105,7 +105,7 @@ class ClassTransferRequestBloc
       debugPrint(
           '[TRANSFER_REQUEST] Exception getting transfer request: $e');
       emit(const GetTransferRequestByStudentIdFailure(
-          'خطا در دریافت درخواست انتقال'));
+          'Error retrieving transfer request'));
     }
   }
 
@@ -173,7 +173,7 @@ class ClassTransferRequestBloc
       debugPrint('[TRANSFER_BLOC] $stackTrace');
       debugPrint('[TRANSFER_BLOC] 📤 Emitting GetTransferRequestsByClassIdFailure');
       emit(const GetTransferRequestsByClassIdFailure(
-          'خطا در دریافت درخواست‌های انتقال'));
+          'Error retrieving transfer requests'));
       debugPrint('[TRANSFER_BLOC] ========== _getTransferRequestsByClassIdEvent ERROR ==========');
     }
   }
