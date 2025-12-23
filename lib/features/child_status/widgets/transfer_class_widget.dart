@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
@@ -28,11 +30,13 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
   String? selectedClassId;
   bool _isSubmitting = false;
   ClassTransferRequestEntity? _existingRequest;
+  String? _staffId;
 
   @override
   void initState() {
     super.initState();
     selectedClassId = widget.currentClassId;
+    _loadStaffId();
     // Fetch classes if not already loaded
     final homeState = context.read<HomeBloc>().state;
     if (homeState.classRooms == null || homeState.classRooms!.isEmpty) {
@@ -42,6 +46,16 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
     context.read<ClassTransferRequestBloc>().add(
           GetTransferRequestByStudentIdEvent(studentId: widget.studentId),
         );
+  }
+
+  Future<void> _loadStaffId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final staffId = prefs.getString(AppConstants.staffIdKey);
+    if (mounted && staffId != null && staffId.isNotEmpty) {
+      setState(() {
+        _staffId = staffId;
+      });
+    }
   }
 
   bool get _canSave {
@@ -64,15 +78,26 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
       return;
     }
 
+    // Check if staffId is available
+    if (_staffId == null || _staffId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('خطا: شناسه کارمند یافت نشد'),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
 
     context.read<ClassTransferRequestBloc>().add(
           CreateTransferRequestEvent(
-            studentId: widget.studentId,
+            childId: widget.studentId,
             fromClassId: widget.currentClassId,
             toClassId: selectedClassId!,
+            requestedByStaffId: _staffId!,
           ),
         );
   }

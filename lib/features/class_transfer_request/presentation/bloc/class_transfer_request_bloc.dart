@@ -31,9 +31,10 @@ class ClassTransferRequestBloc
 
     try {
       final dataState = await usecase.createTransferRequest(
-        studentId: event.studentId,
+        childId: event.childId,
         fromClassId: event.fromClassId,
         toClassId: event.toClassId,
+        requestedByStaffId: event.requestedByStaffId,
       );
 
       if (dataState is DataSuccess && dataState.data != null) {

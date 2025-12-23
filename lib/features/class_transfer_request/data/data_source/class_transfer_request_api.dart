@@ -9,16 +9,18 @@ class ClassTransferRequestApi {
 
   /// Create a new class transfer request
   Future<Response> createTransferRequest({
-    required String studentId,
+    required String childId,
     required String fromClassId,
     required String toClassId,
+    required String requestedByStaffId,
   }) async {
     return await httpclient.post(
       '/items/Class_Transfer_Request',
       data: {
-        'student_id': studentId,
+        'child_id': childId,
         'from_class_id': fromClassId,
         'to_class_id': toClassId,
+        'requested_by_staff_id': requestedByStaffId,
         'status': 'pending',
       },
     );

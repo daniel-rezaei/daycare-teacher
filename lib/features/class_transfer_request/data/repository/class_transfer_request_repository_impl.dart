@@ -39,15 +39,17 @@ class ClassTransferRequestRepositoryImpl extends ClassTransferRequestRepository 
 
   @override
   Future<DataState<ClassTransferRequestEntity>> createTransferRequest({
-    required String studentId,
+    required String childId,
     required String fromClassId,
     required String toClassId,
+    required String requestedByStaffId,
   }) async {
     try {
       final response = await api.createTransferRequest(
-        studentId: studentId,
+        childId: childId,
         fromClassId: fromClassId,
         toClassId: toClassId,
+        requestedByStaffId: requestedByStaffId,
       );
 
       final data = response.data['data'] as Map<String, dynamic>;

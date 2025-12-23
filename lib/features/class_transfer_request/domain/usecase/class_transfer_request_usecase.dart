@@ -11,14 +11,16 @@ class ClassTransferRequestUsecase {
 
   /// Create a new class transfer request
   Future<DataState<ClassTransferRequestEntity>> createTransferRequest({
-    required String studentId,
+    required String childId,
     required String fromClassId,
     required String toClassId,
+    required String requestedByStaffId,
   }) async {
     return await repository.createTransferRequest(
-      studentId: studentId,
+      childId: childId,
       fromClassId: fromClassId,
       toClassId: toClassId,
+      requestedByStaffId: requestedByStaffId,
     );
   }
 

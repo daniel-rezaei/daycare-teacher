@@ -4,9 +4,10 @@ import 'package:teacher_app/features/class_transfer_request/domain/entity/class_
 abstract class ClassTransferRequestRepository {
   /// Create a new class transfer request
   Future<DataState<ClassTransferRequestEntity>> createTransferRequest({
-    required String studentId,
+    required String childId,
     required String fromClassId,
     required String toClassId,
+    required String requestedByStaffId,
   });
 
   /// Update transfer request status

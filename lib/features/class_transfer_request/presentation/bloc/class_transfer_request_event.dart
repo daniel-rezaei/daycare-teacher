@@ -8,18 +8,20 @@ abstract class ClassTransferRequestEvent extends Equatable {
 }
 
 class CreateTransferRequestEvent extends ClassTransferRequestEvent {
-  final String studentId;
+  final String childId;
   final String fromClassId;
   final String toClassId;
+  final String requestedByStaffId;
 
   const CreateTransferRequestEvent({
-    required this.studentId,
+    required this.childId,
     required this.fromClassId,
     required this.toClassId,
+    required this.requestedByStaffId,
   });
 
   @override
-  List<Object?> get props => [studentId, fromClassId, toClassId];
+  List<Object?> get props => [childId, fromClassId, toClassId, requestedByStaffId];
 }
 
 class UpdateTransferRequestStatusEvent extends ClassTransferRequestEvent {
