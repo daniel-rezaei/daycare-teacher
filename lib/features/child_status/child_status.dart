@@ -414,6 +414,7 @@ class _ChildStatusState extends State<ChildStatus> {
                               final childrenInClass = ChildStatusHelper.getChildrenInClass(
                                 children,
                                 contacts,
+                                classId: classId,
                               );
                               
                               final totalCount = childrenInClass.length;

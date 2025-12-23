@@ -38,8 +38,11 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
   void _loadData() {
     if (!_hasRequestedData && widget.childId.isNotEmpty) {
       _hasRequestedData = true;
-      // استفاده از contactId برای دریافت Child
-      context.read<ChildBloc>().add(GetChildByContactIdEvent(contactId: widget.childId));
+      // دریافت همه بچه‌ها از /items/Child بدون فیلتر
+      final currentState = context.read<ChildBloc>().state;
+      if (currentState.children == null) {
+        context.read<ChildBloc>().add(const GetAllChildrenEvent());
+      }
       context.read<ChildBloc>().add(const GetAllContactsEvent());
       // دریافت emergency contacts (همه را می‌گیریم و بعد فیلتر می‌کنیم)
       context.read<ChildEmergencyContactBloc>().add(

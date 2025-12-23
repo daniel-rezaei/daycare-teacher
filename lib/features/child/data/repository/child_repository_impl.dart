@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/core/locator/di.dart';
@@ -163,19 +164,48 @@ class ChildRepositoryImpl extends ChildRepository {
   @override
   Future<DataState<ChildEntity>> getChildByContactId({required String contactId}) async {
     try {
+      debugPrint('[CHILD_REPO] ========== getChildByContactId START ==========');
+      debugPrint('[CHILD_REPO] 📥 contactId: $contactId');
+      
       final Response response = await childApi.getChildByContactId(contactId: contactId);
 
+      debugPrint('[CHILD_REPO] ✅ API response received');
+      debugPrint('[CHILD_REPO] 📦 Response data type: ${response.data.runtimeType}');
+      
+      if (response.data == null || response.data['data'] == null) {
+        debugPrint('[CHILD_REPO] ⚠️ Response data is null');
+        return DataFailed('Child not found for contactId: $contactId');
+      }
+
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
+      debugPrint('[CHILD_REPO] 📊 Data list length: ${dataList.length}');
+      
       if (dataList.isEmpty) {
+        debugPrint('[CHILD_REPO] ⚠️ Data list is empty');
         return DataFailed('Child not found for contactId: $contactId');
       }
 
       final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
+      debugPrint('[CHILD_REPO] 📋 Child data keys: ${data.keys.toList()}');
+      debugPrint('[CHILD_REPO] 📋 Child dob value: ${data['dob']}');
+      debugPrint('[CHILD_REPO] 📋 Child id: ${data['id']}');
+      debugPrint('[CHILD_REPO] 📋 Child contact_id: ${data['contact_id']}');
+      
       final ChildEntity childEntity = ChildModel.fromJson(data);
+      
+      debugPrint('[CHILD_REPO] ✅ ChildEntity created: id=${childEntity.id}, dob=${childEntity.dob}');
+      debugPrint('[CHILD_REPO] ========== getChildByContactId SUCCESS ==========');
 
       return DataSuccess(childEntity);
     } on DioException catch (e) {
+      debugPrint('[CHILD_REPO] ❌ DioException: ${e.message}');
+      debugPrint('[CHILD_REPO] ========== getChildByContactId ERROR ==========');
       return _handleDioError(e);
+    } catch (e, stackTrace) {
+      debugPrint('[CHILD_REPO] ❌ Unexpected error: $e');
+      debugPrint('[CHILD_REPO] Stack trace: $stackTrace');
+      debugPrint('[CHILD_REPO] ========== getChildByContactId ERROR ==========');
+      return DataFailed('خطا در دریافت اطلاعات بچه: $e');
     }
   }
 

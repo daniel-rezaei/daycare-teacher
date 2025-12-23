@@ -23,12 +23,37 @@ class ProfileChildSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ChildBloc, ChildState>(
       builder: (context, state) {
+        debugPrint('[PROFILE_SECTION] ========== Building ProfileChildSectionWidget ==========');
+        debugPrint('[PROFILE_SECTION] State type: ${state.runtimeType}');
+        debugPrint('[PROFILE_SECTION] childId (contactId): $childId');
+        
+        // پیدا کردن بچه از لیست children با contact_id
         String? dob;
-        if (state is GetChildByIdSuccess || state is GetChildByContactIdSuccess) {
-          dob = state.child?.dob;
+        final children = state.children;
+        if (children != null && children.isNotEmpty) {
+          try {
+            final child = children.firstWhere(
+              (c) => c.contactId == childId,
+            );
+            
+            debugPrint('[PROFILE_SECTION] Found child in list - id: ${child.id}, contactId: ${child.contactId}, dob: ${child.dob}');
+            dob = child.dob;
+          } catch (e) {
+            debugPrint('[PROFILE_SECTION] Child not found in list with contactId: $childId, error: $e');
+          }
+        } else {
+          debugPrint('[PROFILE_SECTION] Children list is null or empty');
         }
 
-        final dobFormatted = DateUtils.formatFullDisplayDate(dob);
+        debugPrint('[PROFILE_SECTION] dob value: $dob');
+        
+        // Format date of birth: "2024-04-03" -> "April 3, 2024"
+        final dobFormatted = dob != null && dob.isNotEmpty
+            ? DateUtils.formatFullDisplayDate(dob)
+            : 'Not available';
+        
+        debugPrint('[PROFILE_SECTION] dobFormatted: $dobFormatted');
+        debugPrint('[PROFILE_SECTION] ========== End Building ==========');
 
         return Row(
           children: [
@@ -94,7 +119,7 @@ class ProfileChildSectionWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        dobFormatted.isNotEmpty ? dobFormatted : 'Not available',
+                        dobFormatted,
                         style: const TextStyle(
                           color: AppColors.primary,
                           fontSize: 14,

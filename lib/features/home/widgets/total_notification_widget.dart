@@ -126,13 +126,17 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     }
 
     // فیلتر بچه‌هایی که contact_id آن‌ها در validChildContactIds موجود است
+    // و primary_room_id آن‌ها برابر با class_id است
     final validChildren = children.where((child) {
       final isActive = child.status == 'active';
       final hasValidContactId = child.contactId != null && child.contactId!.isNotEmpty;
       final contactExists = hasValidContactId && validChildContactIds.contains(child.contactId);
-      final shouldInclude = isActive && hasValidContactId && contactExists;
+      final isInClass = classId != null && 
+          child.primaryRoomId != null && 
+          child.primaryRoomId == classId;
+      final shouldInclude = isActive && hasValidContactId && contactExists && isInClass;
       
-      debugPrint('[TOTAL_NOTIFICATION_DEBUG] Child ${child.id}: primaryRoomId=${child.primaryRoomId}, isActive=$isActive, hasValidContactId=$hasValidContactId, contactExists=$contactExists, shouldInclude=$shouldInclude');
+      debugPrint('[TOTAL_NOTIFICATION_DEBUG] Child ${child.id}: primaryRoomId=${child.primaryRoomId}, classId=$classId, isActive=$isActive, hasValidContactId=$hasValidContactId, contactExists=$contactExists, isInClass=$isInClass, shouldInclude=$shouldInclude');
       
       return shouldInclude;
     }).toList();
@@ -154,6 +158,7 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     final childrenInClass = ChildStatusHelper.getChildrenInClass(
       children,
       contacts,
+      classId: classId,
     );
 
     // شمارش بچه‌هایی که وضعیت آن‌ها present است

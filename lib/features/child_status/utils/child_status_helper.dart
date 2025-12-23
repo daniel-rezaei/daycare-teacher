@@ -14,11 +14,12 @@ enum ChildAttendanceStatus {
 class ChildStatusHelper {
   ChildStatusHelper._();
 
-  /// Get children in class filtered by active status and valid contact
+  /// Get children in class filtered by active status, valid contact, and primary_room_id matching class_id
   static List<ChildEntity> getChildrenInClass(
     List<ChildEntity> children,
-    List<ContactEntity> contacts,
-  ) {
+    List<ContactEntity> contacts, {
+    required String? classId,
+  }) {
     // فیلتر Contacts با Role="child" و استخراج contact_id های آن‌ها
     final validChildContactIds = contacts
         .where((contact) => contact.role == 'child')
@@ -27,19 +28,24 @@ class ChildStatusHelper {
         .toSet();
 
     debugPrint('[CHILD_STATUS_DEBUG] Valid child contact IDs: $validChildContactIds');
+    debugPrint('[CHILD_STATUS_DEBUG] Filtering children for classId: $classId');
 
     // فیلتر بچه‌هایی که contact_id آن‌ها در validChildContactIds موجود است
+    // و primary_room_id آن‌ها برابر با class_id است
     final filtered = children.where((child) {
       final isActive = child.status == 'active';
       final hasValidContactId = child.contactId != null && child.contactId!.isNotEmpty;
       final contactExists = hasValidContactId && validChildContactIds.contains(child.contactId);
+      final isInClass = classId != null && 
+          child.primaryRoomId != null && 
+          child.primaryRoomId == classId;
 
-      final shouldInclude = isActive && hasValidContactId && contactExists;
+      final shouldInclude = isActive && hasValidContactId && contactExists && isInClass;
 
       debugPrint(
         '[CHILD_STATUS_DEBUG] Child ${child.id}: primaryRoomId=${child.primaryRoomId}, '
-        'isActive=$isActive, hasValidContactId=$hasValidContactId, '
-        'contactExists=$contactExists, shouldInclude=$shouldInclude',
+        'classId=$classId, isActive=$isActive, hasValidContactId=$hasValidContactId, '
+        'contactExists=$contactExists, isInClass=$isInClass, shouldInclude=$shouldInclude',
       );
 
       return shouldInclude;
