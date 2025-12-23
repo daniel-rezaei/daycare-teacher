@@ -93,7 +93,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                               ),
                               child: value == 0
                                   ? ContentOverview(childId: widget.childId)
-                                  : ContentActivity(),
+                                  : ContentActivity(childId: widget.childId),
                             ),
                           );
                         },
