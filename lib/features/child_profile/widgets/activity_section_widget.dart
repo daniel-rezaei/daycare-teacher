@@ -1,14 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/utils/contact_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
+import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class ActivitySectionWidget extends StatelessWidget {
   final AttendanceChildEntity attendance;
+  final ContactEntity? contact;
 
   const ActivitySectionWidget({
     super.key,
     required this.attendance,
+    this.contact,
   });
 
   String _getTime(String? dateTimeStr) {
@@ -134,7 +140,9 @@ class ActivitySectionWidget extends StatelessWidget {
                   ),
                   if (activityType == 'Check_In' && 
                       attendance.checkInMethod != null && 
-                      attendance.checkInMethod!.isNotEmpty) ...[
+                      attendance.checkInMethod!.isNotEmpty &&
+                      attendance.checkInMethod == 'manually' &&
+                      contact != null) ...[
                     SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
@@ -146,24 +154,50 @@ class ActivitySectionWidget extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Method',
+                            'Brought By',
                             style: TextStyle(
                               color: Color(0xff6D6B76),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Text(
-                            attendance.checkInMethod == 'barcode' 
-                                ? 'Barcode' 
-                                : attendance.checkInMethod == 'manually'
-                                    ? 'Manual'
-                                    : attendance.checkInMethod!,
-                            style: TextStyle(
-                              color: Color(0xff444349),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xffE0E0E0),
+                                ),
+                                child: contact?.photo != null && contact!.photo!.isNotEmpty
+                                    ? ClipOval(
+                                        child: CachedNetworkImage(
+                                          imageUrl: '${AppConstants.assetsBaseUrl}/${contact!.photo}',
+                                          fit: BoxFit.cover,
+                                          errorWidget: (context, url, error) => Icon(
+                                            Icons.person,
+                                            size: 20,
+                                            color: Color(0xff6D6B76),
+                                          ),
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.person,
+                                        size: 20,
+                                        color: Color(0xff6D6B76),
+                                      ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                ContactUtils.getContactName(contact),
+                                style: TextStyle(
+                                  color: Color(0xff444349),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -171,7 +205,9 @@ class ActivitySectionWidget extends StatelessWidget {
                   ],
                   if (activityType == 'Check_Out' && 
                       attendance.checkOutMethod != null && 
-                      attendance.checkOutMethod!.isNotEmpty) ...[
+                      attendance.checkOutMethod!.isNotEmpty &&
+                      attendance.checkOutMethod == 'manually' &&
+                      contact != null) ...[
                     SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
@@ -183,24 +219,50 @@ class ActivitySectionWidget extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Method',
+                            'Picked Up By',
                             style: TextStyle(
                               color: Color(0xff6D6B76),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Text(
-                            attendance.checkOutMethod == 'barcode' 
-                                ? 'Barcode' 
-                                : attendance.checkOutMethod == 'manually'
-                                    ? 'Manual'
-                                    : attendance.checkOutMethod!,
-                            style: TextStyle(
-                              color: Color(0xff444349),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xffE0E0E0),
+                                ),
+                                child: contact?.photo != null && contact!.photo!.isNotEmpty
+                                    ? ClipOval(
+                                        child: CachedNetworkImage(
+                                          imageUrl: '${AppConstants.assetsBaseUrl}/${contact!.photo}',
+                                          fit: BoxFit.cover,
+                                          errorWidget: (context, url, error) => Icon(
+                                            Icons.person,
+                                            size: 20,
+                                            color: Color(0xff6D6B76),
+                                          ),
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.person,
+                                        size: 20,
+                                        color: Color(0xff6D6B76),
+                                      ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                ContactUtils.getContactName(contact),
+                                style: TextStyle(
+                                  color: Color(0xff444349),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

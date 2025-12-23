@@ -2,13 +2,16 @@ import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/utils/contact_utils.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
-import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
+import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
+import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/activity_section_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/day_strip_widget.dart';
+import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 
 // Helper class برای نگهداری اطلاعات فعالیت
 class _ActivityItem {
@@ -82,6 +85,12 @@ class _ContentActivityState extends State<ContentActivity> {
           childId: _actualChildId,
         ),
       );
+      
+      // Load staff classes if not already loaded
+      final authState = context.read<AuthBloc>().state;
+      if (authState is! GetStaffClassSuccess && _classId != null) {
+        context.read<AuthBloc>().add(GetStaffClassEvent(classId: _classId!));
+      }
     }
   }
 
@@ -226,31 +235,65 @@ class _ContentActivityState extends State<ContentActivity> {
                       );
                     }
                     
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ...activities.map((activity) {
-                          // ساخت یک attendance entity موقت برای نمایش
-                          final displayAttendance = AttendanceChildEntity(
-                            id: activity.attendance.id,
-                            checkInAt: activity.isCheckOut ? null : activity.attendance.checkInAt,
-                            checkOutAt: activity.isCheckOut ? activity.attendance.checkOutAt : null,
-                            childId: activity.attendance.childId,
-                            classId: activity.attendance.classId,
-                            staffId: activity.attendance.staffId,
-                            checkInMethod: activity.isCheckOut ? null : activity.attendance.checkInMethod,
-                            checkOutMethod: activity.isCheckOut ? activity.attendance.checkOutMethod : null,
-                            notes: activity.attendance.notes,
-                          );
-                          
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: ActivitySectionWidget(
-                              attendance: displayAttendance,
-                            ),
-                          );
-                        }).toList(),
-                      ],
+                    return BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, authState) {
+                        List<StaffClassEntity> staffClasses = [];
+                        if (authState is GetStaffClassSuccess) {
+                          staffClasses = authState.staffClasses;
+                        }
+                        final contacts = childState.contacts ?? [];
+                        
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ...activities.map((activity) {
+                              // پیدا کردن StaffClassEntity از staffId
+                              StaffClassEntity? staffClass;
+                              if (activity.attendance.staffId != null && 
+                                  activity.attendance.staffId!.isNotEmpty) {
+                                try {
+                                  staffClass = staffClasses.firstWhere(
+                                    (sc) => sc.staffId == activity.attendance.staffId,
+                                  );
+                                } catch (e) {
+                                  // StaffClass not found
+                                }
+                              }
+                              
+                              // پیدا کردن ContactEntity از contactId
+                              ContactEntity? contact;
+                              if (staffClass?.contactId != null && 
+                                  staffClass!.contactId!.isNotEmpty) {
+                                contact = ContactUtils.getContactById(
+                                  staffClass.contactId,
+                                  contacts,
+                                );
+                              }
+                              
+                              // ساخت یک attendance entity موقت برای نمایش
+                              final displayAttendance = AttendanceChildEntity(
+                                id: activity.attendance.id,
+                                checkInAt: activity.isCheckOut ? null : activity.attendance.checkInAt,
+                                checkOutAt: activity.isCheckOut ? activity.attendance.checkOutAt : null,
+                                childId: activity.attendance.childId,
+                                classId: activity.attendance.classId,
+                                staffId: activity.attendance.staffId,
+                                checkInMethod: activity.isCheckOut ? null : activity.attendance.checkInMethod,
+                                checkOutMethod: activity.isCheckOut ? activity.attendance.checkOutMethod : null,
+                                notes: activity.attendance.notes,
+                              );
+                              
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: ActivitySectionWidget(
+                                  attendance: displayAttendance,
+                                  contact: contact,
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        );
+                      },
                     );
                   },
                 ),
