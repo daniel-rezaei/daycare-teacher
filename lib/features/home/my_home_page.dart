@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/features/activity/activity_screen.dart';
@@ -12,6 +13,8 @@ import 'package:teacher_app/features/home/widgets/card_widget.dart';
 import 'package:teacher_app/features/home/widgets/home_shimmer_widget.dart';
 import 'package:teacher_app/features/messages/messages_screen.dart';
 import 'package:teacher_app/features/profile/presentation/widgets/profile_section_widget.dart';
+import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/time_screen.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -38,14 +41,69 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     final classId = prefs.getString(AppConstants.classIdKey);
     final contactId = prefs.getString('contact_id');
+    final staffId = prefs.getString(AppConstants.staffIdKey);
     
     if (mounted && (classId != null || contactId != null)) {
+      // Load Time-In status first to sync with session state
+      if (staffId != null && staffId.isNotEmpty) {
+        context.read<StaffAttendanceBloc>().add(
+              GetLatestStaffAttendanceEvent(staffId: staffId),
+            );
+      }
+      
       context.read<HomeBloc>().add(LoadHomeDataEvent(
         classId: classId,
         contactId: contactId,
       ));
       _hasLoadedData = true;
     }
+  }
+
+  /// Sync Time-In state with class session state
+  /// Ensures no active session exists when teacher is Time-Out
+  void _syncTimeInWithSession() {
+    final attendanceState = context.read<StaffAttendanceBloc>().state;
+    final homeState = context.read<HomeBloc>().state;
+    
+    // Check if teacher is Time-Out
+    bool isTimeOut = false;
+    if (attendanceState is GetLatestStaffAttendanceSuccess) {
+      final latestAttendance = attendanceState.latestAttendance;
+      isTimeOut = latestAttendance == null ||
+          latestAttendance.eventType != 'time_in';
+    } else if (attendanceState is CreateStaffAttendanceSuccess) {
+      isTimeOut = attendanceState.attendance.eventType == 'time_out';
+    }
+    
+    // If Time-Out and active session exists, end it
+    if (isTimeOut) {
+      final session = homeState.session;
+      if (_isClassSessionActive(session)) {
+        final classId = homeState.session?.classId;
+        if (session?.id != null && classId != null) {
+          final endAt = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+          debugPrint(
+            '[MY_HOME_PAGE] Syncing: Ending active session on Time-Out: '
+            'sessionId=${session!.id}, endAt=$endAt',
+          );
+          context.read<HomeBloc>().add(
+                UpdateSessionEvent(
+                  sessionId: session.id!,
+                  endAt: endAt,
+                  classId: classId,
+                ),
+              );
+        }
+      }
+    }
+  }
+
+  /// Check if class session is active (started but not ended)
+  bool _isClassSessionActive(StaffClassSessionEntity? session) {
+    if (session == null) return false;
+    return session.startAt != null &&
+        session.startAt!.isNotEmpty &&
+        (session.endAt == null || session.endAt!.isEmpty);
   }
   
   // نگه داشتن صفحات برای جلوگیری از rebuild و درخواست مجدد API
@@ -105,9 +163,38 @@ class _MyHomePageState extends State<MyHomePage> {
           SystemNavigator.pop(); // خروج از اپ
         }
       },
-      child: Scaffold(
-        body: BlocBuilder<HomeBloc, HomeState>(
-          builder: (context, state) {
+      child: MultiBlocListener(
+        listeners: [
+          // Sync Time-In with session state when attendance state changes
+          BlocListener<StaffAttendanceBloc, StaffAttendanceState>(
+            listener: (context, attendanceState) {
+              // Sync when Time-Out is detected
+              if (attendanceState is CreateStaffAttendanceSuccess &&
+                  attendanceState.attendance.eventType == 'time_out') {
+                _syncTimeInWithSession();
+              } else if (attendanceState is GetLatestStaffAttendanceSuccess) {
+                // Sync on app load if Time-Out detected
+                final latestAttendance = attendanceState.latestAttendance;
+                if (latestAttendance == null ||
+                    latestAttendance.eventType != 'time_in') {
+                  _syncTimeInWithSession();
+                }
+              }
+            },
+          ),
+          // Sync when session is loaded
+          BlocListener<HomeBloc, HomeState>(
+            listener: (context, homeState) {
+              // Only sync if session is loaded (not loading)
+              if (!homeState.isLoadingSession && homeState.session != null) {
+                _syncTimeInWithSession();
+              }
+            },
+          ),
+        ],
+        child: Scaffold(
+          body: BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, state) {
             // بررسی اینکه آیا باید shimmer نمایش داده شود
             // از ابتدا shimmer نمایش داده می‌شود تا زمانی که داده‌های ضروری لود شوند
             final shouldShowShimmer = !state.hasLoadedInitialDataOnce;
@@ -133,6 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
         bottomNavigationBar: BottomNavigationBarWidget(),
+        ),
       ),
     );
   }

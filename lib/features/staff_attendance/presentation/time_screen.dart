@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
+import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/staff_attendance/domain/entity/staff_attendance_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -103,6 +106,53 @@ class _TimeScreenState extends State<TimeScreen> {
     return latestAttendance.eventType == 'time_in';
   }
 
+  /// Check if class session is active (started but not ended)
+  bool _isClassSessionActive(StaffClassSessionEntity? session) {
+    if (session == null) return false;
+    // Session is active if startAt exists and endAt is null/empty
+    return session.startAt != null &&
+        session.startAt!.isNotEmpty &&
+        (session.endAt == null || session.endAt!.isEmpty);
+  }
+
+  /// Automatically end active class session when Time-Out happens
+  /// This ensures class state is always synchronized with Time-In/Time-Out state
+  void _autoEndActiveClassSession() {
+    if (_classId == null || _classId!.isEmpty) {
+      debugPrint('[TIME_SCREEN] Cannot end session: classId is null');
+      return;
+    }
+
+    // Check current session state from HomeBloc
+    final homeState = context.read<HomeBloc>().state;
+    final session = homeState.session;
+
+    if (_isClassSessionActive(session)) {
+      // Active session exists - end it immediately
+      if (session!.id == null || session.id!.isEmpty) {
+        debugPrint('[TIME_SCREEN] Cannot end session: sessionId is null');
+        return;
+      }
+
+      final endAt = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+      debugPrint(
+        '[TIME_SCREEN] Auto-ending class session on Time-Out: '
+        'sessionId=${session.id}, endAt=$endAt',
+      );
+
+      // End the session by updating it with endAt timestamp
+      context.read<HomeBloc>().add(
+            UpdateSessionEvent(
+              sessionId: session.id!,
+              endAt: endAt,
+              classId: _classId!,
+            ),
+          );
+    } else {
+      debugPrint('[TIME_SCREEN] No active class session to end');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -169,10 +219,16 @@ class _TimeScreenState extends State<TimeScreen> {
                           try {
                             final eventAt = DateTime.parse(attendance.eventAt!);
                             _startTimer(eventAt);
+                            // IMPORTANT: Do NOT auto-start class session on Time-In
+                            // Teacher must manually start class session
                           } catch (e) {
                             debugPrint('[TIME_SCREEN] Error parsing eventAt: $e');
                             _stopTimer();
                           }
+                        } else if (attendance.eventType == 'time_out') {
+                          // Time-Out happened: Automatically end any active class session
+                          _stopTimer();
+                          _autoEndActiveClassSession();
                         } else {
                           _stopTimer();
                         }
