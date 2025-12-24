@@ -9,7 +9,7 @@ import 'package:teacher_app/features/attendance/presentation/bloc/attendance_blo
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
-import 'package:teacher_app/features/home/my_home_page.dart';
+import 'package:teacher_app/features/auth/presentation/post_login_guard_screen.dart';
 import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
@@ -75,7 +75,7 @@ class MyApp extends StatelessWidget {
         ),
 
         // 🚀 تصمیم فقط با Shared
-        home: isLoggedIn! ? const MyHomePage() : const WelcomeScreen(),
+        home: isLoggedIn! ? const PostLoginGuardScreen() : const WelcomeScreen(),
       ),
     );
   }
