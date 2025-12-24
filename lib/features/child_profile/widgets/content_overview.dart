@@ -20,6 +20,7 @@ import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pick
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 // ignore: unused_import
 import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
+import 'package:teacher_app/gen/assets.gen.dart';
 
 class ContentOverview extends StatefulWidget {
   final String childId;
@@ -323,7 +324,20 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 SizedBox(height: 32),
                               ],
                               _ExpandableInfoSection(
-                                title: 'Dietary Restrictions',
+                                title: Row(
+                                  children: [
+                                    Assets.images.dietaryRestrictions.svg(),
+                                    SizedBox(width: 8),
+                                    const Text(
+                                      'Dietary Restrictions',
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 items: dietaryRestrictions,
                                 itemBuilder: (context, item) {
                                   return Container(
@@ -353,7 +367,20 @@ class _ContentOverviewState extends State<ContentOverview> {
                               ),
                               SizedBox(height: 12),
                               _ExpandableInfoSection(
-                                title: 'Medication',
+                                title: Row(
+                                  children: [
+                                    Assets.images.medication.svg(),
+                                    SizedBox(width: 8),
+                                    const Text(
+                                      'Medication',
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 items: medications,
                                 itemBuilder: (context, item) {
                                   return Container(
@@ -383,7 +410,20 @@ class _ContentOverviewState extends State<ContentOverview> {
                               ),
                               SizedBox(height: 12),
                               _ExpandableInfoSection(
-                                title: 'Immunization',
+                                title: Row(
+                                  children: [
+                                    Assets.images.immunization.svg(),
+                                    SizedBox(width: 8),
+                                    const Text(
+                                      'Immunization',
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 items: immunizations,
                                 itemBuilder: (context, item) {
                                   return Container(
@@ -413,7 +453,20 @@ class _ContentOverviewState extends State<ContentOverview> {
                               ),
                               SizedBox(height: 12),
                               _ExpandableInfoSection(
-                                title: 'Physical Requirements',
+                                title: Row(
+                                  children: [
+                                    Assets.images.physicalRequirements.svg(),
+                                    SizedBox(width: 8),
+                                    const Text(
+                                      'Physical Requirements',
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 items: physicalRequirements,
                                 itemBuilder: (context, item) {
                                   return Container(
@@ -443,7 +496,20 @@ class _ContentOverviewState extends State<ContentOverview> {
                               ),
                               SizedBox(height: 12),
                               _ExpandableInfoSection(
-                                title: 'Reportable Diseases',
+                                title: Row(
+                                  children: [
+                                    Assets.images.reportableDiseases.svg(),
+                                    SizedBox(width: 8),
+                                    const Text(
+                                      'Reportable Diseases',
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 items: reportableDiseases,
                                 itemIcon: Icons.sick_rounded,
                                 itemBuilder: (context, item) {
@@ -523,7 +589,7 @@ class _ContentOverviewState extends State<ContentOverview> {
 }
 
 class _InfoSectionRow extends StatelessWidget {
-  final String title;
+  final Widget title;
   final int itemCount;
 
   const _InfoSectionRow({
@@ -535,14 +601,7 @@ class _InfoSectionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xff444349),
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title,
         const Spacer(),
         if (itemCount == 0)
           Container(
@@ -581,7 +640,7 @@ class _InfoSectionRow extends StatelessWidget {
 }
 
 class _ExpandableInfoSection<T> extends StatelessWidget {
-  final String title;
+  final Widget title;
   final List<T> items;
   final Widget Function(BuildContext context, T item) itemBuilder;
   final IconData? itemIcon;
@@ -621,14 +680,7 @@ class _ExpandableInfoSection<T> extends StatelessWidget {
         collapsedShape: const RoundedRectangleBorder(),
           title: Row(
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xff444349),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              title,
               const Spacer(),
               Container(
                 decoration: BoxDecoration(
