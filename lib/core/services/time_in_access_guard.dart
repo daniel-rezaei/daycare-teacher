@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/services/attendance_session_store.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 
 /// Centralized access guard for Time-In protected features
@@ -32,13 +33,30 @@ class TimeInAccessGuard {
 
   /// Check if teacher has active Time-In from current bloc state
   /// Returns true if active Time-In exists, false otherwise
+  /// Also checks AttendanceSessionStore as a fallback to ensure accurate state
   static bool checkActiveTimeInFromContext(BuildContext context) {
     try {
       final state = context.read<StaffAttendanceBloc>().state;
-      return hasActiveTimeIn(state);
+      final hasActiveFromBloc = hasActiveTimeIn(state);
+      
+      // Also check the AttendanceSessionStore as a fallback
+      // This ensures we have accurate state even if bloc state is not in a success state
+      final timerStore = AttendanceSessionStore.instance;
+      final hasActiveFromStore = timerStore.isClockedIn && timerStore.timeInAt != null;
+      
+      // If either source indicates active Time-In, return true
+      // This prevents false negatives when bloc state hasn't updated yet
+      return hasActiveFromBloc || hasActiveFromStore;
     } catch (e) {
       debugPrint('[TIME_IN_ACCESS_GUARD] Error checking state: $e');
-      return false;
+      // On error, check the store as a fallback
+      try {
+        final timerStore = AttendanceSessionStore.instance;
+        return timerStore.isClockedIn && timerStore.timeInAt != null;
+      } catch (storeError) {
+        debugPrint('[TIME_IN_ACCESS_GUARD] Error checking store: $storeError');
+        return false;
+      }
     }
   }
 
@@ -54,11 +72,15 @@ class TimeInAccessGuard {
   static bool guardAction(BuildContext context) {
     final hasActive = checkActiveTimeInFromContext(context);
     
+    // The message "You must check in first" must ONLY be shown when:
+    // - The user has NOT done Time In yet
+    // If the user HAS already checked in and has NOT checked out yet, 
+    // the message must NOT be shown and all buttons must work normally.
     if (!hasActive) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please clock in first to access this feature.'),
-          duration: Duration(seconds: 3),
+          content: Text('You must check in first'),
+          duration: Duration(seconds: 2),
         ),
       );
       return false;
@@ -102,8 +124,8 @@ class TimeInAccessGuard {
       if (staffId == null || staffId.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Please clock in first to access this feature.'),
-            duration: Duration(seconds: 3),
+            content: Text('You must check in first'),
+            duration: Duration(seconds: 2),
           ),
         );
         return false;
@@ -123,8 +145,8 @@ class TimeInAccessGuard {
       debugPrint('[TIME_IN_ACCESS_GUARD] Error refreshing status: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please clock in first to access this feature.'),
-          duration: Duration(seconds: 3),
+          content: Text('You must check in first'),
+          duration: Duration(seconds: 2),
         ),
       );
       return false;

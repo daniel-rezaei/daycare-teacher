@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
@@ -102,6 +104,7 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
 
     if (isCheckedIn) {
       // Check-out: Update existing session
+      // No Time In validation needed for check-out
       if (session?.id != null && classId != null) {
         final endAt = _getCurrentDateTime();
         debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-out: sessionId=${session!.id}, endAt=$endAt');
@@ -115,6 +118,24 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
       }
     } else {
       // Check-in: Create new session
+      // Validation: User must have done Time In before starting the class
+      final hasTimeIn = TimeInAccessGuard.checkActiveTimeInFromContext(context);
+      
+      if (!hasTimeIn) {
+        // Block check-in and show message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('You must Time In first before starting the class.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-in blocked: Time In not done');
+        return;
+      }
+      
+      // Time In is done, proceed with check-in
       final startAt = _getCurrentDateTime();
       debugPrint('[CARD_NOTIFICATIONS_DEBUG] Check-in: staffId=$staffId, classId=$classId, startAt=$startAt');
       homeBloc.add(
