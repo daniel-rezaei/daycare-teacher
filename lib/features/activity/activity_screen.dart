@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/features/activity/add_photo_screen.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/record_activity_screen.dart';
@@ -168,11 +169,16 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         SizedBox(height: 48),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            TimeInAccessGuard.guardNavigation(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => RecordActivityScreen(),
-                              ),
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RecordActivityScreen(),
+                                  ),
+                                );
+                              },
                             );
                           },
                           child: Assets.images.infoCardPng.image(),
@@ -180,11 +186,16 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            TimeInAccessGuard.guardNavigation(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => LogActivityScreen(),
-                              ),
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => LogActivityScreen(),
+                                  ),
+                                );
+                              },
                             );
                           },
                           child: Assets.images.infoCard2.image(),
@@ -192,10 +203,15 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => AddPhotoScreen(),
-                              ),
+                            TimeInAccessGuard.guardNavigation(
+                              context,
+                              () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => AddPhotoScreen(),
+                                  ),
+                                );
+                              },
                             );
                           },
                           child: Assets.images.infoCard3.image(),

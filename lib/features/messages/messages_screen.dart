@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/chat_archive_screen.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
@@ -53,11 +54,16 @@ class MessagesScreen extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            TimeInAccessGuard.guardNavigation(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => SelectChildsScreen(),
-                              ),
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SelectChildsScreen(),
+                                  ),
+                                );
+                              },
                             );
                           },
                           child: Assets.images.infoCard4.image(),
@@ -65,11 +71,16 @@ class MessagesScreen extends StatelessWidget {
                         SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            TimeInAccessGuard.guardNavigation(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatArchiveScreen(),
-                              ),
+                              () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatArchiveScreen(),
+                                  ),
+                                );
+                              },
                             );
                           },
                           child: Assets.images.infoCard5.image(),

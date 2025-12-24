@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
@@ -292,6 +293,11 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                           ),
                     dec: 'Total Children',
                     onTap: () {
+                      // Check for active Time-In first
+                      if (!TimeInAccessGuard.guardAction(context)) {
+                        return;
+                      }
+
                       // بررسی اینکه آیا کلاس استارت شده است
                       if (!isClassStarted) {
                         ScaffoldMessenger.of(context).showSnackBar(
