@@ -24,6 +24,7 @@ class _TimeScreenState extends State<TimeScreen> {
   Timer? _timer;
   Duration _elapsed = Duration.zero;
   DateTime? _lastEventAt;
+  bool _isTimerReady = false; // Track if timer has been initialized with real data
 
   @override
   void initState() {
@@ -58,6 +59,17 @@ class _TimeScreenState extends State<TimeScreen> {
   void _startTimer(DateTime eventAt) {
     _lastEventAt = eventAt;
     _timer?.cancel();
+    
+    // Calculate initial elapsed time immediately
+    final initialElapsed = DateTime.now().difference(eventAt);
+    if (mounted) {
+      setState(() {
+        _elapsed = initialElapsed;
+        _isTimerReady = true; // Mark timer as ready
+      });
+    }
+    
+    // Start periodic updates
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && _lastEventAt != null) {
         setState(() {
@@ -74,6 +86,7 @@ class _TimeScreenState extends State<TimeScreen> {
     if (mounted) {
       setState(() {
         _elapsed = Duration.zero;
+        _isTimerReady = false; // Reset ready state
       });
     }
   }
@@ -188,6 +201,11 @@ class _TimeScreenState extends State<TimeScreen> {
 
                       final isRunning = _isRunning(latestAttendance);
                       final isProcessing = state is CreateStaffAttendanceLoading;
+                      
+                      // Determine if timer should be shown or loading indicator
+                      // Show loading if: loading state OR timer is running but not ready yet
+                      final showTimerLoading = isLoading || 
+                          (isRunning && !_isTimerReady);
 
                       return Column(
                         children: [
@@ -220,7 +238,7 @@ class _TimeScreenState extends State<TimeScreen> {
                           ),
                           SizedBox(height: 24),
 
-                          // نمایش تایمر
+                          // نمایش تایمر یا loading indicator
                           if (isRunning)
                             Container(
                               decoration: BoxDecoration(
@@ -229,14 +247,18 @@ class _TimeScreenState extends State<TimeScreen> {
                               ),
                               padding: EdgeInsets.symmetric(vertical: 16),
                               alignment: Alignment.center,
-                              child: Text(
-                                _formatDuration(_elapsed),
-                                style: TextStyle(
-                                  color: Color(0xff444349),
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
+                              child: showTimerLoading
+                                  ? const CupertinoActivityIndicator(
+                                      radius: 16,
+                                    )
+                                  : Text(
+                                      _formatDuration(_elapsed),
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
                             ),
 
                           // نمایش خطا
