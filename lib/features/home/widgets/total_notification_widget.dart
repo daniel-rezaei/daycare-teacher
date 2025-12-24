@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/services/attendance_session_store.dart';
 import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
@@ -17,6 +18,7 @@ import 'package:teacher_app/features/home/widgets/info_card_widget.dart';
 import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class TotalNotificationWidget extends StatefulWidget {
@@ -191,14 +193,6 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         .length;
   }
 
-  /// بررسی اینکه آیا کلاس استارت شده است یا نه
-  bool _isClassStarted(StaffClassSessionEntity? session) {
-    if (session == null) return false;
-    // اگر start_at وجود دارد و end_at null است، یعنی check-in شده
-    return session.startAt != null &&
-        session.startAt!.isNotEmpty &&
-        (session.endAt == null || session.endAt!.isEmpty);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,7 +220,6 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
               final attendanceList = homeState.attendanceList ?? [];
               final notifications = homeState.notifications ?? [];
               final session = homeState.session;
-              final isClassStarted = _isClassStarted(session);
 
               final isLoadingAttendance = homeState.isLoadingAttendance;
               final isLoadingNotifications = homeState.isLoadingNotifications;
@@ -293,16 +286,43 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                           ),
                     dec: 'Total Children',
                     onTap: () {
-                      // Check for active Time-In first
-                      if (!TimeInAccessGuard.guardAction(context)) {
-                        return;
+                      // Get current states
+                      final hasTimeIn = TimeInAccessGuard.checkActiveTimeInFromContext(context);
+                      final timerStore = AttendanceSessionStore.instance;
+                      final isTimerRunning = timerStore.isClockedIn && timerStore.timeInAt != null;
+                      
+                      // Check if user has checked out (Time Out has been done)
+                      // If Time In is active, user has NOT checked out
+                      // If Time In is NOT active, we need to check if it's because of Time Out or because Time In was never done
+                      // We can determine this by checking if there's a latest attendance record with eventType == 'time_out'
+                      final staffAttendanceState = context.read<StaffAttendanceBloc>().state;
+                      bool hasCheckedOut = false;
+                      if (staffAttendanceState is GetLatestStaffAttendanceSuccess) {
+                        final latestAttendance = staffAttendanceState.latestAttendance;
+                        hasCheckedOut = latestAttendance != null && latestAttendance.eventType == 'time_out';
+                      } else if (staffAttendanceState is CreateStaffAttendanceSuccess) {
+                        hasCheckedOut = staffAttendanceState.attendance.eventType == 'time_out';
                       }
-
-                      // بررسی اینکه آیا کلاس استارت شده است
-                      if (!isClassStarted) {
+                      
+                      // Check if class session is still open (not ended)
+                      // Session is open if it doesn't exist, hasn't started, or hasn't ended
+                      final sessionIsOpen = session == null || 
+                          session.endAt == null || 
+                          session.endAt!.isEmpty;
+                      
+                      // The message "You must press Start first" must ONLY be shown when ALL of the following are true:
+                      // 1. The user has NOT done Time In yet
+                      // 2. The class timer is NOT running
+                      // 3. The user has NOT checked out yet (session is still open)
+                      // 
+                      // If any of these conditions is false (e.g., Time In is done, timer is running, or user has checked out),
+                      // then the message should NOT be shown and the student list should open normally.
+                      final shouldShowStartMessage = !hasTimeIn && !isTimerRunning && !hasCheckedOut && sessionIsOpen;
+                      
+                      if (shouldShowStartMessage) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Please start the class first'),
+                            content: Text('You must press Start first'),
                             duration: Duration(seconds: 2),
                           ),
                         );
