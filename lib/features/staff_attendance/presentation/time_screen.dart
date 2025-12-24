@@ -6,11 +6,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/services/attendance_session_store.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
-import 'package:teacher_app/features/staff_attendance/domain/entity/staff_attendance_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -25,18 +25,24 @@ class _TimeScreenState extends State<TimeScreen> {
   String? _staffId;
   String? _classId;
   Timer? _timer;
-  Duration _elapsed = Duration.zero;
-  DateTime? _lastEventAt;
-  bool _isTimerReady = false; // Track if timer has been initialized with real data
+  final AttendanceSessionStore _store = AttendanceSessionStore.instance;
 
   @override
   void initState() {
     super.initState();
     _loadIds();
+    _rehydrateFromStore();
+    
+    // Listen to store changes
+    _store.addListener(_onStoreChanged);
+    
+    // Start timer if needed
+    _startTimerIfNeeded();
   }
 
   @override
   void dispose() {
+    _store.removeListener(_onStoreChanged);
     _timer?.cancel();
     super.dispose();
   }
@@ -52,31 +58,55 @@ class _TimeScreenState extends State<TimeScreen> {
         _classId = classId;
       });
 
-      // دریافت آخرین وضعیت از API
+      // Rehydrate from persistent storage first
+      await _store.rehydrate();
+      
+      // Then fetch from API to ensure we have latest state
       context.read<StaffAttendanceBloc>().add(
             GetLatestStaffAttendanceEvent(staffId: staffId),
           );
     }
   }
 
-  void _startTimer(DateTime eventAt) {
-    _lastEventAt = eventAt;
-    _timer?.cancel();
+  /// Rehydrate timer from store (persistent storage)
+  void _rehydrateFromStore() {
+    debugPrint(
+      '[TIME_SCREEN] Rehydrating from store: '
+      'isClockedIn=${_store.isClockedIn}, '
+      'timeInAt=${_store.timeInAt}, '
+      'accumulatedTotal=${_store.accumulatedTotal.inMinutes}min',
+    );
     
-    // Calculate initial elapsed time immediately
-    final initialElapsed = DateTime.now().difference(eventAt);
-    if (mounted) {
-      setState(() {
-        _elapsed = initialElapsed;
-        _isTimerReady = true; // Mark timer as ready
-      });
+    if (_store.isClockedIn && _store.timeInAt != null) {
+      _startTimerIfNeeded();
+    } else {
+      _stopTimer();
     }
-    
+  }
+
+  /// Start timer if store indicates active Time-In
+  void _startTimerIfNeeded() {
+    if (!_store.isClockedIn || _store.timeInAt == null) {
+      _stopTimer();
+      return;
+    }
+
+    // Only start if not already running
+    if (_timer != null && _timer!.isActive) {
+      return;
+    }
+
+    debugPrint(
+      '[TIME_SCREEN] Starting timer from store: '
+      'timeInAt=${_store.timeInAt}, '
+      'accumulatedTotal=${_store.accumulatedTotal.inMinutes}min',
+    );
+
     // Start periodic updates
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && _lastEventAt != null) {
+      if (mounted) {
         setState(() {
-          _elapsed = DateTime.now().difference(_lastEventAt!);
+          // Trigger rebuild to show updated elapsed time
         });
       }
     });
@@ -85,12 +115,14 @@ class _TimeScreenState extends State<TimeScreen> {
   void _stopTimer() {
     _timer?.cancel();
     _timer = null;
-    _lastEventAt = null;
+  }
+
+  void _onStoreChanged() {
     if (mounted) {
       setState(() {
-        _elapsed = Duration.zero;
-        _isTimerReady = false; // Reset ready state
+        // Store changed, update UI
       });
+      _startTimerIfNeeded();
     }
   }
 
@@ -101,34 +133,25 @@ class _TimeScreenState extends State<TimeScreen> {
     return "$h:$m:$s";
   }
 
-  bool _isRunning(StaffAttendanceEntity? latestAttendance) {
-    if (latestAttendance == null) return false;
-    return latestAttendance.eventType == 'time_in';
-  }
-
   /// Check if class session is active (started but not ended)
   bool _isClassSessionActive(StaffClassSessionEntity? session) {
     if (session == null) return false;
-    // Session is active if startAt exists and endAt is null/empty
     return session.startAt != null &&
         session.startAt!.isNotEmpty &&
         (session.endAt == null || session.endAt!.isEmpty);
   }
 
   /// Automatically end active class session when Time-Out happens
-  /// This ensures class state is always synchronized with Time-In/Time-Out state
   void _autoEndActiveClassSession() {
     if (_classId == null || _classId!.isEmpty) {
       debugPrint('[TIME_SCREEN] Cannot end session: classId is null');
       return;
     }
 
-    // Check current session state from HomeBloc
     final homeState = context.read<HomeBloc>().state;
     final session = homeState.session;
 
     if (_isClassSessionActive(session)) {
-      // Active session exists - end it immediately
       if (session!.id == null || session.id!.isEmpty) {
         debugPrint('[TIME_SCREEN] Cannot end session: sessionId is null');
         return;
@@ -140,7 +163,6 @@ class _TimeScreenState extends State<TimeScreen> {
         'sessionId=${session.id}, endAt=$endAt',
       );
 
-      // End the session by updating it with endAt timestamp
       context.read<HomeBloc>().add(
             UpdateSessionEvent(
               sessionId: session.id!,
@@ -155,6 +177,11 @@ class _TimeScreenState extends State<TimeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get current elapsed time from store
+    final currentElapsed = _store.getCurrentElapsed();
+    final isRunning = _store.isClockedIn;
+    final isTimerReady = isRunning && _store.timeInAt != null;
+
     return Stack(
       children: [
         BackgroundWidget(),
@@ -198,70 +225,55 @@ class _TimeScreenState extends State<TimeScreen> {
                     listener: (context, state) {
                       if (state is GetLatestStaffAttendanceSuccess) {
                         final latestAttendance = state.latestAttendance;
-                        if (latestAttendance != null &&
-                            latestAttendance.eventType == 'time_in' &&
-                            latestAttendance.eventAt != null) {
-                          try {
-                            final eventAt = DateTime.parse(latestAttendance.eventAt!);
-                            _startTimer(eventAt);
-                          } catch (e) {
-                            debugPrint('[TIME_SCREEN] Error parsing eventAt: $e');
-                            _stopTimer();
-                          }
-                        } else {
-                          _stopTimer();
-                        }
+                        
+                        debugPrint(
+                          '[TIME_SCREEN] GetLatestStaffAttendanceSuccess: '
+                          'eventType=${latestAttendance?.eventType}',
+                        );
+                        
+                        // Store is already synced by bloc, just ensure timer is running
+                        _startTimerIfNeeded();
                       } else if (state is CreateStaffAttendanceSuccess) {
-                        // بعد از ثبت موفق، تایمر را به‌روزرسانی کن
                         final attendance = state.attendance;
-                        if (attendance.eventType == 'time_in' &&
-                            attendance.eventAt != null) {
-                          try {
-                            final eventAt = DateTime.parse(attendance.eventAt!);
-                            _startTimer(eventAt);
-                            // IMPORTANT: Do NOT auto-start class session on Time-In
-                            // Teacher must manually start class session
-                          } catch (e) {
-                            debugPrint('[TIME_SCREEN] Error parsing eventAt: $e');
-                            _stopTimer();
-                          }
-                        } else if (attendance.eventType == 'time_out') {
-                          // Time-Out happened: Automatically end any active class session
+                        
+                        debugPrint(
+                          '[TIME_SCREEN] CreateStaffAttendanceSuccess: '
+                          'eventType=${attendance.eventType}',
+                        );
+                        
+                        if (attendance.eventType == 'time_out') {
                           _stopTimer();
                           _autoEndActiveClassSession();
                         } else {
-                          _stopTimer();
+                          _startTimerIfNeeded();
                         }
                       } else if (state is GetLatestStaffAttendanceFailure ||
                           state is CreateStaffAttendanceFailure) {
-                        // در صورت خطا، تایمر را متوقف کن
-                        _stopTimer();
+                        debugPrint(
+                          '[TIME_SCREEN] Error state: ${state.runtimeType}',
+                        );
+                        // On error, try to use store state
+                        _startTimerIfNeeded();
                       }
                     },
                     builder: (context, state) {
-                      // دریافت آخرین وضعیت
-                      StaffAttendanceEntity? latestAttendance;
                       bool isLoading = false;
                       String? errorMessage;
 
                       if (state is GetLatestStaffAttendanceLoading ||
                           state is CreateStaffAttendanceLoading) {
                         isLoading = true;
-                      } else if (state is GetLatestStaffAttendanceSuccess) {
-                        latestAttendance = state.latestAttendance;
                       } else if (state is GetLatestStaffAttendanceFailure) {
                         errorMessage = state.message;
                       } else if (state is CreateStaffAttendanceFailure) {
                         errorMessage = state.message;
                       }
 
-                      final isRunning = _isRunning(latestAttendance);
                       final isProcessing = state is CreateStaffAttendanceLoading;
                       
-                      // Determine if timer should be shown or loading indicator
                       // Show loading if: loading state OR timer is running but not ready yet
                       final showTimerLoading = isLoading || 
-                          (isRunning && !_isTimerReady);
+                          (isRunning && !isTimerReady);
 
                       return Column(
                         children: [
@@ -308,7 +320,7 @@ class _TimeScreenState extends State<TimeScreen> {
                                       radius: 16,
                                     )
                                   : Text(
-                                      _formatDuration(_elapsed),
+                                      _formatDuration(currentElapsed),
                                       style: TextStyle(
                                         color: Color(0xff444349),
                                         fontSize: 36,

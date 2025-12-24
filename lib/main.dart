@@ -18,11 +18,16 @@ import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_at
 import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/class_transfer_request/presentation/bloc/class_transfer_request_bloc.dart';
+import 'package:teacher_app/core/services/attendance_session_store.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // locator مربوط به گت ایت و
   await configureDependencies(environment: Env.prod);
+  
+  // Initialize attendance session store (loads from persistent storage)
+  await AttendanceSessionStore.instance.rehydrate();
+  
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 

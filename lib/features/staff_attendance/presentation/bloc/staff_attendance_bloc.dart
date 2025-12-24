@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
+import 'package:teacher_app/core/services/attendance_session_store.dart';
 import 'package:teacher_app/features/staff_attendance/domain/entity/staff_attendance_entity.dart';
 import 'package:teacher_app/features/staff_attendance/domain/usecase/staff_attendance_usecase.dart';
 
@@ -64,6 +65,33 @@ class StaffAttendanceBloc
       if (dataState is DataSuccess) {
         debugPrint(
             '[STAFF_ATTENDANCE_DEBUG] GetLatestStaffAttendanceSuccess: ${dataState.data?.id ?? 'null'}');
+        
+        // Sync with AttendanceSessionStore
+        final attendance = dataState.data;
+        if (attendance != null) {
+          final isClockedIn = attendance.eventType == 'time_in';
+          DateTime? timeInAt;
+          if (attendance.eventAt != null) {
+            try {
+              timeInAt = DateTime.parse(attendance.eventAt!);
+            } catch (e) {
+              debugPrint('[STAFF_ATTENDANCE_DEBUG] Error parsing eventAt: $e');
+            }
+          }
+          
+          await AttendanceSessionStore.instance.syncFromApi(
+            sessionId: attendance.id,
+            timeInAt: timeInAt,
+            isClockedIn: isClockedIn,
+            staffId: attendance.staffId,
+          );
+        } else {
+          // No attendance found - clear store
+          await AttendanceSessionStore.instance.syncFromApi(
+            isClockedIn: false,
+          );
+        }
+        
         emit(GetLatestStaffAttendanceSuccess(dataState.data));
       } else if (dataState is DataFailed) {
         debugPrint(
@@ -97,6 +125,47 @@ class StaffAttendanceBloc
       if (dataState is DataSuccess) {
         debugPrint(
             '[STAFF_ATTENDANCE_DEBUG] CreateStaffAttendanceSuccess: ${dataState.data.id}');
+        
+        final attendance = dataState.data;
+        
+        // Sync with AttendanceSessionStore
+        if (event.eventType == 'time_in') {
+          DateTime? timeInAt;
+          if (attendance.eventAt != null) {
+            try {
+              timeInAt = DateTime.parse(attendance.eventAt!);
+            } catch (e) {
+              debugPrint('[STAFF_ATTENDANCE_DEBUG] Error parsing eventAt: $e');
+            }
+          }
+          
+          await AttendanceSessionStore.instance.startTimeIn(
+            sessionId: attendance.id ?? '',
+            timeInAt: timeInAt ?? DateTime.now(),
+            staffId: event.staffId,
+          );
+        } else if (event.eventType == 'time_out') {
+          // Calculate session duration
+          final store = AttendanceSessionStore.instance;
+          Duration sessionDuration = Duration.zero;
+          if (store.timeInAt != null) {
+            DateTime? timeOutAt;
+            if (attendance.eventAt != null) {
+              try {
+                timeOutAt = DateTime.parse(attendance.eventAt!);
+              } catch (e) {
+                debugPrint('[STAFF_ATTENDANCE_DEBUG] Error parsing eventAt: $e');
+              }
+            }
+            timeOutAt ??= DateTime.now();
+            sessionDuration = timeOutAt.difference(store.timeInAt!);
+          }
+          
+          await AttendanceSessionStore.instance.endTimeIn(
+            sessionDuration: sessionDuration,
+          );
+        }
+        
         emit(CreateStaffAttendanceSuccess(dataState.data));
         
         // بعد از ثبت موفق، آخرین رکورد را دوباره دریافت کن
