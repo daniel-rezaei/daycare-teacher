@@ -7,11 +7,13 @@ import 'package:teacher_app/gen/assets.gen.dart';
 class ChoosePhotoScreen extends StatefulWidget {
   final bool allowMultipleSelection;
   final int? maxSelection;
+  final String? temporaryCameraFile; // Temporary file from camera (shown immediately)
   
   const ChoosePhotoScreen({
     super.key,
     this.allowMultipleSelection = true,
     this.maxSelection,
+    this.temporaryCameraFile,
   });
 
   @override
@@ -20,39 +22,67 @@ class ChoosePhotoScreen extends StatefulWidget {
 
 class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
   List<File> photos = [];
+  File? _temporaryFile; // Temporary camera file shown immediately
 
   @override
   void initState() {
     super.initState();
+    // Show temporary camera file IMMEDIATELY (if provided)
+    if (widget.temporaryCameraFile != null) {
+      _temporaryFile = File(widget.temporaryCameraFile!);
+      // Add to photos list immediately so user sees it right away
+      photos = [_temporaryFile!];
+    }
+    // Load existing photos in background (non-blocking)
     loadImages();
   }
 
   Future<void> loadImages() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final files = await dir
-        .list()
-        .where((f) => f is File && f.path.endsWith("_thumb.jpg"))
-        .map((f) => File(f.path))
-        .toList();
-    
-    // Sort by modification time (newest first)
-    files.sort((a, b) {
-      final aTime = a.lastModifiedSync();
-      final bTime = b.lastModifiedSync();
-      return bTime.compareTo(aTime);
-    });
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      for (var f in files) {
-        await precacheImage(FileImage(f), context);
-      }
+    final loadStartTime = DateTime.now();
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final files = await dir
+          .list()
+          .where((f) => f is File && f.path.endsWith("_thumb.jpg"))
+          .map((f) => File(f.path))
+          .toList();
+      
+      final listTime = DateTime.now().difference(loadStartTime).inMilliseconds;
+      debugPrint('[PERF] ChoosePhotoScreen file listing: ${listTime}ms');
+      
+      // Sort by modification time (newest first)
+      files.sort((a, b) {
+        final aTime = a.lastModifiedSync();
+        final bTime = b.lastModifiedSync();
+        return bTime.compareTo(aTime);
+      });
+      
+      // Update UI without blocking - precache happens in background
       if (mounted) {
         setState(() {
-          photos = files;
+          // Keep temporary file at the top if it exists
+          if (_temporaryFile != null && !files.contains(_temporaryFile)) {
+            photos = [_temporaryFile!, ...files];
+          } else {
+            photos = files;
+          }
         });
       }
-    });
+
+      // Precache images in background (non-blocking)
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        for (var f in files.take(10)) { // Only precache first 10
+          try {
+            await precacheImage(FileImage(f), context);
+          } catch (e) {
+            // Ignore precache errors
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('[ChoosePhotoScreen] Error loading images: $e');
+    }
   }
 
   Set<File> selectedPhotos = {};

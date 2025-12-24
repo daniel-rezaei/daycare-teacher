@@ -182,8 +182,42 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
   }
 }
 
+/// Save and process image completely in background (fire and forget)
+Future<void> _saveAndProcessImageInBackground(String cameraFilePath) async {
+  final bgStartTime = DateTime.now();
+  try {
+    final dir = await getApplicationDocumentsDirectory();
+    final id = const Uuid().v4();
+    final savedPath = '${dir.path}/$id.jpg';
+    final thumbPath = '${dir.path}/${id}_thumb.jpg';
+
+    // Copy file in background
+    await File(cameraFilePath).copy(savedPath);
+    final copyTime = DateTime.now().difference(bgStartTime).inMilliseconds;
+    debugPrint('[PERF] Background file copy: ${copyTime}ms');
+
+    // Refresh cache
+    PhotoCacheService.refresh();
+
+    // Process image in background (optimize and create thumbnail)
+    ImageProcessingService.processCameraImageAsync(
+      cameraImagePath: cameraFilePath,
+      savedImagePath: savedPath,
+      thumbnailPath: thumbPath,
+    ).then((_) {
+      final totalBgTime = DateTime.now().difference(bgStartTime).inMilliseconds;
+      debugPrint('[PERF] Background processing complete: ${totalBgTime}ms');
+    }).catchError((e) {
+      debugPrint('[ADD_PHOTO] Background processing error: $e');
+    });
+  } catch (e) {
+    debugPrint('[ADD_PHOTO] Background save error: $e');
+  }
+}
+
 class ButtonsInfoCardPhoto extends StatelessWidget {
   const ButtonsInfoCardPhoto({super.key});
+  
   BuildContext? showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -239,68 +273,64 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
             title: 'Take Photo',
             icon: Assets.images.photo2.image(height: 68),
             onTap: () async {
+              // Performance instrumentation
+              final startTime = DateTime.now();
+              
               // Show loading IMMEDIATELY before camera opens
               if (!context.mounted) return;
+              final loadStartTime = DateTime.now();
               showLoadingDialog(context);
+              final loadDialogTime = DateTime.now().difference(loadStartTime).inMilliseconds;
+              debugPrint('[PERF] Load dialog shown: ${loadDialogTime}ms');
 
               try {
                 final picker = ImagePicker();
                 
                 // CRITICAL: Force camera to use lowest safe resolution BEFORE opening
-                // This prevents memory spikes and crashes on weak devices
-                // Configuration is applied BEFORE camera opens, ensuring low-resource mode
+                final cameraOpenStart = DateTime.now();
                 final XFile? file = await picker.pickImage(
                   source: ImageSource.camera,
-                  // Force maximum dimensions - camera captures at this resolution or lower
-                  // This is the KEY setting that prevents max-resolution capture
-                  maxWidth: 1024.0,  // Maximum width in pixels (forces low resolution)
-                  maxHeight: 1024.0, // Maximum height in pixels (forces low resolution)
-                  imageQuality: 60,  // Low quality (60-70 range) for minimal file size and memory
+                  maxWidth: 1024.0,  // Forces low resolution capture
+                  maxHeight: 1024.0, // Prevents max-resolution
+                  imageQuality: 60,  // Low quality for minimal size
                   preferredCameraDevice: CameraDevice.rear,
-                  // Note: image_picker uses JPEG format by default (no RAW/HDR support)
                 );
+                final cameraTime = DateTime.now().difference(cameraOpenStart).inMilliseconds;
+                debugPrint('[PERF] Camera capture time: ${cameraTime}ms');
 
                 if (file == null) {
-                  // User cancelled - close loading
+                  // User cancelled
                   if (!context.mounted) return;
                   Navigator.pop(context);
                   return;
                 }
 
-                // INSTANT PATH: Camera already captured at low-res (maxWidth/maxHeight)
-                // Just copy file directly - NO processing, NO waiting
-                final dir = await getApplicationDocumentsDirectory();
-                final id = const Uuid().v4();
-                final savedPath = '${dir.path}/$id.jpg';
-                final thumbPath = '${dir.path}/${id}_thumb.jpg';
+                final onResultTime = DateTime.now().difference(startTime).inMilliseconds;
+                debugPrint('[PERF] Time to camera result: ${onResultTime}ms');
 
-                // Copy file directly (instant operation, no processing)
-                await File(file.path).copy(savedPath);
-
-                // Close loading and navigate IMMEDIATELY (< 200ms)
+                // INSTANT PATH: Navigate IMMEDIATELY without waiting for ANY file operations
+                // Pass camera file as temporary placeholder - user sees it instantly
                 if (!context.mounted) return;
                 Navigator.pop(context); // Close loading
                 
-                // Refresh cache (non-blocking)
-                PhotoCacheService.refresh();
-
-                if (!context.mounted) return;
-                
-                // Navigate IMMEDIATELY - processing happens in background
+                final navStartTime = DateTime.now();
+                // Navigate IMMEDIATELY - use camera file as placeholder
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ChoosePhotoScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => ChoosePhotoScreen(
+                      temporaryCameraFile: file.path,
+                    ),
+                  ),
                 );
+                final navTime = DateTime.now().difference(navStartTime).inMilliseconds;
+                final totalPerceivedTime = DateTime.now().difference(startTime).inMilliseconds;
+                debugPrint('[PERF] Navigation time: ${navTime}ms');
+                debugPrint('[PERF] TOTAL PERCEIVED TIME: ${totalPerceivedTime}ms');
 
-                // Process image in background (fire and forget - doesn't block UI)
-                // This replaces the file with optimized version and creates thumbnail
-                ImageProcessingService.processCameraImageAsync(
-                  cameraImagePath: file.path,
-                  savedImagePath: savedPath,
-                  thumbnailPath: thumbPath,
-                ).catchError((e) {
-                  debugPrint('[ADD_PHOTO] Background processing error: $e');
-                  // Error is silent - user already navigated, file exists
+                // ALL file operations happen in background (fire and forget)
+                _saveAndProcessImageInBackground(file.path).catchError((e) {
+                  debugPrint('[ADD_PHOTO] Background save error: $e');
                 });
               } catch (e) {
                 // Close loading on error
