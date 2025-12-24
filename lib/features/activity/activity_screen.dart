@@ -1,12 +1,60 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/features/activity/add_photo_screen.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/record_activity_screen.dart';
+import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class ActivityScreen extends StatelessWidget {
+class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
+
+  @override
+  State<ActivityScreen> createState() => _ActivityScreenState();
+}
+
+class _ActivityScreenState extends State<ActivityScreen> {
+  String? classId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClassId();
+  }
+
+  Future<void> _loadClassId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+
+    if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        classId = savedClassId;
+      });
+      // Request class rooms if not already loaded
+      final currentState = context.read<HomeBloc>().state;
+      if (currentState.classRooms == null || currentState.classRooms!.isEmpty) {
+        context.read<HomeBloc>().add(const LoadClassRoomsEvent());
+      }
+    }
+  }
+
+  String? _getRoomName(List<ClassRoomEntity>? classRooms) {
+    if (classId == null || classRooms == null) return null;
+
+    try {
+      final classRoom = classRooms.firstWhere(
+        (room) => room.id == classId,
+      );
+      return classRoom.roomName;
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +72,49 @@ class ActivityScreen extends StatelessWidget {
                       horizontal: 24,
                       vertical: 34,
                     ),
-                    child: Text(
-                      'Activity – Toddler 2',
-                      style: TextStyle(
-                        color: Color(0xff444349),
-                        fontSize: 26,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: BlocBuilder<HomeBloc, HomeState>(
+                      builder: (context, state) {
+                        final roomName = _getRoomName(state.classRooms);
+                        return Row(
+                          children: [
+                            Text(
+                              'Activity',
+                              style: TextStyle(
+                                color: Color(0xff444349),
+                                fontSize: 26,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (roomName != null) ...[
+                              Text(
+                                ' – ',
+                                style: TextStyle(
+                                  color: Color(0xff444349),
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (state.isLoadingClassRooms)
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CupertinoActivityIndicator(
+                                    radius: 8,
+                                  ),
+                                )
+                              else
+                                Text(
+                                  roomName,
+                                  style: TextStyle(
+                                    color: Color(0xff444349),
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                            ],
+                          ],
+                        );
+                      },
                     ),
                   ),
                   Container(

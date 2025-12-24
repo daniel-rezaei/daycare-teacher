@@ -55,8 +55,13 @@ class _AttachPhotoWidgetState extends State<AttachPhotoWidget> {
                 title: Text('Take a Photo'),
                 onTap: () async {
                   Navigator.pop(context);
+                  // Force low resolution to prevent memory issues
+                  // Configuration applied BEFORE camera opens
                   final XFile? image = await _picker.pickImage(
                     source: ImageSource.camera,
+                    maxWidth: 1024.0,  // Maximum width (forces low resolution)
+                    maxHeight: 1024.0, // Maximum height (forces low resolution)
+                    imageQuality: 60,   // Low quality for minimal memory usage
                   );
                   if (image != null) {
                     setState(() {

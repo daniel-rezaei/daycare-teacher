@@ -2,17 +2,64 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/photo_cache_service.dart';
+import 'package:teacher_app/core/services/image_processing_service.dart';
 import 'package:teacher_app/features/activity/choose_photo_screen.dart';
+import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 import 'package:uuid/uuid.dart';
-import 'package:image/image.dart' as img;
 
-class AddPhotoScreen extends StatelessWidget {
+class AddPhotoScreen extends StatefulWidget {
   const AddPhotoScreen({super.key});
+
+  @override
+  State<AddPhotoScreen> createState() => _AddPhotoScreenState();
+}
+
+class _AddPhotoScreenState extends State<AddPhotoScreen> {
+  String? classId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClassId();
+  }
+
+  Future<void> _loadClassId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+
+    if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        classId = savedClassId;
+      });
+      // Request class rooms if not already loaded
+      final currentState = context.read<HomeBloc>().state;
+      if (currentState.classRooms == null || currentState.classRooms!.isEmpty) {
+        context.read<HomeBloc>().add(const LoadClassRoomsEvent());
+      }
+    }
+  }
+
+  String? _getRoomName(List<ClassRoomEntity>? classRooms) {
+    if (classId == null || classRooms == null) return null;
+
+    try {
+      final classRoom = classRooms.firstWhere(
+        (room) => room.id == classId,
+      );
+      return classRoom.roomName;
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +79,49 @@ class AddPhotoScreen extends StatelessWidget {
                       Assets.images.arrowLeft.svg(),
                       Padding(
                         padding: EdgeInsets.all(16),
-                        child: Text(
-                          'Add Photo – Toddler 2',
-                          style: TextStyle(
-                            color: Color(0xff444349),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, state) {
+                            final roomName = _getRoomName(state.classRooms);
+                            return Row(
+                              children: [
+                                Text(
+                                  'Add Photo',
+                                  style: TextStyle(
+                                    color: Color(0xff444349),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (roomName != null) ...[
+                                  Text(
+                                    ' – ',
+                                    style: TextStyle(
+                                      color: Color(0xff444349),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (state.isLoadingClassRooms)
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CupertinoActivityIndicator(
+                                        radius: 8,
+                                      ),
+                                    )
+                                  else
+                                    Text(
+                                      roomName,
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                ],
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -101,28 +184,48 @@ class AddPhotoScreen extends StatelessWidget {
 
 class ButtonsInfoCardPhoto extends StatelessWidget {
   const ButtonsInfoCardPhoto({super.key});
-  void showLoadingDialog(BuildContext context) {
+  BuildContext? showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Center(
-        child: Container(
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CupertinoActivityIndicator(),
-              SizedBox(height: 16),
-              Text("Processing...", style: TextStyle(fontSize: 16)),
-            ],
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      builder: (_) => WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CupertinoActivityIndicator(radius: 12),
+                  SizedBox(height: 16),
+                  Text(
+                    "Processing...",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
+    return null;
   }
 
   @override
@@ -136,36 +239,79 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
             title: 'Take Photo',
             icon: Assets.images.photo2.image(height: 68),
             onTap: () async {
-              final picker = ImagePicker();
-              final XFile? file = await picker.pickImage(
-                source: ImageSource.camera,
-              );
+              // Show loading IMMEDIATELY before camera opens
+              if (!context.mounted) return;
+              showLoadingDialog(context);
 
-              if (file != null) {
-                if (!context.mounted) return;
-                showLoadingDialog(context); // <- نمایش لودینگ
+              try {
+                final picker = ImagePicker();
+                
+                // CRITICAL: Force camera to use lowest safe resolution BEFORE opening
+                // This prevents memory spikes and crashes on weak devices
+                // Configuration is applied BEFORE camera opens, ensuring low-resource mode
+                final XFile? file = await picker.pickImage(
+                  source: ImageSource.camera,
+                  // Force maximum dimensions - camera captures at this resolution or lower
+                  // This is the KEY setting that prevents max-resolution capture
+                  maxWidth: 1024.0,  // Maximum width in pixels (forces low resolution)
+                  maxHeight: 1024.0, // Maximum height in pixels (forces low resolution)
+                  imageQuality: 60,  // Low quality (60-70 range) for minimal file size and memory
+                  preferredCameraDevice: CameraDevice.rear,
+                  // Note: image_picker uses JPEG format by default (no RAW/HDR support)
+                );
 
+                if (file == null) {
+                  // User cancelled - close loading
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  return;
+                }
+
+                // INSTANT PATH: Camera already captured at low-res (maxWidth/maxHeight)
+                // Just copy file directly - NO processing, NO waiting
                 final dir = await getApplicationDocumentsDirectory();
                 final id = const Uuid().v4();
-                final originalPath = "${dir.path}/$id.jpg";
-                final thumbPath = "${dir.path}/${id}_thumb.jpg";
+                final savedPath = '${dir.path}/$id.jpg';
+                final thumbPath = '${dir.path}/${id}_thumb.jpg';
 
-                await File(file.path).copy(originalPath);
+                // Copy file directly (instant operation, no processing)
+                await File(file.path).copy(savedPath);
 
+                // Close loading and navigate IMMEDIATELY (< 200ms)
+                if (!context.mounted) return;
+                Navigator.pop(context); // Close loading
+                
+                // Refresh cache (non-blocking)
                 PhotoCacheService.refresh();
 
-                // Thumbnail async
-                _createThumbnail(file.path, thumbPath);
-
-                // کمی تأخیر برای طبیعی‌تر شدن تجربه
-                await Future.delayed(Duration(milliseconds: 300));
-
                 if (!context.mounted) return;
-                Navigator.pop(context); // بستن لودینگ
-                if (!context.mounted) return;
+                
+                // Navigate IMMEDIATELY - processing happens in background
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ChoosePhotoScreen()),
+                );
+
+                // Process image in background (fire and forget - doesn't block UI)
+                // This replaces the file with optimized version and creates thumbnail
+                ImageProcessingService.processCameraImageAsync(
+                  cameraImagePath: file.path,
+                  savedImagePath: savedPath,
+                  thumbnailPath: thumbPath,
+                ).catchError((e) {
+                  debugPrint('[ADD_PHOTO] Background processing error: $e');
+                  // Error is silent - user already navigated, file exists
+                });
+              } catch (e) {
+                // Close loading on error
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.toString()}'),
+                    duration: const Duration(seconds: 2),
+                  ),
                 );
               }
             },
@@ -186,21 +332,6 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
     );
   }
 
-  /// ساخت thumbnail در پس‌زمینه
-  void _createThumbnail(String sourcePath, String thumbPath) async {
-    try {
-      final bytes = await File(sourcePath).readAsBytes();
-      img.Image? image = img.decodeImage(bytes);
-      if (image != null) {
-        final resized = img.copyResize(image, width: 300);
-        await File(thumbPath).writeAsBytes(img.encodeJpg(resized, quality: 80));
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Thumbnail creation failed: $e");
-      }
-    }
-  }
 }
 
 class InfoCardPhoto extends StatelessWidget {
