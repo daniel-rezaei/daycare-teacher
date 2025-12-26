@@ -68,10 +68,10 @@ class ChildStatusHelper {
 
     if (childAttendance.isEmpty) return false;
 
-    // فیلتر کردن بر اساس تاریخ امروز
-    final today = DateTime.now();
-    final todayStart = DateTime(today.year, today.month, today.day);
-    final todayEnd = todayStart.add(const Duration(days: 1));
+    // فیلتر کردن بر اساس تاریخ امروز (در local timezone)
+    final today = DateTime.now(); // Local time
+    final todayStart = DateTime(today.year, today.month, today.day); // Local day start
+    final todayEnd = todayStart.add(const Duration(days: 1)); // Local day end
 
     final todayAttendance = childAttendance.where((attendance) {
       if (attendance.checkInAt == null || attendance.checkInAt!.isEmpty) {
@@ -79,9 +79,12 @@ class ChildStatusHelper {
       }
 
       try {
-        final checkInDate = DateTime.parse(attendance.checkInAt!);
-        return checkInDate.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
-            checkInDate.isBefore(todayEnd);
+        // Parse API time (UTC) and convert to local for comparison
+        final checkInDateUtc = DateTime.parse(attendance.checkInAt!);
+        final checkInDateLocal = checkInDateUtc.toLocal();
+        debugPrint('[CHILD_STATUS_DEBUG] isChildPresent - checkInAt (UTC): ${attendance.checkInAt}, parsedLocal: $checkInDateLocal, todayStart: $todayStart');
+        return checkInDateLocal.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+            checkInDateLocal.isBefore(todayEnd);
       } catch (e) {
         debugPrint('[CHILD_STATUS_DEBUG] Error parsing checkInAt: ${attendance.checkInAt}, error: $e');
         return false;

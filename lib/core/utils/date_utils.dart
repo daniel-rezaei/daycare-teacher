@@ -5,44 +5,49 @@ import 'package:teacher_app/core/constants/app_constants.dart';
 class DateUtils {
   DateUtils._();
 
-  /// Get current date and time in ISO 8601 format
+  /// Get current date and time in UTC ISO 8601 format (for API)
+  /// Always returns UTC timestamp with Z suffix: yyyy-MM-ddTHH:mm:ss.sssZ
   static String getCurrentDateTime() {
-    return DateFormat(AppConstants.dateTimeFormat).format(DateTime.now());
+    final localNow = DateTime.now();
+    final utcNow = localNow.toUtc();
+    final utcIso = utcNow.toIso8601String();
+    debugPrint('[ATTENDANCE_TZ] getCurrentDateTime - localNow=$localNow, utcNow=$utcNow, sending=$utcIso');
+    return utcIso;
   }
 
-  /// Get current date and time in ISO 8601 format with milliseconds and Z (for Check Out)
-  /// Format: yyyy-MM-ddTHH:mm:ss.000Z
+  /// Get current date and time in UTC ISO 8601 format (for Check Out)
+  /// Always returns UTC timestamp with Z suffix: yyyy-MM-ddTHH:mm:ss.sssZ
   static String getCurrentDateTimeForCheckOut() {
-    debugPrint('[DATE_UTILS] ========== getCurrentDateTimeForCheckOut called ==========');
-    final now = DateTime.now();
-    debugPrint('[DATE_UTILS] Local DateTime.now(): $now');
-    final nowUtc = now.toUtc();
-    debugPrint('[DATE_UTILS] UTC DateTime: $nowUtc');
-    final formatted = DateFormat('yyyy-MM-ddTHH:mm:ss').format(nowUtc);
-    debugPrint('[DATE_UTILS] Formatted (without .000Z): $formatted');
-    final finalResult = '$formatted.000Z';
-    debugPrint('[DATE_UTILS] Final result: "$finalResult"');
-    debugPrint('[DATE_UTILS] Final result length: ${finalResult.length}');
-    return finalResult;
+    final localNow = DateTime.now();
+    final utcNow = localNow.toUtc();
+    final utcIso = utcNow.toIso8601String();
+    debugPrint('[ATTENDANCE_TZ] getCurrentDateTimeForCheckOut - localNow=$localNow, utcNow=$utcNow, sending=$utcIso');
+    return utcIso;
   }
 
   /// Format date string to display format (MMM d)
+  /// Converts UTC time from API to local for display
   static String formatDisplayDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '';
     try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat(AppConstants.displayDateFormat).format(date);
+      // Parse UTC time from API and convert to local for display
+      final dateUtc = DateTime.parse(dateStr);
+      final dateLocal = dateUtc.toLocal();
+      return DateFormat(AppConstants.displayDateFormat).format(dateLocal);
     } catch (e) {
       return '';
     }
   }
 
   /// Format date string to full display format (MMMM d, yyyy)
+  /// Converts UTC time from API to local for display
   static String formatFullDisplayDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return '';
     try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat(AppConstants.fullDisplayDateFormat).format(date);
+      // Parse UTC time from API and convert to local for display
+      final dateUtc = DateTime.parse(dateStr);
+      final dateLocal = dateUtc.toLocal();
+      return DateFormat(AppConstants.fullDisplayDateFormat).format(dateLocal);
     } catch (e) {
       return '';
     }
@@ -72,15 +77,34 @@ class DateUtils {
   }
 
   /// Check if two date strings are on the same date
+  /// Converts API time (UTC) to local before comparing with local date
   static bool isSameDate(String dateTimeStr, DateTime date) {
     try {
-      final dateTime = DateTime.parse(dateTimeStr);
-      return dateTime.year == date.year &&
-          dateTime.month == date.month &&
-          dateTime.day == date.day;
+      // Parse API time (assumed UTC) and convert to local
+      final apiTime = DateTime.parse(dateTimeStr);
+      final apiTimeLocal = apiTime.toLocal();
+      // Compare with local date (date is already in local timezone)
+      return apiTimeLocal.year == date.year &&
+          apiTimeLocal.month == date.month &&
+          apiTimeLocal.day == date.day;
     } catch (e) {
       return false;
     }
+  }
+
+  /// Convert ISO 8601 string from API (UTC) to local DateTime
+  static DateTime toLocalTime(String iso) {
+    return DateTime.parse(iso).toLocal();
+  }
+
+  /// Get current UTC time as ISO 8601 string
+  static String nowUtcIso() {
+    return DateTime.now().toUtc().toIso8601String();
+  }
+
+  /// Check if two DateTime objects are on the same local day
+  static bool isSameLocalDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   /// Get week start (Monday) for a given date

@@ -20,8 +20,10 @@ class ActivitySectionWidget extends StatelessWidget {
   String _getTime(String? dateTimeStr) {
     if (dateTimeStr == null || dateTimeStr.isEmpty) return '';
     try {
-      final dateTime = DateTime.parse(dateTimeStr);
-      return DateFormat('hh:mm').format(dateTime);
+      // Parse UTC time from API and convert to local for display
+      final dateTimeUtc = DateTime.parse(dateTimeStr);
+      final dateTimeLocal = dateTimeUtc.toLocal();
+      return DateFormat('hh:mm').format(dateTimeLocal);
     } catch (e) {
       return '';
     }
@@ -30,8 +32,10 @@ class ActivitySectionWidget extends StatelessWidget {
   String _getAmPm(String? dateTimeStr) {
     if (dateTimeStr == null || dateTimeStr.isEmpty) return 'AM';
     try {
-      final dateTime = DateTime.parse(dateTimeStr);
-      return DateFormat('a').format(dateTime).toUpperCase();
+      // Parse UTC time from API and convert to local for display
+      final dateTimeUtc = DateTime.parse(dateTimeStr);
+      final dateTimeLocal = dateTimeUtc.toLocal();
+      return DateFormat('a').format(dateTimeLocal).toUpperCase();
     } catch (e) {
       return 'AM';
     }

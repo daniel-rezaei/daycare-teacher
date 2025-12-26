@@ -77,8 +77,12 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
   }
 
   String _getCurrentDateTime() {
-    // فرمت ISO 8601 برای تاریخ و زمان
-    return DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+    // Always return UTC ISO 8601 format for API
+    final localNow = DateTime.now();
+    final utcNow = localNow.toUtc();
+    final utcIso = utcNow.toIso8601String();
+    debugPrint('[ATTENDANCE_TZ] card_notifications - localNow=$localNow, utcNow=$utcNow, sending=$utcIso');
+    return utcIso;
   }
 
   void _handleCheckInOut(StaffClassSessionEntity? session) async {

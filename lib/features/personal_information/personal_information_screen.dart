@@ -159,9 +159,11 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                               );
                               
                               if (checkIn.eventAt != null && checkIn.eventAt!.isNotEmpty) {
-                                final dateTime = DateTime.parse(checkIn.eventAt!);
-                                checkInTime = DateFormat('h:mm').format(dateTime);
-                                checkInAmPm = DateFormat('a').format(dateTime).toUpperCase();
+                                // Parse UTC time from API and convert to local for display
+                                final dateTimeUtc = DateTime.parse(checkIn.eventAt!);
+                                final dateTimeLocal = dateTimeUtc.toLocal();
+                                checkInTime = DateFormat('h:mm').format(dateTimeLocal);
+                                checkInAmPm = DateFormat('a').format(dateTimeLocal).toUpperCase();
                               }
                             } catch (e) {
                               // No check-in found
@@ -176,9 +178,11 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                               );
                               
                               if (checkOut.eventAt != null && checkOut.eventAt!.isNotEmpty) {
-                                final dateTime = DateTime.parse(checkOut.eventAt!);
-                                checkOutTime = DateFormat('h:mm').format(dateTime);
-                                checkOutAmPm = DateFormat('a').format(dateTime).toUpperCase();
+                                // Parse UTC time from API and convert to local for display
+                                final dateTimeUtc = DateTime.parse(checkOut.eventAt!);
+                                final dateTimeLocal = dateTimeUtc.toLocal();
+                                checkOutTime = DateFormat('h:mm').format(dateTimeLocal);
+                                checkOutAmPm = DateFormat('a').format(dateTimeLocal).toUpperCase();
                               }
                             } catch (e) {
                               // No check-out found

@@ -54,6 +54,11 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     final previousState = state;
     debugPrint('[ATTENDANCE_BLOC] 📋 Previous state before loading: ${previousState.runtimeType}');
     
+    // Timezone logging
+    final localNow = DateTime.now();
+    final utcNow = localNow.toUtc();
+    debugPrint('[ATTENDANCE_TZ] CreateAttendance - localNow=$localNow, utcNow=$utcNow, sending checkInAt="${event.checkInAt}"');
+    
     emit(CreateAttendanceLoading());
 
     try {
@@ -65,6 +70,17 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
+        // Timezone logging for received data
+        if (dataState.data.checkInAt != null) {
+          try {
+            final apiCheckInUtc = DateTime.parse(dataState.data.checkInAt!);
+            final apiCheckInLocal = apiCheckInUtc.toLocal();
+            debugPrint('[ATTENDANCE_TZ] CreateAttendanceSuccess - api checkInAt="${dataState.data.checkInAt}", parsedLocal=$apiCheckInLocal');
+          } catch (e) {
+            debugPrint('[ATTENDANCE_TZ] CreateAttendanceSuccess - Error parsing checkInAt: $e');
+          }
+        }
+        
         debugPrint('[ATTENDANCE_BLOC] ✅ CreateAttendanceSuccess: ${dataState.data.id}');
         debugPrint('[ATTENDANCE_BLOC] 📋 Previous state (saved): ${previousState.runtimeType}');
         
@@ -114,6 +130,11 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     emit(const UpdateAttendanceLoading());
 
     try {
+      // Timezone logging
+      final localNow = DateTime.now();
+      final utcNow = localNow.toUtc();
+      debugPrint('[ATTENDANCE_TZ] UpdateAttendance - localNow=$localNow, utcNow=$utcNow, sending checkOutAt="${event.checkOutAt}"');
+      
       debugPrint('[ATTENDANCE_BLOC] Calling attendanceUsecase.updateAttendance...');
       debugPrint('[ATTENDANCE_BLOC] Passing checkOutAt: "${event.checkOutAt}"');
       DataState dataState = await attendanceUsecase.updateAttendance(
@@ -126,6 +147,17 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
+        // Timezone logging for received data
+        if (dataState.data.checkOutAt != null) {
+          try {
+            final apiCheckOutUtc = DateTime.parse(dataState.data.checkOutAt!);
+            final apiCheckOutLocal = apiCheckOutUtc.toLocal();
+            debugPrint('[ATTENDANCE_TZ] UpdateAttendanceSuccess - api checkOutAt="${dataState.data.checkOutAt}", parsedLocal=$apiCheckOutLocal');
+          } catch (e) {
+            debugPrint('[ATTENDANCE_TZ] UpdateAttendanceSuccess - Error parsing checkOutAt: $e');
+          }
+        }
+        
         debugPrint('[ATTENDANCE_BLOC] ✅ UpdateAttendanceSuccess: ${dataState.data.id}');
         debugPrint('[ATTENDANCE_BLOC] 📋 Previous state (saved): ${previousState.runtimeType}');
         

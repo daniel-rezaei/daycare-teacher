@@ -21,8 +21,10 @@ class StaffAttendanceHelper {
         return null;
       }
 
-      final dateTime = DateTime.parse(checkIn.eventAt!);
-      return DateUtils.formatTime(dateTime.toString());
+      // Parse UTC time from API and convert to local for display
+      final dateTimeUtc = DateTime.parse(checkIn.eventAt!);
+      final dateTimeLocal = dateTimeUtc.toLocal();
+      return DateUtils.formatTime(dateTimeLocal.toString());
     } catch (e) {
       return null;
     }
@@ -45,8 +47,10 @@ class StaffAttendanceHelper {
         return null;
       }
 
-      final dateTime = DateTime.parse(checkOut.eventAt!);
-      return DateUtils.formatTime(dateTime.toString());
+      // Parse UTC time from API and convert to local for display
+      final dateTimeUtc = DateTime.parse(checkOut.eventAt!);
+      final dateTimeLocal = dateTimeUtc.toLocal();
+      return DateUtils.formatTime(dateTimeLocal.toString());
     } catch (e) {
       return null;
     }
