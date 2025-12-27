@@ -70,8 +70,20 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
       }
       if (!_hasRequestedAttendance && (currentState.attendanceList == null || currentState.isLoadingAttendance)) {
         _hasRequestedAttendance = true;
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadAttendanceEvent');
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadAttendanceEvent (HomeBloc)');
         context.read<HomeBloc>().add(LoadAttendanceEvent(savedClassId));
+      }
+      
+      // SINGLE SOURCE OF TRUTH: Ensure AttendanceBloc has attendance data for immediate updates
+      // Check if AttendanceBloc needs to load data
+      final attendanceBlocState = context.read<AttendanceBloc>().state;
+      if (attendanceBlocState is GetAttendanceByClassIdSuccess) {
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] AttendanceBloc already has data: ${attendanceBlocState.attendanceList.length} items');
+      } else {
+        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAttendanceByClassIdEvent (AttendanceBloc)');
+        context.read<AttendanceBloc>().add(
+          GetAttendanceByClassIdEvent(classId: savedClassId),
+        );
       }
 
       // بارگذاری لیست غایبین محلی
@@ -211,28 +223,41 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
           _loadLocallyAbsentChildren(classId!);
         }
       },
-      child: BlocBuilder<HomeBloc, HomeState>(
-        builder: (context, homeState) {
-          return BlocBuilder<ChildBloc, ChildState>(
-            builder: (context, childState) {
-              String title = '0/0';
-              bool isLoading = false;
+      child: BlocBuilder<AttendanceBloc, AttendanceState>(
+        builder: (context, attendanceState) {
+          return BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, homeState) {
+              return BlocBuilder<ChildBloc, ChildState>(
+                builder: (context, childState) {
+                  String title = '0/0';
+                  bool isLoading = false;
 
-              final children = homeState.children ?? childState.children;
-              final contacts = homeState.contacts ?? childState.contacts;
-              final isLoadingChildren = homeState.isLoadingChildren || childState.isLoadingChildren;
-              final isLoadingContacts = homeState.isLoadingContacts || childState.isLoadingContacts;
-              final childrenError = homeState.childrenError ?? childState.childrenError;
-              final contactsError = homeState.contactsError ?? childState.contactsError;
+                  final children = homeState.children ?? childState.children;
+                  final contacts = homeState.contacts ?? childState.contacts;
+                  final isLoadingChildren = homeState.isLoadingChildren || childState.isLoadingChildren;
+                  final isLoadingContacts = homeState.isLoadingContacts || childState.isLoadingContacts;
+                  final childrenError = homeState.childrenError ?? childState.childrenError;
+                  final contactsError = homeState.contactsError ?? childState.contactsError;
 
-              final attendanceList = homeState.attendanceList ?? [];
-              final notifications = homeState.notifications ?? [];
-              final session = homeState.session;
+                  // SINGLE SOURCE OF TRUTH: Use AttendanceBloc state directly (same as Children List screen)
+                  // This ensures immediate updates when attendance is created/updated
+                  List<AttendanceChildEntity> attendanceList = [];
+                  if (attendanceState is GetAttendanceByClassIdSuccess) {
+                    attendanceList = attendanceState.attendanceList;
+                  } else {
+                    // Fallback to HomeBloc for initial load, but prefer AttendanceBloc
+                    attendanceList = homeState.attendanceList ?? [];
+                  }
+                  
+                  final notifications = homeState.notifications ?? [];
+                  final session = homeState.session;
 
-              final isLoadingAttendance = homeState.isLoadingAttendance;
-              final isLoadingNotifications = homeState.isLoadingNotifications;
+                  // Loading state: check both AttendanceBloc and HomeBloc
+                  final isLoadingAttendance = attendanceState is GetAttendanceByClassIdLoading || 
+                      homeState.isLoadingAttendance;
+                  final isLoadingNotifications = homeState.isLoadingNotifications;
 
-              debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, attendance=${attendanceList.length}, isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, isLoadingAttendance=$isLoadingAttendance, childrenError=$childrenError, contactsError=$contactsError');
+              debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, attendance=${attendanceList.length} (from ${attendanceState.runtimeType}), isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, isLoadingAttendance=$isLoadingAttendance, childrenError=$childrenError, contactsError=$contactsError');
 
               // بررسی اینکه آیا هر دو داده موجود است
               final hasBothData = children != null && contacts != null;
@@ -269,102 +294,104 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                 isLoading = true;
               }
 
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  InfoCardWidget(
-                    color: const Color(0XFFDEF4FF),
-                    icon: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Assets.images.subtract.svg(),
-                    ),
-                    title: isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CupertinoActivityIndicator(radius: 10),
-                          )
-                        : Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xff444349),
-                            ),
-                          ),
-                    dec: 'Total Children',
-                    onTap: () {
-                      // Get current states
-                      final hasTimeIn = TimeInAccessGuard.checkActiveTimeInFromContext(context);
-                      final isClassCheckedIn = _isClassCheckedIn(session);
-                      
-                      // Validation priority for Student List access:
-                      // 1) First check: If Time In is NOT done → Block and show "You must Time In first."
-                      if (!hasTimeIn) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('You must Time In first.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        return;
-                      }
-                      
-                      // 2) Second check (only if Time In IS done): 
-                      //    If Class Check-In is NOT done → Block and show "You must Check-In the class before opening the Student List."
-                      if (!isClassCheckedIn) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('You must Check-In the class before opening the Student List.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                        return;
-                      }
-                      
-                      // 3) If both Time In AND Class Check-In are done → Allow access (continue to navigation)
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InfoCardWidget(
+                        color: const Color(0XFFDEF4FF),
+                        icon: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Assets.images.subtract.svg(),
+                        ),
+                        title: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CupertinoActivityIndicator(radius: 10),
+                              )
+                            : Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xff444349),
+                                ),
+                              ),
+                        dec: 'Total Children',
+                        onTap: () {
+                          // Get current states
+                          final hasTimeIn = TimeInAccessGuard.checkActiveTimeInFromContext(context);
+                          final isClassCheckedIn = _isClassCheckedIn(session);
+                          
+                          // Validation priority for Student List access:
+                          // 1) First check: If Time In is NOT done → Block and show "You must Time In first."
+                          if (!hasTimeIn) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('You must Time In first.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            return;
+                          }
+                          
+                          // 2) Second check (only if Time In IS done): 
+                          //    If Class Check-In is NOT done → Block and show "You must Check-In the class before opening the Student List."
+                          if (!isClassCheckedIn) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('You must Check-In the class before opening the Student List.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            return;
+                          }
+                          
+                          // 3) If both Time In AND Class Check-In are done → Allow access (continue to navigation)
 
-                      // فقط در صورتی که داده‌ها لود شده باشند، اجازه رفتن به صفحه بعد را بده
-                      final currentHomeState = context.read<HomeBloc>().state;
-                      final currentChildState = context.read<ChildBloc>().state;
-                      if ((currentHomeState.children != null || currentChildState.children != null) && 
-                          (currentHomeState.contacts != null || currentChildState.contacts != null) &&
-                          !currentHomeState.isLoadingChildren &&
-                          !currentHomeState.isLoadingContacts &&
-                          !currentChildState.isLoadingChildren &&
-                          !currentChildState.isLoadingContacts) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ChildStatus()),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  InfoCardWidget(
-                    color: const Color(0xffFEE5F2),
-                    icon: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Assets.images.vector.svg(),
-                    ),
-                    title: isLoadingNotifications
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CupertinoActivityIndicator(radius: 10),
-                          )
-                        : Text(
-                            '${_getTodayNotificationsCount(notifications)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xff444349),
-                            ),
-                          ),
-                    dec: 'Notifications',
-                    onTap: () {},
-                  ),
-                ],
+                          // فقط در صورتی که داده‌ها لود شده باشند، اجازه رفتن به صفحه بعد را بده
+                          final currentHomeState = context.read<HomeBloc>().state;
+                          final currentChildState = context.read<ChildBloc>().state;
+                          if ((currentHomeState.children != null || currentChildState.children != null) && 
+                              (currentHomeState.contacts != null || currentChildState.contacts != null) &&
+                              !currentHomeState.isLoadingChildren &&
+                              !currentHomeState.isLoadingContacts &&
+                              !currentChildState.isLoadingChildren &&
+                              !currentChildState.isLoadingContacts) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ChildStatus()),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      InfoCardWidget(
+                        color: const Color(0xffFEE5F2),
+                        icon: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Assets.images.vector.svg(),
+                        ),
+                        title: isLoadingNotifications
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CupertinoActivityIndicator(radius: 10),
+                              )
+                            : Text(
+                                '${_getTodayNotificationsCount(notifications)}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xff444349),
+                                ),
+                              ),
+                        dec: 'Notifications',
+                        onTap: () {},
+                      ),
+                    ],
+                  );
+                },
               );
             },
           );
