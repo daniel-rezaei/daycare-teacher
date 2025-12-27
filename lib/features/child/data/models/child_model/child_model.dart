@@ -45,7 +45,7 @@ class ChildModel extends ChildEntity {
       custodyArrangements: json['CustodyArrangements'],
       tags: json['Tags'],
       language: json['Language'] != null
-          ? List<String>.from(json['Language'] as List)
+          ? (json['Language'] as List).map((e) => e.toString()).toList()
           : null,
       sleepArrangements: json['SleepArrangements'],
       generalTemperament: json['GeneralTemperament'],

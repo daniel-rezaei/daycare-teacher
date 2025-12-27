@@ -65,9 +65,31 @@ class _ContentOverviewState extends State<ContentOverview> {
 
   // Removed _getAuthorizedPickup - now using PickupAuthorization API directly
 
+  /// Format language list for display
+  /// - Treats Language strictly as List<String>
+  /// - Never casts to String
+  /// - Capitalizes each language: "english" → "English"
+  /// - Joins multiple languages with comma: ["english", "french"] → "English, French"
+  /// - Returns "No language specified" if null or empty
   String _formatLanguage(List<String>? languages) {
-    if (languages == null || languages.isEmpty) return 'Not available';
-    return languages.join(' & ');
+    if (languages == null || languages.isEmpty) {
+      debugPrint('[PROFILE_UI] Language displayed: No language specified');
+      return 'No language specified';
+    }
+    
+    // Capitalize each language and join with comma
+    final capitalizedLanguages = languages
+        .map((lang) {
+          // Capitalize first letter, keep rest lowercase
+          if (lang.isEmpty) return lang;
+          if (lang.length == 1) return lang.toUpperCase();
+          return lang[0].toUpperCase() + lang.substring(1).toLowerCase();
+        })
+        .toList();
+    
+    final displayText = capitalizedLanguages.join(', ');
+    debugPrint('[PROFILE_UI] Language displayed: $displayText');
+    return displayText;
   }
 
   @override
@@ -96,6 +118,40 @@ class _ContentOverviewState extends State<ContentOverview> {
                         ChildEntity? child;
                         if (childState is GetChildByIdSuccess || childState is GetChildByContactIdSuccess) {
                           child = childState.child;
+                          // Log Language field from child
+                          if (child != null) {
+                            debugPrint('[PROFILE_LOAD] Language raw: ${child.language}');
+                            debugPrint('[PROFILE_LOAD] Language type: ${child.language.runtimeType}');
+                            if (child.language != null) {
+                              debugPrint('[PROFILE_LOAD] Language count: ${child.language!.length}');
+                              for (var i = 0; i < child.language!.length; i++) {
+                                debugPrint('[PROFILE_LOAD] Language[$i]: "${child.language![i]}" (type: ${child.language![i].runtimeType})');
+                              }
+                            } else {
+                              debugPrint('[PROFILE_LOAD] Language is null');
+                            }
+                          }
+                        } else if (childState.children != null && childState.children!.isNotEmpty) {
+                          // Try to find child from children list
+                          try {
+                            final foundChild = childState.children!.firstWhere(
+                              (c) => c.contactId == widget.childId,
+                            );
+                            child = foundChild;
+                            // Log Language field from found child
+                            debugPrint('[PROFILE_LOAD] Language raw (from children list): ${child.language}');
+                            debugPrint('[PROFILE_LOAD] Language type: ${child.language.runtimeType}');
+                            if (child.language != null) {
+                              debugPrint('[PROFILE_LOAD] Language count: ${child.language!.length}');
+                              for (var i = 0; i < child.language!.length; i++) {
+                                debugPrint('[PROFILE_LOAD] Language[$i]: "${child.language![i]}" (type: ${child.language![i].runtimeType})');
+                              }
+                            } else {
+                              debugPrint('[PROFILE_LOAD] Language is null');
+                            }
+                          } catch (e) {
+                            debugPrint('[PROFILE_LOAD] Child not found in children list for contactId: ${widget.childId}');
+                          }
                         }
 
                         // پیدا کردن Child.id از لیست children بر اساس contactId
