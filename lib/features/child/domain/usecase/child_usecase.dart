@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
+import 'package:teacher_app/features/allergy/domain/entity/allergy_entity.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/domain/repository/child_repository.dart';
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
@@ -48,6 +49,11 @@ class ChildUsecase {
   // دریافت همه واکسیناسیون‌ها
   Future<DataState<List<ImmunizationEntity>>> getAllImmunizations() async {
     return await childRepository.getAllImmunizations();
+  }
+
+  // دریافت همه آلرژی‌ها
+  Future<DataState<List<AllergyEntity>>> getAllAllergies() async {
+    return await childRepository.getAllAllergies();
   }
 
   // دریافت بچه بر اساس ID

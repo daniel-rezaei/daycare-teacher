@@ -20,15 +20,19 @@ final class ChildProfileLoading extends ChildProfileState {
 /// Success state - all medical data is loaded and filtered for the child
 final class ChildProfileDataLoaded extends ChildProfileState {
   final String childId;
+  final List<AllergyEntity> allergies;
   final List<DietaryRestrictionEntity> dietaryRestrictions;
   final List<MedicationEntity> medications;
+  final List<ImmunizationEntity> immunizations;
   final List<PhysicalRequirementEntity> physicalRequirements;
   final List<ReportableDiseaseEntity> reportableDiseases;
 
   const ChildProfileDataLoaded({
     required this.childId,
+    required this.allergies,
     required this.dietaryRestrictions,
     required this.medications,
+    required this.immunizations,
     required this.physicalRequirements,
     required this.reportableDiseases,
   });
@@ -39,8 +43,10 @@ final class ChildProfileDataLoaded extends ChildProfileState {
   @override
   List<Object?> get props => [
         childId,
+        allergies,
         dietaryRestrictions,
         medications,
+        immunizations,
         physicalRequirements,
         reportableDiseases,
       ];

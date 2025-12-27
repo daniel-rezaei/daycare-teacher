@@ -11,19 +11,15 @@ import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
+import 'package:teacher_app/features/allergy/domain/entity/allergy_entity.dart';
 import 'package:teacher_app/features/child_profile/presentation/bloc/child_profile_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/emergency_contacts.dart';
 import 'package:teacher_app/features/child_profile/widgets/info_card_overview.dart';
-// ignore: unused_import
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
-// ignore: unused_import
 import 'package:teacher_app/features/immunization/domain/entity/immunization_entity.dart';
-// ignore: unused_import
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
-// ignore: unused_import
 import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
-// ignore: unused_import
 import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -203,20 +199,26 @@ class _ContentOverviewState extends State<ContentOverview> {
 
                         // دریافت داده‌های پزشکی از ChildProfileBloc (preloaded state)
                         // این داده‌ها قبلاً قبل از navigation لود شده‌اند
+                        List<AllergyEntity> allergies = [];
                         List<DietaryRestrictionEntity> dietaryRestrictions = [];
                         List<MedicationEntity> medications = [];
+                        List<ImmunizationEntity> immunizations = [];
                         List<PhysicalRequirementEntity> physicalRequirements = [];
                         List<ReportableDiseaseEntity> reportableDiseases = [];
 
                         if (profileState is ChildProfileDataLoaded) {
-                          // Use preloaded data from ChildProfileBloc
+                          // Use preloaded data from ChildProfileBloc ONLY
+                          allergies = profileState.allergies;
                           dietaryRestrictions = profileState.dietaryRestrictions;
                           medications = profileState.medications;
+                          immunizations = profileState.immunizations;
                           physicalRequirements = profileState.physicalRequirements;
                           reportableDiseases = profileState.reportableDiseases;
                           debugPrint('[CONTENT_OVERVIEW] Using preloaded medical data from ChildProfileBloc');
+                          debugPrint('[CONTENT_OVERVIEW] - Allergies: ${allergies.length}');
                           debugPrint('[CONTENT_OVERVIEW] - Dietary Restrictions: ${dietaryRestrictions.length}');
                           debugPrint('[CONTENT_OVERVIEW] - Medications: ${medications.length}');
+                          debugPrint('[CONTENT_OVERVIEW] - Immunizations: ${immunizations.length}');
                           debugPrint('[CONTENT_OVERVIEW] - Physical Requirements: ${physicalRequirements.length}');
                           debugPrint('[CONTENT_OVERVIEW] - Reportable Diseases: ${reportableDiseases.length}');
                         } else if (profileState is ChildProfileLoading) {
@@ -227,14 +229,9 @@ class _ContentOverviewState extends State<ContentOverview> {
                           debugPrint('[CONTENT_OVERVIEW] No preloaded medical data available, using empty lists');
                         }
 
-                        // Immunizations
-                        final immunizations = childState.immunizations
-                                ?.where((imm) => imm.childId == actualChildId)
-                                .toList() ??
-                            [];
-
                         // NOTE: Medical data is now preloaded BEFORE navigation via ChildProfileBloc
                         // We no longer call APIs here - we only read from preloaded state
+                        // NO fallback to ChildBloc or HomeBloc
 
                         return Container(
                           decoration: BoxDecoration(
@@ -342,6 +339,51 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 )
                               else ...[
                                 // Medical sections - only shown when data is loaded
+                                // Allergy section - TOP of medical block
+                                _ExpandableInfoSection(
+                                  title: Row(
+                                    children: [
+                                      Assets.images.allergy.svg(),
+                                      SizedBox(width: 8),
+                                      const Text(
+                                        'Allergy',
+                                        style: TextStyle(
+                                          color: Color(0xff444349),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  items: allergies,
+                                  itemBuilder: (context, item) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xffF7F7F8),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          width: 2,
+                                          color: const Color(0xffFAFAFA),
+                                        ),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                        horizontal: 16,
+                                      ),
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      child: Text(
+                                        item.allergenName ?? 'Unknown',
+                                        style: const TextStyle(
+                                          color: Color(0xff444349),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                SizedBox(height: 12),
+                                // Dietary Restrictions section
                                 _ExpandableInfoSection(
                                   title: Row(
                                     children: [

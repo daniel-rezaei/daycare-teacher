@@ -36,6 +36,11 @@ class ChildApi {
     return await httpclient.get('/items/immunization');
   }
 
+  // دریافت لیست همه آلرژی‌ها
+  Future<Response> getAllAllergies() async {
+    return await httpclient.get('/items/child_allergies');
+  }
+
   // دریافت بچه بر اساس ID
   Future<Response> getChildById({required String childId}) async {
     return await httpclient.get(
