@@ -108,6 +108,14 @@ class HomeApi {
     return await httpclient.get('/items/Medication');
   }
 
+  Future<Response> getAllPhysicalRequirements() async {
+    return await httpclient.get('/items/child_physical_requirements');
+  }
+
+  Future<Response> getAllReportableDiseases() async {
+    return await httpclient.get('/items/child_reportable_diseases');
+  }
+
   Future<Response> getChildById({required String childId}) async {
     return await httpclient.get(
       '/items/Child/$childId',

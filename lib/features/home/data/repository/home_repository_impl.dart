@@ -20,6 +20,10 @@ import 'package:teacher_app/features/medication/data/models/medication_model/med
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/notification/data/models/notification_model/notification_model.dart';
 import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/physical_requirement/data/models/physical_requirement_model/physical_requirement_model.dart';
+import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
+import 'package:teacher_app/features/reportable_disease/data/models/reportable_disease_model/reportable_disease_model.dart';
+import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/profile/data/models/contact_model/contact_model.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/session/data/models/staff_class_session_model/staff_class_session_model.dart';
@@ -229,6 +233,34 @@ class HomeRepositoryImpl extends HomeRepository {
           .map((e) => MedicationModel.fromJson(e as Map<String, dynamic>))
           .toList();
       return DataSuccess(medicationsEntity);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<DataState<List<PhysicalRequirementEntity>>> getAllPhysicalRequirements() async {
+    try {
+      final response = await homeApi.getAllPhysicalRequirements();
+      final List<dynamic> list = response.data['data'] as List<dynamic>;
+      final List<PhysicalRequirementEntity> requirementsEntity = list
+          .map((e) => PhysicalRequirementModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return DataSuccess(requirementsEntity);
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<DataState<List<ReportableDiseaseEntity>>> getAllReportableDiseases() async {
+    try {
+      final response = await homeApi.getAllReportableDiseases();
+      final List<dynamic> list = response.data['data'] as List<dynamic>;
+      final List<ReportableDiseaseEntity> diseasesEntity = list
+          .map((e) => ReportableDiseaseModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return DataSuccess(diseasesEntity);
     } on DioException catch (e) {
       return _handleDioError(e);
     }

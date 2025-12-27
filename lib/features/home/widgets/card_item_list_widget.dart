@@ -7,7 +7,9 @@ import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_r
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/item_widget.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
+import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class CardItemListWidget extends StatefulWidget {
@@ -28,6 +30,12 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
     }
     if (currentState.medications == null) {
       context.read<HomeBloc>().add(const LoadMedicationsEvent());
+    }
+    if (currentState.physicalRequirements == null) {
+      context.read<HomeBloc>().add(const LoadPhysicalRequirementsEvent());
+    }
+    if (currentState.reportableDiseases == null) {
+      context.read<HomeBloc>().add(const LoadReportableDiseasesEvent());
     }
   }
 
@@ -132,6 +140,57 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         .toList();
   }
 
+  // پیدا کردن بچه‌هایی که آلرژی دارند (بر اساس allergyId در ChildEntity)
+  List<ChildEntity> _getChildrenWithAllergies(
+    List<ChildEntity> children,
+    List<ContactEntity> contacts,
+  ) {
+    return children
+        .where((child) => 
+            child.allergyId != null && 
+            child.allergyId!.isNotEmpty)
+        .take(3)
+        .toList();
+  }
+
+  // پیدا کردن بچه‌هایی که نیازمندی فیزیکی دارند
+  List<ChildEntity> _getChildrenWithPhysicalRequirements(
+    List<ChildEntity> children,
+    List<PhysicalRequirementEntity> physicalRequirements,
+    List<ContactEntity> contacts,
+  ) {
+    final childIdsWithRequirements = physicalRequirements
+        .where((requirement) => 
+            requirement.childId != null && 
+            requirement.childId!.isNotEmpty)
+        .map((requirement) => requirement.childId!)
+        .toSet();
+
+    return children
+        .where((child) => childIdsWithRequirements.contains(child.id))
+        .take(3)
+        .toList();
+  }
+
+  // پیدا کردن بچه‌هایی که بیماری قابل گزارش دارند
+  List<ChildEntity> _getChildrenWithReportableDiseases(
+    List<ChildEntity> children,
+    List<ReportableDiseaseEntity> reportableDiseases,
+    List<ContactEntity> contacts,
+  ) {
+    final childIdsWithDiseases = reportableDiseases
+        .where((disease) => 
+            disease.childId != null && 
+            disease.childId!.isNotEmpty)
+        .map((disease) => disease.childId!)
+        .toSet();
+
+    return children
+        .where((child) => childIdsWithDiseases.contains(child.id))
+        .take(3)
+        .toList();
+  }
+
   String _formatBirthdayText(List<ChildEntity> children, List<ContactEntity> contacts) {
     if (children.isEmpty) return 'No birthdays today';
     
@@ -189,6 +248,69 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         .toList();
 
     if (childNames.isEmpty) return 'No medications';
+    
+    // Join all names with comma
+    return childNames.join(', ');
+  }
+
+  String _formatAllergyText(
+    List<ChildEntity> children,
+    List<ContactEntity> contacts,
+  ) {
+    if (children.isEmpty) return 'No allergies';
+    
+    // Collect full names of all children with allergies
+    final childNames = children
+        .map((child) {
+          final contact = _getContactForChild(child.contactId, contacts);
+          return _getChildName(contact);
+        })
+        .where((name) => name != 'Unknown')
+        .toList();
+
+    if (childNames.isEmpty) return 'No allergies';
+    
+    // Join all names with comma
+    return childNames.join(', ');
+  }
+
+  String _formatPhysicalRequirementText(
+    List<ChildEntity> children,
+    List<ContactEntity> contacts,
+  ) {
+    if (children.isEmpty) return 'No physical requirements';
+    
+    // Collect full names of all children with physical requirements
+    final childNames = children
+        .map((child) {
+          final contact = _getContactForChild(child.contactId, contacts);
+          return _getChildName(contact);
+        })
+        .where((name) => name != 'Unknown')
+        .toList();
+
+    if (childNames.isEmpty) return 'No physical requirements';
+    
+    // Join all names with comma
+    return childNames.join(', ');
+  }
+
+  String _formatReportableDiseaseText(
+    List<ChildEntity> children,
+    List<ContactEntity> contacts,
+  ) {
+    if (children.isEmpty) return 'No reportable diseases';
+    
+    // Collect full names of all children with reportable diseases
+    final childNames = children
+        .map((child) {
+          final contact = _getContactForChild(child.contactId, contacts);
+          return _getChildName(contact);
+        })
+        .where((name) => name != 'Unknown')
+        .toList();
+
+    if (childNames.isEmpty) return 'No reportable diseases';
     
     // Join all names with comma
     return childNames.join(', ');
@@ -252,12 +374,16 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         final contacts = state.contacts ?? [];
         final dietaryRestrictions = state.dietaryRestrictions ?? [];
         final medications = state.medications ?? [];
+        final physicalRequirements = state.physicalRequirements ?? [];
+        final reportableDiseases = state.reportableDiseases ?? [];
 
         // اگر داده‌ها هنوز لود نشده‌اند، loading نشان بده
         if (state.isLoadingChildren || 
             state.isLoadingContacts ||
             state.isLoadingDietaryRestrictions ||
-            state.isLoadingMedications) {
+            state.isLoadingMedications ||
+            state.isLoadingPhysicalRequirements ||
+            state.isLoadingReportableDiseases) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(16.0),
@@ -276,6 +402,17 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         final medicationChildren = _getChildrenWithMedications(
           children,
           medications,
+          contacts,
+        );
+        final allergyChildren = _getChildrenWithAllergies(children, contacts);
+        final physicalRequirementChildren = _getChildrenWithPhysicalRequirements(
+          children,
+          physicalRequirements,
+          contacts,
+        );
+        final reportableDiseaseChildren = _getChildrenWithReportableDiseases(
+          children,
+          reportableDiseases,
           contacts,
         );
 
@@ -307,6 +444,30 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
               dec: _formatMedicationText(medicationChildren, medications, contacts),
               icon: Assets.images.medication.svg(),
               childAvatars: _buildChildAvatars(medicationChildren, contacts),
+            ),
+            const SizedBox(height: 12),
+            ItemWidget(
+              colorIcon: const Color(0xffFFF4E6),
+              title: 'Allergy',
+              dec: _formatAllergyText(allergyChildren, contacts),
+              icon: Assets.images.allergy.svg(),
+              childAvatars: _buildChildAvatars(allergyChildren, contacts),
+            ),
+            const SizedBox(height: 12),
+            ItemWidget(
+              colorIcon: const Color(0xffF0F9FF),
+              title: 'Physical Requirements',
+              dec: _formatPhysicalRequirementText(physicalRequirementChildren, contacts),
+              icon: Assets.images.physicalRequirements.svg(),
+              childAvatars: _buildChildAvatars(physicalRequirementChildren, contacts),
+            ),
+            const SizedBox(height: 12),
+            ItemWidget(
+              colorIcon: const Color(0xffFEF2F2),
+              title: 'Reportable Diseases',
+              dec: _formatReportableDiseaseText(reportableDiseaseChildren, contacts),
+              icon: Assets.images.reportableDiseases.svg(),
+              childAvatars: _buildChildAvatars(reportableDiseaseChildren, contacts),
             ),
           ],
         );

@@ -37,6 +37,16 @@ sealed class HomeState extends Equatable {
   final bool isLoadingMedications;
   final String? medicationsError;
 
+  // Physical Requirements
+  final List<PhysicalRequirementEntity>? physicalRequirements;
+  final bool isLoadingPhysicalRequirements;
+  final String? physicalRequirementsError;
+
+  // Reportable Diseases
+  final List<ReportableDiseaseEntity>? reportableDiseases;
+  final bool isLoadingReportableDiseases;
+  final String? reportableDiseasesError;
+
   // Attendance
   final List<AttendanceChildEntity>? attendanceList;
   final bool isLoadingAttendance;
@@ -75,6 +85,12 @@ sealed class HomeState extends Equatable {
     this.medications,
     this.isLoadingMedications = false,
     this.medicationsError,
+    this.physicalRequirements,
+    this.isLoadingPhysicalRequirements = false,
+    this.physicalRequirementsError,
+    this.reportableDiseases,
+    this.isLoadingReportableDiseases = false,
+    this.reportableDiseasesError,
     this.attendanceList,
     this.isLoadingAttendance = false,
     this.attendanceError,
@@ -98,7 +114,9 @@ sealed class HomeState extends Equatable {
         isLoadingNotifications ||
         isLoadingEvents ||
         isLoadingDietaryRestrictions ||
-        isLoadingMedications;
+        isLoadingMedications ||
+        isLoadingPhysicalRequirements ||
+        isLoadingReportableDiseases;
   }
 
   /// بررسی اینکه آیا همه داده‌های اصلی لود شده‌اند
@@ -143,6 +161,12 @@ sealed class HomeState extends Equatable {
         medications,
         isLoadingMedications,
         medicationsError,
+        physicalRequirements,
+        isLoadingPhysicalRequirements,
+        physicalRequirementsError,
+        reportableDiseases,
+        isLoadingReportableDiseases,
+        reportableDiseasesError,
         attendanceList,
         isLoadingAttendance,
         attendanceError,
@@ -177,6 +201,12 @@ sealed class HomeState extends Equatable {
     List<MedicationEntity>? medications,
     bool? isLoadingMedications,
     String? medicationsError,
+    List<PhysicalRequirementEntity>? physicalRequirements,
+    bool? isLoadingPhysicalRequirements,
+    String? physicalRequirementsError,
+    List<ReportableDiseaseEntity>? reportableDiseases,
+    bool? isLoadingReportableDiseases,
+    String? reportableDiseasesError,
     List<AttendanceChildEntity>? attendanceList,
     bool? isLoadingAttendance,
     String? attendanceError,
@@ -212,6 +242,12 @@ sealed class HomeState extends Equatable {
       medications: medications ?? this.medications,
       isLoadingMedications: isLoadingMedications ?? this.isLoadingMedications,
       medicationsError: medicationsError ?? this.medicationsError,
+      physicalRequirements: physicalRequirements ?? this.physicalRequirements,
+      isLoadingPhysicalRequirements: isLoadingPhysicalRequirements ?? this.isLoadingPhysicalRequirements,
+      physicalRequirementsError: physicalRequirementsError ?? this.physicalRequirementsError,
+      reportableDiseases: reportableDiseases ?? this.reportableDiseases,
+      isLoadingReportableDiseases: isLoadingReportableDiseases ?? this.isLoadingReportableDiseases,
+      reportableDiseasesError: reportableDiseasesError ?? this.reportableDiseasesError,
       attendanceList: attendanceList ?? this.attendanceList,
       isLoadingAttendance: isLoadingAttendance ?? this.isLoadingAttendance,
       attendanceError: attendanceError ?? this.attendanceError,
@@ -249,6 +285,12 @@ final class HomeInitial extends HomeState {
     super.medications,
     super.isLoadingMedications,
     super.medicationsError,
+    super.physicalRequirements,
+    super.isLoadingPhysicalRequirements,
+    super.physicalRequirementsError,
+    super.reportableDiseases,
+    super.isLoadingReportableDiseases,
+    super.reportableDiseasesError,
     super.attendanceList,
     super.isLoadingAttendance,
     super.attendanceError,

@@ -98,6 +98,16 @@ final class LoadMedicationsEvent extends HomeEvent {
   const LoadMedicationsEvent();
 }
 
+/// Load physical requirements
+final class LoadPhysicalRequirementsEvent extends HomeEvent {
+  const LoadPhysicalRequirementsEvent();
+}
+
+/// Load reportable diseases
+final class LoadReportableDiseasesEvent extends HomeEvent {
+  const LoadReportableDiseasesEvent();
+}
+
 /// Load attendance by class id
 final class LoadAttendanceEvent extends HomeEvent {
   final String classId;

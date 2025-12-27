@@ -12,6 +12,8 @@ import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_r
 import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
+import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/home/domain/usecase/home_usecase.dart';
@@ -34,6 +36,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<LoadContactsEvent>(_loadContactsEvent);
     on<LoadDietaryRestrictionsEvent>(_loadDietaryRestrictionsEvent);
     on<LoadMedicationsEvent>(_loadMedicationsEvent);
+    on<LoadPhysicalRequirementsEvent>(_loadPhysicalRequirementsEvent);
+    on<LoadReportableDiseasesEvent>(_loadReportableDiseasesEvent);
     on<LoadAttendanceEvent>(_loadAttendanceEvent);
     on<LoadNotificationsEvent>(_loadNotificationsEvent);
     on<LoadEventsEvent>(_loadEventsEvent);
@@ -56,6 +60,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     add(const LoadContactsEvent());
     add(const LoadDietaryRestrictionsEvent());
     add(const LoadMedicationsEvent());
+    add(const LoadPhysicalRequirementsEvent());
+    add(const LoadReportableDiseasesEvent());
     add(const LoadNotificationsEvent());
     add(const LoadEventsEvent());
   }
@@ -359,6 +365,68 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(
         isLoadingMedications: false,
         medicationsError: 'Error retrieving medications information',
+      ));
+    }
+  }
+
+  FutureOr<void> _loadPhysicalRequirementsEvent(
+    LoadPhysicalRequirementsEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingPhysicalRequirements: true, physicalRequirementsError: null));
+
+    try {
+      final dataState = await homeUsecase.homeRepository.getAllPhysicalRequirements();
+
+      if (dataState is DataSuccess) {
+        debugPrint('[HOME_DEBUG] LoadPhysicalRequirementsSuccess: ${dataState.data?.length ?? 0} requirements');
+        emit(state.copyWith(
+          physicalRequirements: dataState.data ?? [],
+          isLoadingPhysicalRequirements: false,
+        ));
+      } else if (dataState is DataFailed) {
+        debugPrint('[HOME_DEBUG] LoadPhysicalRequirementsFailure: ${dataState.error}');
+        emit(state.copyWith(
+          isLoadingPhysicalRequirements: false,
+          physicalRequirementsError: dataState.error!,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[HOME_DEBUG] Exception loading physical requirements: $e');
+      emit(state.copyWith(
+        isLoadingPhysicalRequirements: false,
+        physicalRequirementsError: 'Error retrieving physical requirements information',
+      ));
+    }
+  }
+
+  FutureOr<void> _loadReportableDiseasesEvent(
+    LoadReportableDiseasesEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingReportableDiseases: true, reportableDiseasesError: null));
+
+    try {
+      final dataState = await homeUsecase.homeRepository.getAllReportableDiseases();
+
+      if (dataState is DataSuccess) {
+        debugPrint('[HOME_DEBUG] LoadReportableDiseasesSuccess: ${dataState.data?.length ?? 0} diseases');
+        emit(state.copyWith(
+          reportableDiseases: dataState.data ?? [],
+          isLoadingReportableDiseases: false,
+        ));
+      } else if (dataState is DataFailed) {
+        debugPrint('[HOME_DEBUG] LoadReportableDiseasesFailure: ${dataState.error}');
+        emit(state.copyWith(
+          isLoadingReportableDiseases: false,
+          reportableDiseasesError: dataState.error!,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[HOME_DEBUG] Exception loading reportable diseases: $e');
+      emit(state.copyWith(
+        isLoadingReportableDiseases: false,
+        reportableDiseasesError: 'Error retrieving reportable diseases information',
       ));
     }
   }

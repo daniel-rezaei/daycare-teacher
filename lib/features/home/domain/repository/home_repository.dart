@@ -7,6 +7,8 @@ import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_r
 import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
+import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 
@@ -37,6 +39,8 @@ abstract class HomeRepository {
   Future<DataState<List<ChildEntity>>> getAllChildren();
   Future<DataState<List<DietaryRestrictionEntity>>> getAllDietaryRestrictions();
   Future<DataState<List<MedicationEntity>>> getAllMedications();
+  Future<DataState<List<PhysicalRequirementEntity>>> getAllPhysicalRequirements();
+  Future<DataState<List<ReportableDiseaseEntity>>> getAllReportableDiseases();
   Future<DataState<ChildEntity>> getChildById({required String childId});
   Future<DataState<ChildEntity>> getChildByContactId({required String contactId});
 
