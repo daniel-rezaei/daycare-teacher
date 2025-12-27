@@ -81,32 +81,57 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
   }
 
   bool get _canSave {
-    return selectedClassId != null &&
-        selectedClassId != widget.currentClassId &&
-        !_isSubmitting &&
-        (widget.studentId == null || widget.studentId!.isEmpty || _existingRequest == null); // Can't save if there's already a pending request (only for student transfers)
+    if (_isSubmitting) return false;
+    
+    // Check for pending transfer request (only for student transfers)
+    if (widget.studentId != null && 
+        widget.studentId!.isNotEmpty && 
+        _existingRequest != null && 
+        _existingRequest!.status == 'pending') {
+      return false;
+    }
+    
+    // SCENARIO A & B: Allow save if check out or time out is enabled (even if no class change)
+    final hasCheckOutOrTimeOut = _checkOutEnabled || _timeOutEnabled;
+    
+    // SCENARIO C: Allow save if class is changed (with or without check out/time out)
+    final isClassChanged = selectedClassId != null && 
+        selectedClassId != widget.currentClassId;
+    
+    return hasCheckOutOrTimeOut || isClassChanged;
+  }
+  
+  /// Check if class is actually being changed
+  bool get _isClassChanged {
+    return selectedClassId != null && 
+        selectedClassId != widget.currentClassId;
   }
 
   /// ATOMIC TRANSACTION: Execute all actions in exact order on Save only
   /// NO side effects allowed until Save is explicitly tapped
   Future<void> _handleSave() async {
-    if (!_canSave || selectedClassId == null) return;
+    if (!_canSave) return;
 
-    // Prevent duplicate requests
-    if (_existingRequest != null && _existingRequest!.status == 'pending') {
+    // Check if staffId is available (needed for time out and transfer requests)
+    if ((_timeOutEnabled || _isClassChanged) && 
+        (_staffId == null || _staffId!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('A transfer request is currently under review'),
+          content: Text('Error: Staff ID not found'),
         ),
       );
       return;
     }
 
-    // Check if staffId is available
-    if (_staffId == null || _staffId!.isEmpty) {
+    // Prevent duplicate transfer requests (only for student transfers with class change)
+    if (_isClassChanged && 
+        widget.studentId != null && 
+        widget.studentId!.isNotEmpty &&
+        _existingRequest != null && 
+        _existingRequest!.status == 'pending') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Error: Staff ID not found'),
+          content: Text('A transfer request is currently under review'),
         ),
       );
       return;
@@ -117,7 +142,9 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
     });
 
     try {
+      final isClassChanged = _isClassChanged;
       debugPrint('[TRANSFER_ATOMIC] 🔄 Starting atomic transaction');
+      debugPrint('[TRANSFER_ATOMIC] Class changed: $isClassChanged, Check out: $_checkOutEnabled, Time out: $_timeOutEnabled');
       
       // Step 1: If Check out is ON → register CLASS CHECK-OUT for current class
       if (_checkOutEnabled) {
@@ -158,6 +185,30 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
         await _waitForTimeOut();
       }
       
+      // SCENARIO A & B: NO CLASS CHANGE - Close sheet, no logout/navigation
+      if (!isClassChanged) {
+        debugPrint('[TRANSFER_ATOMIC] ✅ No class change - closing sheet, staying logged in');
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _timeOutEnabled 
+                    ? 'Time out and check out completed successfully'
+                    : 'Check out completed successfully',
+              ),
+            ),
+          );
+        }
+        return; // Exit early - no logout, no navigation
+      }
+      
+      // SCENARIO C: CLASS CHANGED - Proceed with full transfer flow
+      debugPrint('[TRANSFER_ATOMIC] Class changed - proceeding with full transfer flow');
+      
       // Step 3: Create transfer request (only if studentId is provided)
       if (widget.studentId != null && widget.studentId!.isNotEmpty) {
         debugPrint('[TRANSFER_ATOMIC] Step 3: Creating transfer request');
@@ -176,7 +227,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
         debugPrint('[TRANSFER_ATOMIC] Step 3: Skipping transfer request (class-level transfer, no studentId)');
       }
       
-      // Step 4: Perform LOGOUT
+      // Step 4: Perform LOGOUT (only when class is changed)
       debugPrint('[TRANSFER_ATOMIC] Step 4: Performing LOGOUT');
       final auth = ClerkAuth.of(context);
       await auth.signOut();
@@ -498,6 +549,10 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
                           // ATOMIC: Only update state - NO side effects
                           setState(() {
                             _timeOutEnabled = value;
+                            // Auto-enable check out when time out is enabled
+                            if (value) {
+                              _checkOutEnabled = true;
+                            }
                           });
                         },
                       ),
