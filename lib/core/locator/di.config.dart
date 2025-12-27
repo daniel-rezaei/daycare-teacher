@@ -63,6 +63,8 @@ import 'package:teacher_app/features/child_guardian/domain/usecase/child_guardia
     as _i793;
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart'
     as _i98;
+import 'package:teacher_app/features/child_profile/presentation/bloc/child_profile_bloc.dart'
+    as _i656;
 import 'package:teacher_app/features/class_transfer_request/data/data_source/class_transfer_request_api.dart'
     as _i295;
 import 'package:teacher_app/features/class_transfer_request/data/repository/class_transfer_request_repository_impl.dart'
@@ -294,6 +296,9 @@ extension GetItInjectableX on _i174.GetIt {
       ),
     );
     gh.factory<_i135.ChildBloc>(() => _i135.ChildBloc(gh<_i68.ChildUsecase>()));
+    gh.factory<_i656.ChildProfileBloc>(
+      () => _i656.ChildProfileBloc(gh<_i68.ChildUsecase>()),
+    );
     gh.factory<_i1025.PickupAuthorizationBloc>(
       () => _i1025.PickupAuthorizationBloc(
         gh<_i1027.PickupAuthorizationUsecase>(),

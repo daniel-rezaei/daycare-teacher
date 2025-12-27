@@ -11,6 +11,7 @@ import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
+import 'package:teacher_app/features/child_profile/presentation/bloc/child_profile_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/emergency_contacts.dart';
 import 'package:teacher_app/features/child_profile/widgets/info_card_overview.dart';
 // ignore: unused_import
@@ -40,7 +41,6 @@ class _ContentOverviewState extends State<ContentOverview> {
   String? _lastRequestedPickupChildId;
   bool _hasRequestedGuardians = false;
   bool _hasRequestedPickup = false;
-  bool _hasRequestedChildData = false;
 
   /// پیدا کردن Contact بر اساس contact_id
   /// ارتباط: Contacts.id == Child_Guardian.contact_id
@@ -88,6 +88,8 @@ class _ContentOverviewState extends State<ContentOverview> {
                     return BlocBuilder<PickupAuthorizationBloc,
                         PickupAuthorizationState>(
                       builder: (context, pickupState) {
+                        return BlocBuilder<ChildProfileBloc, ChildProfileState>(
+                          builder: (context, profileState) {
                         // دریافت contacts
                         List<ContactEntity> contacts = [];
                         if (contactsState.contacts != null) {
@@ -199,30 +201,31 @@ class _ContentOverviewState extends State<ContentOverview> {
                               .toList();
                         }
 
-                        // دریافت و فیلتر داده‌های child
-                        // Dietary Restrictions
-                        final dietaryRestrictions = childState.dietaryRestrictions
-                                ?.where((dr) => dr.childId == actualChildId)
-                                .toList() ??
-                            [];
+                        // دریافت داده‌های پزشکی از ChildProfileBloc (preloaded state)
+                        // این داده‌ها قبلاً قبل از navigation لود شده‌اند
+                        List<DietaryRestrictionEntity> dietaryRestrictions = [];
+                        List<MedicationEntity> medications = [];
+                        List<PhysicalRequirementEntity> physicalRequirements = [];
+                        List<ReportableDiseaseEntity> reportableDiseases = [];
 
-                        // Medications
-                        final medications = childState.medications
-                                ?.where((m) => m.childId == actualChildId)
-                                .toList() ??
-                            [];
-
-                        // Physical Requirements
-                        final physicalRequirements = childState.physicalRequirements
-                                ?.where((pr) => pr.childId == actualChildId)
-                                .toList() ??
-                            [];
-
-                        // Reportable Diseases
-                        final reportableDiseases = childState.reportableDiseases
-                                ?.where((rd) => rd.childId == actualChildId)
-                                .toList() ??
-                            [];
+                        if (profileState is ChildProfileDataLoaded) {
+                          // Use preloaded data from ChildProfileBloc
+                          dietaryRestrictions = profileState.dietaryRestrictions;
+                          medications = profileState.medications;
+                          physicalRequirements = profileState.physicalRequirements;
+                          reportableDiseases = profileState.reportableDiseases;
+                          debugPrint('[CONTENT_OVERVIEW] Using preloaded medical data from ChildProfileBloc');
+                          debugPrint('[CONTENT_OVERVIEW] - Dietary Restrictions: ${dietaryRestrictions.length}');
+                          debugPrint('[CONTENT_OVERVIEW] - Medications: ${medications.length}');
+                          debugPrint('[CONTENT_OVERVIEW] - Physical Requirements: ${physicalRequirements.length}');
+                          debugPrint('[CONTENT_OVERVIEW] - Reportable Diseases: ${reportableDiseases.length}');
+                        } else if (profileState is ChildProfileLoading) {
+                          debugPrint('[CONTENT_OVERVIEW] Medical data is still loading...');
+                        } else if (profileState is ChildProfileError) {
+                          debugPrint('[CONTENT_OVERVIEW] Error loading medical data: ${profileState.message}');
+                        } else {
+                          debugPrint('[CONTENT_OVERVIEW] No preloaded medical data available, using empty lists');
+                        }
 
                         // Immunizations
                         final immunizations = childState.immunizations
@@ -230,21 +233,8 @@ class _ContentOverviewState extends State<ContentOverview> {
                                 .toList() ??
                             [];
 
-                        // درخواست داده‌ها اگر هنوز درخواست نشده
-                        if (actualChildId != null && 
-                            actualChildId.isNotEmpty && 
-                            !_hasRequestedChildData) {
-                          _hasRequestedChildData = true;
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) {
-                              context.read<ChildBloc>().add(const GetAllDietaryRestrictionsEvent());
-                              context.read<ChildBloc>().add(const GetAllMedicationsEvent());
-                              context.read<ChildBloc>().add(const GetAllPhysicalRequirementsEvent());
-                              context.read<ChildBloc>().add(const GetAllReportableDiseasesEvent());
-                              context.read<ChildBloc>().add(const GetAllImmunizationsEvent());
-                            }
-                          });
-                        }
+                        // NOTE: Medical data is now preloaded BEFORE navigation via ChildProfileBloc
+                        // We no longer call APIs here - we only read from preloaded state
 
                         return Container(
                           decoration: BoxDecoration(
@@ -342,22 +332,32 @@ class _ContentOverviewState extends State<ContentOverview> {
                                   ),
                                 ),
                               SizedBox(height: 32),
-                              _ExpandableInfoSection(
-                                title: Row(
-                                  children: [
-                                    Assets.images.dietaryRestrictions.svg(),
-                                    SizedBox(width: 8),
-                                    const Text(
-                                      'Dietary Restrictions',
-                                      style: TextStyle(
-                                        color: Color(0xff444349),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
+                              // Show loading indicator if medical data is still loading
+                              if (profileState is ChildProfileLoading)
+                                const Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              else ...[
+                                // Medical sections - only shown when data is loaded
+                                _ExpandableInfoSection(
+                                  title: Row(
+                                    children: [
+                                      Assets.images.dietaryRestrictions.svg(),
+                                      SizedBox(width: 8),
+                                      const Text(
+                                        'Dietary Restrictions',
+                                        style: TextStyle(
+                                          color: Color(0xff444349),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                items: dietaryRestrictions,
+                                    ],
+                                  ),
+                                  items: dietaryRestrictions,
                                 itemBuilder: (context, item) {
                                   return Container(
                                     decoration: BoxDecoration(
@@ -557,6 +557,7 @@ class _ContentOverviewState extends State<ContentOverview> {
                                   );
                                 },
                               ),
+                              ], // Close the else block for medical sections
                               SizedBox(height: 12),
                               // نمایش زبان
                               Container(
@@ -594,13 +595,15 @@ class _ContentOverviewState extends State<ContentOverview> {
                             ],
                           ),
                         );
+                          },
+                        );
                       },
-                    );
-                  },
-                );
-              },
             );
-          },
+                      });
+                
+              });
+            
+          }
         );
       },
     );

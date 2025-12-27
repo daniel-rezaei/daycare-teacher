@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/utils/contact_utils.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_profile/child_profile_screen.dart';
+import 'package:teacher_app/features/child_profile/presentation/bloc/child_profile_bloc.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/widgets/child_status_actions.dart';
 import 'package:teacher_app/features/child_status/widgets/child_status_badge.dart';
@@ -76,17 +78,49 @@ class ChildStatusListItem extends StatelessWidget {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChildProfileScreen(
-                    childId: child.contactId ?? '',
-                    childName: childName,
-                    childPhoto: child.photo,
+            onTap: () async {
+              // Preload medical data BEFORE navigation
+              final actualChildId = child.id;
+              if (actualChildId != null && actualChildId.isNotEmpty) {
+                // Dispatch preload event
+                context.read<ChildProfileBloc>().add(
+                      PreloadChildMedicalDataEvent(childId: actualChildId),
+                    );
+
+                // Wait for data to load
+                await context.read<ChildProfileBloc>().stream.firstWhere(
+                      (state) => state is ChildProfileDataLoaded || state is ChildProfileError,
+                    ).timeout(
+                      const Duration(seconds: 10),
+                      onTimeout: () => const ChildProfileError('Timeout loading medical data'),
+                    );
+
+                // Navigate only after data is loaded
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChildProfileScreen(
+                        childId: child.contactId ?? '',
+                        childName: childName,
+                        childPhoto: child.photo,
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                // Fallback: navigate immediately if childId is not available
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChildProfileScreen(
+                      childId: child.contactId ?? '',
+                      childName: childName,
+                      childPhoto: child.photo,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             },
             child: ChildAvatarWidget(
               photoId: child.photo,
