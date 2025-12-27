@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
+import 'package:teacher_app/features/child_status/widgets/class_transfer_action_sheet.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -207,7 +207,23 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
                         GestureDetector(
                           onTap: () {
                             if (!isLoading && !isProcessing) {
-                              _handleCheckInOut(session);
+                              if (isCheckedIn) {
+                                // Class Check-Out: Open atomic transfer action sheet
+                                // This allows teacher to: check out class, time out, and transfer to another class
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  useSafeArea: true,
+                                  builder: (context) => ClassTransferActionSheet(
+                                    studentId: null, // Class-level transfer (no student)
+                                    currentClassId: classId ?? '',
+                                  ),
+                                );
+                              } else {
+                                // Class Check-In: Use existing logic
+                                _handleCheckInOut(session);
+                              }
                             }
                           },
                           child: Container(
