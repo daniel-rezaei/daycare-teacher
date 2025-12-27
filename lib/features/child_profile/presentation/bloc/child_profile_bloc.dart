@@ -37,7 +37,12 @@ class ChildProfileBloc extends Bloc<ChildProfileEvent, ChildProfileState> {
     emit(const ChildProfileLoading());
 
     try {
+      debugPrint('[PROFILE_LOAD] Bloc: Starting preload for childId=${event.childId}');
+      
       // Load all medical data in parallel
+      debugPrint('[PROFILE_LOAD] Bloc: Loading Dietary for childId=${event.childId}');
+      debugPrint('[PROFILE_LOAD] Bloc: Loading Immunization for childId=${event.childId}');
+      
       final results = await Future.wait([
         childUsecase.getAllAllergies(),
         childUsecase.getAllDietaryRestrictions(),
@@ -46,6 +51,8 @@ class ChildProfileBloc extends Bloc<ChildProfileEvent, ChildProfileState> {
         childUsecase.getAllPhysicalRequirements(),
         childUsecase.getAllReportableDiseases(),
       ]);
+      
+      debugPrint('[PROFILE_LOAD] Bloc: All API calls completed, processing results...');
 
       // Extract data from results
       List<AllergyEntity>? allergies;
@@ -66,9 +73,13 @@ class ChildProfileBloc extends Bloc<ChildProfileEvent, ChildProfileState> {
       // Process dietary restrictions
       if (results[1] is DataSuccess) {
         dietaryRestrictions = (results[1] as DataSuccess).data;
-        debugPrint('[CHILD_PROFILE_BLOC] Loaded ${dietaryRestrictions?.length ?? 0} dietary restrictions');
+        debugPrint('[PROFILE_LOAD] Bloc: Dietary loaded: ${dietaryRestrictions?.length ?? 0}');
+        if (dietaryRestrictions != null && dietaryRestrictions.isNotEmpty) {
+          debugPrint('[PROFILE_LOAD] Bloc: Dietary sample - first item childId: ${dietaryRestrictions.first.childId}, restrictionName: ${dietaryRestrictions.first.restrictionName}');
+        }
       } else {
-        debugPrint('[CHILD_PROFILE_BLOC] Failed to load dietary restrictions: ${(results[1] as DataFailed).error}');
+        final error = (results[1] as DataFailed).error;
+        debugPrint('[PROFILE_ERROR] Bloc: Dietary failed: $error');
       }
 
       // Process medications
@@ -82,9 +93,13 @@ class ChildProfileBloc extends Bloc<ChildProfileEvent, ChildProfileState> {
       // Process immunizations
       if (results[3] is DataSuccess) {
         immunizations = (results[3] as DataSuccess).data;
-        debugPrint('[CHILD_PROFILE_BLOC] Loaded ${immunizations?.length ?? 0} immunizations');
+        debugPrint('[PROFILE_LOAD] Bloc: Immunization loaded: ${immunizations?.length ?? 0}');
+        if (immunizations != null && immunizations.isNotEmpty) {
+          debugPrint('[PROFILE_LOAD] Bloc: Immunization sample - first item childId: ${immunizations.first.childId}, vaccineName: ${immunizations.first.vaccineName}');
+        }
       } else {
-        debugPrint('[CHILD_PROFILE_BLOC] Failed to load immunizations: ${(results[3] as DataFailed).error}');
+        final error = (results[3] as DataFailed).error;
+        debugPrint('[PROFILE_ERROR] Bloc: Immunization failed: $error');
       }
 
       // Process physical requirements
@@ -129,13 +144,27 @@ class ChildProfileBloc extends Bloc<ChildProfileEvent, ChildProfileState> {
               .toList() ??
           [];
 
-      debugPrint('[CHILD_PROFILE_BLOC] Filtered data for childId ${event.childId}:');
-      debugPrint('[CHILD_PROFILE_BLOC] - Allergies: ${filteredAllergies.length}');
-      debugPrint('[CHILD_PROFILE_BLOC] - Dietary Restrictions: ${filteredDietaryRestrictions.length}');
-      debugPrint('[CHILD_PROFILE_BLOC] - Medications: ${filteredMedications.length}');
-      debugPrint('[CHILD_PROFILE_BLOC] - Immunizations: ${filteredImmunizations.length}');
-      debugPrint('[CHILD_PROFILE_BLOC] - Physical Requirements: ${filteredPhysicalRequirements.length}');
-      debugPrint('[CHILD_PROFILE_BLOC] - Reportable Diseases: ${filteredReportableDiseases.length}');
+      debugPrint('[PROFILE_LOAD] Bloc: Filtered data for childId ${event.childId}:');
+      debugPrint('[PROFILE_LOAD] Bloc: - Allergies: ${filteredAllergies.length}');
+      debugPrint('[PROFILE_LOAD] Bloc: - Dietary Restrictions: ${filteredDietaryRestrictions.length}');
+      debugPrint('[PROFILE_LOAD] Bloc: - Medications: ${filteredMedications.length}');
+      debugPrint('[PROFILE_LOAD] Bloc: - Immunizations: ${filteredImmunizations.length}');
+      debugPrint('[PROFILE_LOAD] Bloc: - Physical Requirements: ${filteredPhysicalRequirements.length}');
+      debugPrint('[PROFILE_LOAD] Bloc: - Reportable Diseases: ${filteredReportableDiseases.length}');
+      
+      // Log filtered items for debugging
+      if (filteredDietaryRestrictions.isNotEmpty) {
+        debugPrint('[PROFILE_LOAD] Bloc: Filtered Dietary items:');
+        for (var item in filteredDietaryRestrictions) {
+          debugPrint('[PROFILE_LOAD] Bloc:   - childId: ${item.childId}, restrictionName: ${item.restrictionName}');
+        }
+      }
+      if (filteredImmunizations.isNotEmpty) {
+        debugPrint('[PROFILE_LOAD] Bloc: Filtered Immunization items:');
+        for (var item in filteredImmunizations) {
+          debugPrint('[PROFILE_LOAD] Bloc:   - childId: ${item.childId}, vaccineName: ${item.vaccineName}');
+        }
+      }
 
       // Emit success state with filtered data
       emit(ChildProfileDataLoaded(

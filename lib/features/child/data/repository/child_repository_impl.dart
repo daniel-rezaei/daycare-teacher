@@ -67,17 +67,39 @@ class ChildRepositoryImpl extends ChildRepository {
   @override
   Future<DataState<List<DietaryRestrictionEntity>>> getAllDietaryRestrictions() async {
     try {
+      debugPrint('[PROFILE_LOAD] Repository: Loading Dietary Restrictions...');
       final Response response = await childApi.getAllDietaryRestrictions();
 
+      if (response.data == null || response.data['data'] == null) {
+        debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions response data is null');
+        return DataFailed('Response data is null');
+      }
+
       final List<dynamic> list = response.data['data'] as List<dynamic>;
+      debugPrint('[PROFILE_LOAD] Repository: Dietary Restrictions raw count: ${list.length}');
 
-      final List<DietaryRestrictionEntity> restrictionsEntity = list
-          .map((e) => DietaryRestrictionModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final List<DietaryRestrictionEntity> restrictionsEntity = [];
+      for (var item in list) {
+        try {
+          final entity = DietaryRestrictionModel.fromJson(item as Map<String, dynamic>);
+          restrictionsEntity.add(entity);
+          debugPrint('[PROFILE_LOAD] Repository: Dietary item - id: ${entity.id}, childId: ${entity.childId}, restrictionName: ${entity.restrictionName}');
+        } catch (e) {
+          debugPrint('[PROFILE_ERROR] Repository: Failed to parse Dietary item: $e');
+          debugPrint('[PROFILE_ERROR] Repository: Item data: $item');
+        }
+      }
 
+      debugPrint('[PROFILE_LOAD] Repository: Dietary Restrictions loaded: ${restrictionsEntity.length}');
       return DataSuccess(restrictionsEntity);
     } on DioException catch (e) {
+      debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions DioException: ${e.message}');
+      debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions error response: ${e.response?.data}');
       return _handleDioError(e);
+    } catch (e, stackTrace) {
+      debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions unexpected error: $e');
+      debugPrint('[PROFILE_ERROR] Repository: Stack trace: $stackTrace');
+      return DataFailed('Unexpected error: $e');
     }
   }
 
@@ -135,17 +157,39 @@ class ChildRepositoryImpl extends ChildRepository {
   @override
   Future<DataState<List<ImmunizationEntity>>> getAllImmunizations() async {
     try {
+      debugPrint('[PROFILE_LOAD] Repository: Loading Immunizations...');
       final Response response = await childApi.getAllImmunizations();
 
+      if (response.data == null || response.data['data'] == null) {
+        debugPrint('[PROFILE_ERROR] Repository: Immunizations response data is null');
+        return DataFailed('Response data is null');
+      }
+
       final List<dynamic> list = response.data['data'] as List<dynamic>;
+      debugPrint('[PROFILE_LOAD] Repository: Immunizations raw count: ${list.length}');
 
-      final List<ImmunizationEntity> immunizationsEntity = list
-          .map((e) => ImmunizationModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final List<ImmunizationEntity> immunizationsEntity = [];
+      for (var item in list) {
+        try {
+          final entity = ImmunizationModel.fromJson(item as Map<String, dynamic>);
+          immunizationsEntity.add(entity);
+          debugPrint('[PROFILE_LOAD] Repository: Immunization item - id: ${entity.id}, childId: ${entity.childId}, vaccineName: ${entity.vaccineName}');
+        } catch (e) {
+          debugPrint('[PROFILE_ERROR] Repository: Failed to parse Immunization item: $e');
+          debugPrint('[PROFILE_ERROR] Repository: Item data: $item');
+        }
+      }
 
+      debugPrint('[PROFILE_LOAD] Repository: Immunizations loaded: ${immunizationsEntity.length}');
       return DataSuccess(immunizationsEntity);
     } on DioException catch (e) {
+      debugPrint('[PROFILE_ERROR] Repository: Immunizations DioException: ${e.message}');
+      debugPrint('[PROFILE_ERROR] Repository: Immunizations error response: ${e.response?.data}');
       return _handleDioError(e);
+    } catch (e, stackTrace) {
+      debugPrint('[PROFILE_ERROR] Repository: Immunizations unexpected error: $e');
+      debugPrint('[PROFILE_ERROR] Repository: Stack trace: $stackTrace');
+      return DataFailed('Unexpected error: $e');
     }
   }
 

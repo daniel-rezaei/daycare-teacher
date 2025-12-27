@@ -12,10 +12,14 @@ class DietaryRestrictionModel extends DietaryRestrictionEntity {
   });
 
   factory DietaryRestrictionModel.fromJson(Map<String, dynamic> json) {
+    // Support both field name formats: restriction_name (snake_case) and RestrictionName (PascalCase)
+    final restrictionName = json['restriction_name'] as String? ?? 
+                            json['RestrictionName'] as String?;
+    
     return DietaryRestrictionModel(
       id: json['id'] as String?,
-      restrictionName: json['restriction_name'] as String?,
-      childId: json['child_id'] as String?,
+      restrictionName: restrictionName,
+      childId: json['child_id'] as String? ?? json['ChildId'] as String?,
       dateCreated: json['date_created'] as String?,
       dateUpdated: json['date_updated'] as String?,
       userCreated: json['user_created'] as String?,

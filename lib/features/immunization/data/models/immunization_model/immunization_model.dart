@@ -12,10 +12,14 @@ class ImmunizationModel extends ImmunizationEntity {
   });
 
   factory ImmunizationModel.fromJson(Map<String, dynamic> json) {
+    // Support both field name formats: vaccine_name (snake_case) and VaccineName (PascalCase)
+    final vaccineName = json['vaccine_name'] as String? ?? 
+                        json['VaccineName'] as String?;
+    
     return ImmunizationModel(
       id: json['id'] as String?,
-      vaccineName: json['vaccine_name'] as String?,
-      childId: json['child_id'] as String?,
+      vaccineName: vaccineName,
+      childId: json['child_id'] as String? ?? json['ChildId'] as String?,
       dateCreated: json['date_created'] as String?,
       dateUpdated: json['date_updated'] as String?,
       userCreated: json['user_created'] as String?,

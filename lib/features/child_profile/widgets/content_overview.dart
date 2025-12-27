@@ -214,19 +214,33 @@ class _ContentOverviewState extends State<ContentOverview> {
                           immunizations = profileState.immunizations;
                           physicalRequirements = profileState.physicalRequirements;
                           reportableDiseases = profileState.reportableDiseases;
-                          debugPrint('[CONTENT_OVERVIEW] Using preloaded medical data from ChildProfileBloc');
-                          debugPrint('[CONTENT_OVERVIEW] - Allergies: ${allergies.length}');
-                          debugPrint('[CONTENT_OVERVIEW] - Dietary Restrictions: ${dietaryRestrictions.length}');
-                          debugPrint('[CONTENT_OVERVIEW] - Medications: ${medications.length}');
-                          debugPrint('[CONTENT_OVERVIEW] - Immunizations: ${immunizations.length}');
-                          debugPrint('[CONTENT_OVERVIEW] - Physical Requirements: ${physicalRequirements.length}');
-                          debugPrint('[CONTENT_OVERVIEW] - Reportable Diseases: ${reportableDiseases.length}');
+                          debugPrint('[PROFILE_UI] Using preloaded medical data from ChildProfileBloc');
+                          debugPrint('[PROFILE_UI] - Allergies: ${allergies.length}');
+                          debugPrint('[PROFILE_UI] Dietary items: ${dietaryRestrictions.length}');
+                          debugPrint('[PROFILE_UI] Immunization items: ${immunizations.length}');
+                          debugPrint('[PROFILE_UI] - Medications: ${medications.length}');
+                          debugPrint('[PROFILE_UI] - Physical Requirements: ${physicalRequirements.length}');
+                          debugPrint('[PROFILE_UI] - Reportable Diseases: ${reportableDiseases.length}');
+                          
+                          // Log detailed item info for debugging
+                          if (dietaryRestrictions.isNotEmpty) {
+                            debugPrint('[PROFILE_UI] Dietary items detail:');
+                            for (var item in dietaryRestrictions) {
+                              debugPrint('[PROFILE_UI]   - id: ${item.id}, childId: ${item.childId}, restrictionName: ${item.restrictionName}');
+                            }
+                          }
+                          if (immunizations.isNotEmpty) {
+                            debugPrint('[PROFILE_UI] Immunization items detail:');
+                            for (var item in immunizations) {
+                              debugPrint('[PROFILE_UI]   - id: ${item.id}, childId: ${item.childId}, vaccineName: ${item.vaccineName}');
+                            }
+                          }
                         } else if (profileState is ChildProfileLoading) {
-                          debugPrint('[CONTENT_OVERVIEW] Medical data is still loading...');
+                          debugPrint('[PROFILE_UI] Medical data is still loading...');
                         } else if (profileState is ChildProfileError) {
-                          debugPrint('[CONTENT_OVERVIEW] Error loading medical data: ${profileState.message}');
+                          debugPrint('[PROFILE_UI] Error loading medical data: ${profileState.message}');
                         } else {
-                          debugPrint('[CONTENT_OVERVIEW] No preloaded medical data available, using empty lists');
+                          debugPrint('[PROFILE_UI] No preloaded medical data available, using empty lists');
                         }
 
                         // NOTE: Medical data is now preloaded BEFORE navigation via ChildProfileBloc

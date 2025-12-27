@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @singleton
@@ -13,7 +14,10 @@ class ChildApi {
 
   // دریافت لیست همه محدودیت‌های غذایی
   Future<Response> getAllDietaryRestrictions() async {
-    return await httpclient.get('/items/Child_Dietary_Restrictions');
+    debugPrint('[PROFILE_LOAD] API: Calling getAllDietaryRestrictions()');
+    final response = await httpclient.get('/items/child_dietary_restrictions');
+    debugPrint('[PROFILE_LOAD] API: getAllDietaryRestrictions() response status: ${response.statusCode}');
+    return response;
   }
 
   // دریافت لیست همه داروها
@@ -33,7 +37,10 @@ class ChildApi {
 
   // دریافت لیست همه واکسیناسیون‌ها
   Future<Response> getAllImmunizations() async {
-    return await httpclient.get('/items/immunization');
+    debugPrint('[PROFILE_LOAD] API: Calling getAllImmunizations()');
+    final response = await httpclient.get('/items/Immunization');
+    debugPrint('[PROFILE_LOAD] API: getAllImmunizations() response status: ${response.statusCode}');
+    return response;
   }
 
   // دریافت لیست همه آلرژی‌ها
