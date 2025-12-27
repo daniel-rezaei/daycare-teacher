@@ -18,7 +18,8 @@ class PickupAuthorizationBloc
   PickupAuthorizationBloc(this.pickupAuthorizationUsecase)
       : super(const PickupAuthorizationInitial()) {
     on<GetPickupAuthorizationByChildIdEvent>(_getPickupAuthorizationByChildIdEvent);
-    on<CreatePickupAuthorizationEvent>(_createPickupAuthorizationEvent);
+    // NOTE: CreatePickupAuthorizationEvent removed - only Guardian/Admin flows can create pickups.
+    // Teachers can ONLY SELECT existing authorized pickups.
   }
 
   FutureOr<void> _getPickupAuthorizationByChildIdEvent(
@@ -47,39 +48,7 @@ class PickupAuthorizationBloc
     }
   }
 
-  FutureOr<void> _createPickupAuthorizationEvent(
-    CreatePickupAuthorizationEvent event,
-    Emitter<PickupAuthorizationState> emit,
-  ) async {
-    debugPrint('[CHECKOUT_DEBUG] _createPickupAuthorizationEvent called');
-    debugPrint('[CHECKOUT_DEBUG] - childId: ${event.childId}');
-    debugPrint('[CHECKOUT_DEBUG] - authorizedContactId: ${event.authorizedContactId}');
-    debugPrint('[CHECKOUT_DEBUG] - note: ${event.note}');
-    
-    emit(const CreatePickupAuthorizationLoading());
-
-    try {
-      debugPrint('[CHECKOUT_DEBUG] Calling pickupAuthorizationUsecase.createPickupAuthorization');
-      DataState dataState = await pickupAuthorizationUsecase.createPickupAuthorization(
-        childId: event.childId,
-        authorizedContactId: event.authorizedContactId,
-        note: event.note,
-      );
-
-      debugPrint('[CHECKOUT_DEBUG] DataState received: ${dataState.runtimeType}');
-      
-      if (dataState is DataSuccess) {
-        debugPrint('[CHECKOUT_DEBUG] CreatePickupAuthorizationSuccess');
-        emit(CreatePickupAuthorizationSuccess(dataState.data));
-      } else if (dataState is DataFailed) {
-        debugPrint('[CHECKOUT_DEBUG] CreatePickupAuthorizationFailure: ${dataState.error}');
-        emit(CreatePickupAuthorizationFailure(dataState.error!));
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[CHECKOUT_DEBUG] Exception creating pickup authorization: $e');
-      debugPrint('[CHECKOUT_DEBUG] StackTrace: $stackTrace');
-      emit(const CreatePickupAuthorizationFailure('Error creating authorization'));
-    }
-  }
+  // NOTE: _createPickupAuthorizationEvent removed - only Guardian/Admin flows can create pickups.
+  // Teachers can ONLY SELECT existing authorized pickups.
 }
 

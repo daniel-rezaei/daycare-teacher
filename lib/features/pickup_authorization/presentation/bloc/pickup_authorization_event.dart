@@ -16,18 +16,6 @@ class GetPickupAuthorizationByChildIdEvent extends PickupAuthorizationEvent {
   List<Object> get props => [childId];
 }
 
-class CreatePickupAuthorizationEvent extends PickupAuthorizationEvent {
-  final String childId;
-  final String authorizedContactId;
-  final String? note;
-
-  const CreatePickupAuthorizationEvent({
-    required this.childId,
-    required this.authorizedContactId,
-    this.note,
-  });
-
-  @override
-  List<Object> get props => [childId, authorizedContactId, note ?? ''];
-}
+// NOTE: CreatePickupAuthorizationEvent removed - only Guardian/Admin flows can create pickups.
+// Teachers can ONLY SELECT existing authorized pickups.
 

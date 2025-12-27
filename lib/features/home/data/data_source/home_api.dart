@@ -182,10 +182,10 @@ class HomeApi {
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? checkoutPickupContactId,
-    String? checkoutPickupContactType,
+    String? pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
   }) async {
-    // مشابه createAttendance: ساده و مستقیم، بدون wrapper و فیلدهای غیرضروری
+    // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+    // No contact/guardian/pickup creation allowed from checkout flow
     final data = <String, dynamic>{
       'check_out_at': checkOutAt,
       'check_out_method': 'manually',
@@ -200,14 +200,11 @@ class HomeApi {
       data['photo'] = photo;
     }
 
-    if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
-      data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
+    // DOMAIN LOCKDOWN: Only accept pickup_authorization_id (existing authorization)
+    // Reject any contact/guardian/pickup creation attempts
+    if (pickupAuthorizationId != null && pickupAuthorizationId.isNotEmpty) {
+      data['pickup_authorization_id'] = pickupAuthorizationId;
     }
-
-    // checkout_pickup_contact_type موقتاً حذف شده برای تست
-    // if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
-    //   data['checkout_pickup_contact_type'] = checkoutPickupContactType;
-    // }
 
     // PATCH مستقیم بدون wrapper - مشابه createAttendance
     return await httpclient.patch(

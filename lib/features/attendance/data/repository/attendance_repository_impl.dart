@@ -69,27 +69,25 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? checkoutPickupContactId,
-    String? checkoutPickupContactType,
+    String? pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
   }) async {
     debugPrint('[ATTENDANCE_REPO] ========== updateAttendance called ==========');
     debugPrint('[ATTENDANCE_REPO] attendanceId: $attendanceId');
     debugPrint('[ATTENDANCE_REPO] checkOutAt: "$checkOutAt"');
     debugPrint('[ATTENDANCE_REPO] notes: $notes');
     debugPrint('[ATTENDANCE_REPO] photo: $photo');
-    debugPrint('[ATTENDANCE_REPO] checkoutPickupContactId: $checkoutPickupContactId');
-    debugPrint('[ATTENDANCE_REPO] checkoutPickupContactType: $checkoutPickupContactType');
+    debugPrint('[ATTENDANCE_REPO] pickupAuthorizationId: $pickupAuthorizationId');
     
     try {
-      // مشابه createAttendance: مستقیم و ساده، بدون دریافت attendance موجود
+      // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+      // No contact/guardian/pickup creation allowed from checkout flow
       debugPrint('[ATTENDANCE_REPO] Calling attendanceApi.updateAttendance (direct, no pre-fetch)...');
       final Response response = await attendanceApi.updateAttendance(
         attendanceId: attendanceId,
         checkOutAt: checkOutAt,
         notes: notes,
         photo: photo,
-        checkoutPickupContactId: checkoutPickupContactId,
-        checkoutPickupContactType: checkoutPickupContactType,
+        pickupAuthorizationId: pickupAuthorizationId,
       );
 
       final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;

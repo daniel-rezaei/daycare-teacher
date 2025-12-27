@@ -17,13 +17,14 @@ abstract class AttendanceRepository {
   });
 
   // به‌روزرسانی attendance (برای check out)
+  // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+  // No contact/guardian/pickup creation allowed from checkout flow
   Future<DataState<AttendanceChildEntity>> updateAttendance({
     required String attendanceId,
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? checkoutPickupContactId,
-    String? checkoutPickupContactType,
+    String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
   });
 }
 

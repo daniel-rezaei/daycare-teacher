@@ -114,14 +114,13 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     Emitter<AttendanceState> emit,
   ) async {
     debugPrint('[ATTENDANCE_BLOC] ========== _updateAttendanceEvent called ==========');
-    debugPrint('[ATTENDANCE_BLOC] event.attendanceId: ${event.attendanceId}');
-    debugPrint('[ATTENDANCE_BLOC] event.checkOutAt: "${event.checkOutAt}"');
-    debugPrint('[ATTENDANCE_BLOC] event.checkOutAt type: ${event.checkOutAt.runtimeType}');
-    debugPrint('[ATTENDANCE_BLOC] event.checkOutAt isEmpty: ${event.checkOutAt.isEmpty}');
-    debugPrint('[ATTENDANCE_BLOC] event.notes: ${event.notes}');
-    debugPrint('[ATTENDANCE_BLOC] event.photo: ${event.photo}');
-    debugPrint('[ATTENDANCE_BLOC] event.checkoutPickupContactId: ${event.checkoutPickupContactId}');
-    debugPrint('[ATTENDANCE_BLOC] event.checkoutPickupContactType: ${event.checkoutPickupContactType}');
+      debugPrint('[ATTENDANCE_BLOC] event.attendanceId: ${event.attendanceId}');
+      debugPrint('[ATTENDANCE_BLOC] event.checkOutAt: "${event.checkOutAt}"');
+      debugPrint('[ATTENDANCE_BLOC] event.checkOutAt type: ${event.checkOutAt.runtimeType}');
+      debugPrint('[ATTENDANCE_BLOC] event.checkOutAt isEmpty: ${event.checkOutAt.isEmpty}');
+      debugPrint('[ATTENDANCE_BLOC] event.notes: ${event.notes}');
+      debugPrint('[ATTENDANCE_BLOC] event.photo: ${event.photo}');
+      debugPrint('[ATTENDANCE_BLOC] event.pickupAuthorizationId: ${event.pickupAuthorizationId}');
     
     // ذخیره کردن state قبلی قبل از emit کردن UpdateAttendanceLoading
     final previousState = state;
@@ -137,13 +136,14 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       
       debugPrint('[ATTENDANCE_BLOC] Calling attendanceUsecase.updateAttendance...');
       debugPrint('[ATTENDANCE_BLOC] Passing checkOutAt: "${event.checkOutAt}"');
+      // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+      // No contact/guardian/pickup creation allowed from checkout flow
       DataState dataState = await attendanceUsecase.updateAttendance(
         attendanceId: event.attendanceId,
         checkOutAt: event.checkOutAt,
         notes: event.notes,
-        photo: event.photo, // List<String>?
-        checkoutPickupContactId: event.checkoutPickupContactId,
-        checkoutPickupContactType: event.checkoutPickupContactType,
+        photo: event.photo,
+        pickupAuthorizationId: event.pickupAuthorizationId,
       );
 
       if (dataState is DataSuccess) {

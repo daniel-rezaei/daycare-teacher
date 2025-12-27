@@ -47,8 +47,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _noteController = TextEditingController();
   final List<File> _images = [];
-  String? _selectedContactId;
-  String? _selectedRelationToChild; // برای checkoutPickupContactType
+  String? _selectedPickupAuthorizationId; // DOMAIN LOCKDOWN: Only select existing PickupAuthorization ID
   bool _isSubmitting = false;
   bool _checkoutSubmitted = false; // برای جلوگیری از pop چندباره
 
@@ -101,8 +100,8 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       return;
     }
 
-    if (_selectedContactId == null || _selectedContactId!.isEmpty) {
-      debugPrint('[CHECKOUT_DEBUG] No contact selected');
+    if (_selectedPickupAuthorizationId == null || _selectedPickupAuthorizationId!.isEmpty) {
+      debugPrint('[CHECKOUT_DEBUG] No pickup authorization selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select the person picking up the child')),
       );
@@ -110,7 +109,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
     }
 
     debugPrint('[CHECKOUT_DEBUG] Starting submit process');
-    debugPrint('[CHECKOUT_DEBUG] Selected contactId: $_selectedContactId');
+    debugPrint('[CHECKOUT_DEBUG] Selected pickupAuthorizationId: $_selectedPickupAuthorizationId');
     debugPrint('[CHECKOUT_DEBUG] Widget childId (Child.id): ${widget.childId}');
     debugPrint('[CHECKOUT_DEBUG] Note: ${_noteController.text}');
     debugPrint('[CHECKOUT_DEBUG] Images count: ${_images.length}');
@@ -180,26 +179,27 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       debugPrint('[CHECKOUT_STEP2] ========== All Check Out Data Prepared ==========');
       debugPrint('[CHECKOUT_STEP2] - attendanceId: ${widget.attendanceId}');
       debugPrint('[CHECKOUT_STEP2] - checkOutAt: "$checkOutAt"');
-      debugPrint('[CHECKOUT_STEP2] - checkoutPickupContactId: $_selectedContactId');
-      debugPrint('[CHECKOUT_STEP2] - checkoutPickupContactType: $_selectedRelationToChild');
+      debugPrint('[CHECKOUT_STEP2] - pickupAuthorizationId: $_selectedPickupAuthorizationId');
       debugPrint('[CHECKOUT_STEP2] - notes: $note');
       debugPrint('[CHECKOUT_STEP2] - photo fileId (first): $photoFileId');
       debugPrint('[CHECKOUT_STEP2] - total uploaded files: ${uploadedFileIds.length}');
       
       debugPrint('[CHECKOUT_STEP2] ========== Dispatching UpdateAttendanceEvent ==========');
+      debugPrint('[CHECKOUT_STEP2] DOMAIN LOCKDOWN: Only sending existing pickup_authorization_id');
       
       // علامت‌گذاری که checkout در حال ارسال است
       setState(() {
         _checkoutSubmitted = true;
       });
       
+      // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+      // No contact/guardian/pickup creation allowed from checkout flow
       context.read<AttendanceBloc>().add(
             UpdateAttendanceEvent(
               attendanceId: widget.attendanceId,
               checkOutAt: checkOutAt,
               notes: note,
-              checkoutPickupContactId: _selectedContactId!,
-              checkoutPickupContactType: _selectedRelationToChild,
+              pickupAuthorizationId: _selectedPickupAuthorizationId!,
               photo: photoFileId,
             ),
           );
@@ -330,13 +330,14 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                   pickup.authorizedContactId,
                                   contacts,
                                 );
-                                final isSelected = _selectedContactId == pickup.authorizedContactId;
+                                // DOMAIN LOCKDOWN: Select PickupAuthorization ID, not contact ID
+                                final isSelected = _selectedPickupAuthorizationId == pickup.id;
 
                                 return GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      _selectedContactId = pickup.authorizedContactId;
-                                      _selectedRelationToChild = pickup.relationToChild;
+                                      // DOMAIN LOCKDOWN: Store PickupAuthorization ID, not contact ID
+                                      _selectedPickupAuthorizationId = pickup.id;
                                     });
                                   },
                                   child: Container(

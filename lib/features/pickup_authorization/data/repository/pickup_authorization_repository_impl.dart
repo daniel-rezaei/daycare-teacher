@@ -34,37 +34,8 @@ class PickupAuthorizationRepositoryImpl extends PickupAuthorizationRepository {
     }
   }
 
-  @override
-  Future<DataState<PickupAuthorizationEntity>> createPickupAuthorization({
-    required String childId,
-    required String authorizedContactId,
-    String? note,
-  }) async {
-    try {
-      debugPrint('[CHECKOUT_DEBUG] Repository: createPickupAuthorization called');
-      debugPrint('[CHECKOUT_DEBUG] Repository: childId=$childId, authorizedContactId=$authorizedContactId, note=$note');
-      
-      final Response response = await pickupAuthorizationApi.createPickupAuthorization(
-        childId: childId,
-        authorizedContactId: authorizedContactId,
-        note: note,
-      );
-
-      debugPrint('[CHECKOUT_DEBUG] Repository: Response statusCode=${response.statusCode}');
-      debugPrint('[CHECKOUT_DEBUG] Repository: Response data=${response.data}');
-
-      final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
-      final PickupAuthorizationEntity pickupAuthorization = 
-          PickupAuthorizationModel.fromJson(data);
-
-      debugPrint('[CHECKOUT_DEBUG] Repository: Success, returning DataSuccess');
-      return DataSuccess(pickupAuthorization);
-    } on DioException catch (e) {
-      debugPrint('[CHECKOUT_DEBUG] Repository: DioException: ${e.message}');
-      debugPrint('[CHECKOUT_DEBUG] Repository: DioException response: ${e.response?.data}');
-      return _handleDioError(e);
-    }
-  }
+  // NOTE: PickupAuthorization creation removed - only Guardian/Admin flows can create pickups.
+  // Teachers can ONLY SELECT existing authorized pickups.
 
   DataFailed<T> _handleDioError<T>(DioException e) {
     String errorMessage = 'Error retrieving information';

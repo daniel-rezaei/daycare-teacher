@@ -311,18 +311,17 @@ class HomeRepositoryImpl extends HomeRepository {
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? checkoutPickupContactId,
-    String? checkoutPickupContactType,
+    String? pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
   }) async {
     try {
-      // مشابه createAttendance: مستقیم و ساده، بدون دریافت attendance موجود
+      // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+      // No contact/guardian/pickup creation allowed from checkout flow
       final response = await homeApi.updateAttendance(
         attendanceId: attendanceId,
         checkOutAt: checkOutAt,
         notes: notes,
         photo: photo,
-        checkoutPickupContactId: checkoutPickupContactId,
-        checkoutPickupContactType: checkoutPickupContactType,
+        pickupAuthorizationId: pickupAuthorizationId,
       );
 
       final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;

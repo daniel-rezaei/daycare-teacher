@@ -6,10 +6,8 @@ abstract class PickupAuthorizationRepository {
     required String childId,
   });
 
-  Future<DataState<PickupAuthorizationEntity>> createPickupAuthorization({
-    required String childId,
-    required String authorizedContactId,
-    String? note,
-  });
+  // NOTE: PickupAuthorization creation is ONLY allowed from Guardian/Admin flows.
+  // Teachers can ONLY SELECT existing authorized pickups.
+  // This method has been removed to enforce domain integrity.
 }
 

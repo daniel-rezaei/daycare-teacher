@@ -40,22 +40,21 @@ class CreateAttendanceEvent extends AttendanceEvent {
 }
 
 /// Event for updating attendance (check out)
-/// مشابه CreateAttendanceEvent: فقط فیلدهای لازم
+/// DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+/// No contact/guardian/pickup creation allowed from checkout flow
 class UpdateAttendanceEvent extends AttendanceEvent {
   final String attendanceId;
   final String checkOutAt;
   final String? notes;
   final String? photo; // String of file ID (first file ID if multiple)
-  final String? checkoutPickupContactId;
-  final String? checkoutPickupContactType;
+  final String? pickupAuthorizationId; // ONLY accepts existing PickupAuthorization ID
 
   const UpdateAttendanceEvent({
     required this.attendanceId,
     required this.checkOutAt,
     this.notes,
     this.photo,
-    this.checkoutPickupContactId,
-    this.checkoutPickupContactType,
+    this.pickupAuthorizationId,
   });
 
   @override
@@ -64,8 +63,7 @@ class UpdateAttendanceEvent extends AttendanceEvent {
         checkOutAt,
         notes ?? '',
         photo ?? '',
-        checkoutPickupContactId ?? '',
-        checkoutPickupContactType ?? '',
+        pickupAuthorizationId ?? '',
       ];
 }
 

@@ -17,16 +17,7 @@ class PickupAuthorizationUsecase {
     );
   }
 
-  Future<DataState<PickupAuthorizationEntity>> createPickupAuthorization({
-    required String childId,
-    required String authorizedContactId,
-    String? note,
-  }) async {
-    return await pickupAuthorizationRepository.createPickupAuthorization(
-      childId: childId,
-      authorizedContactId: authorizedContactId,
-      note: note,
-    );
-  }
+  // NOTE: PickupAuthorization creation removed - only Guardian/Admin flows can create pickups.
+  // Teachers can ONLY SELECT existing authorized pickups.
 }
 

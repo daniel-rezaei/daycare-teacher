@@ -29,21 +29,6 @@ final class GetPickupAuthorizationByChildIdFailure extends PickupAuthorizationSt
   List<Object?> get props => [message];
 }
 
-final class CreatePickupAuthorizationLoading extends PickupAuthorizationState {
-  const CreatePickupAuthorizationLoading();
-}
-
-final class CreatePickupAuthorizationSuccess extends PickupAuthorizationState {
-  final PickupAuthorizationEntity pickupAuthorization;
-  const CreatePickupAuthorizationSuccess(this.pickupAuthorization);
-  @override
-  List<Object?> get props => [pickupAuthorization];
-}
-
-final class CreatePickupAuthorizationFailure extends PickupAuthorizationState {
-  final String message;
-  const CreatePickupAuthorizationFailure(this.message);
-  @override
-  List<Object?> get props => [message];
-}
+// NOTE: CreatePickupAuthorization states removed - only Guardian/Admin flows can create pickups.
+// Teachers can ONLY SELECT existing authorized pickups.
 

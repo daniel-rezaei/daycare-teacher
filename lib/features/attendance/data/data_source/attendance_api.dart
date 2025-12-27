@@ -61,22 +61,21 @@ class AttendanceApi {
   }
 
   // به‌روزرسانی attendance (برای check out) - استفاده از PATCH
-  // مشابه createAttendance: ساده و مستقیم، بدون wrapper و فیلدهای غیرضروری
+  // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
+  // No contact/guardian/pickup creation allowed from checkout flow
   Future<Response> updateAttendance({
     required String attendanceId,
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? checkoutPickupContactId,
-    String? checkoutPickupContactType,
+    String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
   }) async {
     debugPrint('[ATTENDANCE_API] ========== updateAttendance called ==========');
     debugPrint('[ATTENDANCE_API] attendanceId: $attendanceId');
     debugPrint('[ATTENDANCE_API] checkOutAt: "$checkOutAt"');
     debugPrint('[ATTENDANCE_API] notes: $notes');
     debugPrint('[ATTENDANCE_API] photo: $photo');
-    debugPrint('[ATTENDANCE_API] checkoutPickupContactId: $checkoutPickupContactId');
-    debugPrint('[ATTENDANCE_API] checkoutPickupContactType: $checkoutPickupContactType');
+    debugPrint('[ATTENDANCE_API] pickupAuthorizationId: $pickupAuthorizationId');
     
     // فقط فیلدهای لازم - اگر checkOutAt خالی است، فقط note/photo را به‌روز می‌کنیم
     final data = <String, dynamic>{};
@@ -96,14 +95,11 @@ class AttendanceApi {
       data['photo'] = photo;
     }
 
-    if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
-      data['checkout_pickup_contact_id'] = [checkoutPickupContactId];
+    // DOMAIN LOCKDOWN: Only accept pickup_authorization_id (existing authorization)
+    // Reject any contact/guardian/pickup creation attempts
+    if (pickupAuthorizationId != null && pickupAuthorizationId.isNotEmpty) {
+      data['pickup_authorization_id'] = pickupAuthorizationId;
     }
-
-    // checkout_pickup_contact_type موقتاً حذف شده برای تست
-    // if (checkoutPickupContactType != null && checkoutPickupContactType.isNotEmpty) {
-    //   data['checkout_pickup_contact_type'] = checkoutPickupContactType;
-    // }
 
     debugPrint('[ATTENDANCE_API] ========== Final Request Body ==========');
     debugPrint('[ATTENDANCE_API] Request URL: /items/Attendance_Child/$attendanceId');
