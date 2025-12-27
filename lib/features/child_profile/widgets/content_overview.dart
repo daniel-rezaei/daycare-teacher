@@ -1,12 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_emergency_contact/domain/entity/child_emergency_contact_entity.dart';
 import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
-import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian_entity.dart';
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
+import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/emergency_contacts.dart';
 import 'package:teacher_app/features/child_profile/widgets/info_card_overview.dart';
 // ignore: unused_import
@@ -17,7 +21,6 @@ import 'package:teacher_app/features/immunization/domain/entity/immunization_ent
 import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
 // ignore: unused_import
 import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
-import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 // ignore: unused_import
 import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
@@ -64,14 +67,7 @@ class _ContentOverviewState extends State<ContentOverview> {
     }).toList();
   }
 
-  List<ChildGuardianEntity> _getAuthorizedPickup(
-    List<ChildGuardianEntity> guardians,
-  ) {
-    return guardians
-        .where((g) => g.pickupAuthorized == true)
-        .take(3)
-        .toList();
-  }
+  // Removed _getAuthorizedPickup - now using PickupAuthorization API directly
 
   String _formatLanguage(List<String>? languages) {
     if (languages == null || languages.isEmpty) return 'Not available';
@@ -194,8 +190,14 @@ class _ContentOverviewState extends State<ContentOverview> {
                         // فیلتر والدین
                         final parents = _getParents(guardians);
 
-                        // فیلتر authorized pickup
-                        final authorizedPickup = _getAuthorizedPickup(guardians);
+                        // دریافت authorized pickup از PickupAuthorization API
+                        List<PickupAuthorizationEntity> authorizedPickupList = [];
+                        if (pickupState is GetPickupAuthorizationByChildIdSuccess) {
+                          // فیلتر بر اساس actualChildId
+                          authorizedPickupList = pickupState.pickupAuthorizationList
+                              .where((pa) => pa.childId == actualChildId)
+                              .toList();
+                        }
 
                         // دریافت و فیلتر داده‌های child
                         // Dietary Restrictions
@@ -296,34 +298,50 @@ class _ContentOverviewState extends State<ContentOverview> {
                               ),
                               SizedBox(height: 34),
                               // نمایش Authorized Pick-up
-                              if (authorizedPickup.isNotEmpty) ...[
-                                Text(
-                                  'Authorized Pick-up',
-                                  style: TextStyle(
-                                    color: Color(0xff444349),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                              Text(
+                                'Authorized Pick-up',
+                                style: TextStyle(
+                                  color: Color(0xff444349),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              if (pickupState is GetPickupAuthorizationByChildIdLoading)
+                                const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Center(child: CupertinoActivityIndicator()),
+                                )
+                              else if (authorizedPickupList.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Text(
+                                    'No authorized pick-up people',
+                                    style: TextStyle(
+                                      color: Color(0xff71717A),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                )
+                              else
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      for (int i = 0; i < authorizedPickupList.length; i++) ...[
+                                        if (i > 0) SizedBox(width: 12),
+                                        AuthorizedPickupItemWidget(
+                                          pickupAuthorization: authorizedPickupList[i],
+                                          contact: _getContactById(
+                                            authorizedPickupList[i].authorizedContactId,
+                                            contacts,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
-                                SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    for (int i = 0;
-                                        i < authorizedPickup.length && i < 3;
-                                        i++) ...[
-                                      if (i > 0) SizedBox(width: 12),
-                                      PickUpWidget(
-                                        guardian: authorizedPickup[i],
-                                        contact: _getContactById(
-                                          authorizedPickup[i].contactId,
-                                          contacts,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                SizedBox(height: 32),
-                              ],
+                              SizedBox(height: 32),
                               _ExpandableInfoSection(
                                 title: Row(
                                   children: [
@@ -755,50 +773,99 @@ class _ExpandableInfoSection<T> extends StatelessWidget {
   }
 }
 
-class PickUpWidget extends StatelessWidget {
-  final ChildGuardianEntity guardian;
+// Widget for displaying authorized pick-up person
+class AuthorizedPickupItemWidget extends StatelessWidget {
+  final PickupAuthorizationEntity pickupAuthorization;
   final ContactEntity? contact;
 
-  const PickUpWidget({
+  const AuthorizedPickupItemWidget({
     super.key,
-    required this.guardian,
+    required this.pickupAuthorization,
     this.contact,
   });
+
+  String _getPhotoUrl(String? photoId) {
+    if (photoId == null || photoId.isEmpty) {
+      return '';
+    }
+    return 'http://51.79.53.56:8055/assets/$photoId';
+  }
 
   @override
   Widget build(BuildContext context) {
     final name = contact != null
         ? '${contact!.firstName ?? ''} ${contact!.lastName ?? ''}'.trim()
         : 'Unknown';
-    final capitalizedRelation = StringUtils.capitalizeFirstLetter(guardian.relation);
+    final capitalizedRelation = StringUtils.capitalizeFirstLetter(
+      pickupAuthorization.relationToChild,
+    );
     final relation = capitalizedRelation.isEmpty ? 'Unknown' : capitalizedRelation;
+    final photo = contact?.photo;
 
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color(0xffF7F7F8),
-          border: Border.all(width: 2, color: Color(0xffFAFAFA)),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name.isNotEmpty ? name : 'Unknown',
-              style: TextStyle(
-                color: Color(0xff444349),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+    return Container(
+      width: 140, // Fixed width for horizontal scroll
+      decoration: BoxDecoration(
+        color: Color(0xffF7F7F8),
+        border: Border.all(width: 2, color: Color(0xffFAFAFA)),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Avatar
+          SizedBox(
+            height: 40,
+            width: 40,
+            child: photo != null && photo.isNotEmpty
+                ? ClipOval(
+                    child: CachedNetworkImage(
+                      imageUrl: _getPhotoUrl(photo),
+                      httpHeaders: const {
+                        'Authorization':
+                            'Bearer ONtKFTGW3t9W0ZSkPDVGQqwXUrUrEmoM',
+                      },
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 40,
+                        height: 40,
+                        color: Colors.grey.shade200,
+                        child: const CupertinoActivityIndicator(),
+                      ),
+                      errorWidget: (context, url, error) =>
+                          Assets.images.image.image(),
+                    ),
+                  )
+                : Assets.images.image.image(),
+          ),
+          SizedBox(height: 8),
+          // Name
+          Text(
+            name.isNotEmpty ? name : 'Unknown',
+            style: TextStyle(
+              color: Color(0xff444349),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
-            Text(
-              relation,
-              style:
-                  TextStyle(color: Color(0xff71717A).withValues(alpha: .8)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 4),
+          // Relationship
+          Text(
+            relation,
+            style: TextStyle(
+              color: Color(0xff71717A).withValues(alpha: .8),
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
             ),
-          ],
-        ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
