@@ -157,19 +157,19 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
   ) {
     if (children.isEmpty) return 'No dietary restrictions';
     
-    final firstChild = children.first;
-    final contact = _getContactForChild(firstChild.contactId, contacts);
-    final childName = _getChildName(contact);
-    
-    final restrictions = dietaryRestrictions
-        .where((r) => r.childId == firstChild.id && r.restrictionName != null)
-        .map((r) => r.restrictionName!)
+    // Collect full names of all children with dietary restrictions
+    final childNames = children
+        .map((child) {
+          final contact = _getContactForChild(child.contactId, contacts);
+          return _getChildName(contact);
+        })
+        .where((name) => name != 'Unknown')
         .toList();
 
-    if (restrictions.isEmpty) return '$childName has dietary restrictions';
+    if (childNames.isEmpty) return 'No dietary restrictions';
     
-    final restrictionText = restrictions.join(', ');
-    return '$childName allergy to $restrictionText';
+    // Join all names with comma
+    return childNames.join(', ');
   }
 
   String _formatMedicationText(
