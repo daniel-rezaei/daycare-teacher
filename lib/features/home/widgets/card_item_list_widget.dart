@@ -61,49 +61,38 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
     return fullName.isNotEmpty ? fullName : 'Unknown';
   }
 
-  // پیدا کردن بچه‌هایی که تولد آن‌ها در 30 روز آینده است
-  List<ChildEntity> _getUpcomingBirthdays(
+  // پیدا کردن بچه‌هایی که تولد آن‌ها امروز است (فقط امروز - نه فردا یا دیروز)
+  List<ChildEntity> _getTodaysBirthdays(
     List<ChildEntity> children,
     List<ContactEntity> contacts,
   ) {
-    final now = DateTime.now();
-    final thirtyDaysLater = now.add(const Duration(days: 30));
+    final now = DateTime.now(); // Local timezone
+    final todayMonth = now.month;
+    final todayDay = now.day;
     
-    final upcomingBirthdays = children.where((child) {
+    // فیلتر کردن فقط بچه‌هایی که تولد آن‌ها امروز است (همان روز و ماه)
+    final todaysBirthdays = children.where((child) {
       if (child.dob == null || child.dob!.isEmpty) return false;
       
       try {
-        final dob = DateTime.parse(child.dob!);
-        // محاسبه تاریخ تولد امسال
-        final thisYearBirthday = DateTime(now.year, dob.month, dob.day);
-        final nextYearBirthday = DateTime(now.year + 1, dob.month, dob.day);
+        // Parse dob - handle both date-only strings (e.g., "2000-01-15") 
+        // and full ISO strings with timezone (convert to local for comparison)
+        final dobParsed = DateTime.parse(child.dob!);
+        // Convert to local time if it's a full ISO string with timezone
+        // For date-only strings, DateTime.parse already creates local time
+        final dobLocal = dobParsed.isUtc ? dobParsed.toLocal() : dobParsed;
         
-        // بررسی اینکه آیا تولد در 30 روز آینده است
-        final isThisYear = thisYearBirthday.isAfter(now.subtract(const Duration(days: 1))) &&
-                          thisYearBirthday.isBefore(thirtyDaysLater.add(const Duration(days: 1)));
-        final isNextYear = nextYearBirthday.isAfter(now.subtract(const Duration(days: 1))) &&
-                           nextYearBirthday.isBefore(thirtyDaysLater.add(const Duration(days: 1)));
-        
-        return isThisYear || isNextYear;
+        // مقایسه فقط روز و ماه - سال را نادیده می‌گیریم
+        final isBirthdayToday = dobLocal.month == todayMonth && dobLocal.day == todayDay;
+        return isBirthdayToday;
       } catch (e) {
+        debugPrint('[BIRTHDAY_DEBUG] Error parsing birthday for child ${child.id}: $e');
         return false;
       }
     }).toList();
 
-    // مرتب‌سازی بر اساس تاریخ تولد
-    upcomingBirthdays.sort((a, b) {
-      try {
-        final dobA = DateTime.parse(a.dob!);
-        final dobB = DateTime.parse(b.dob!);
-        final birthdayA = DateTime(now.year, dobA.month, dobA.day);
-        final birthdayB = DateTime(now.year, dobB.month, dobB.day);
-        return birthdayA.compareTo(birthdayB);
-      } catch (e) {
-        return 0;
-      }
-    });
-
-    return upcomingBirthdays.take(3).toList();
+    // NO SORTING - فقط لیست بچه‌هایی که تولد آن‌ها امروز است
+    return todaysBirthdays;
   }
 
   // پیدا کردن بچه‌هایی که محدودیت غذایی دارند
@@ -144,7 +133,7 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
   }
 
   String _formatBirthdayText(List<ChildEntity> children, List<ContactEntity> contacts) {
-    if (children.isEmpty) return 'No upcoming birthdays';
+    if (children.isEmpty) return 'No birthdays today';
     
     final names = children
         .map((child) {
@@ -155,7 +144,7 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         .take(3)
         .toList();
 
-    if (names.isEmpty) return 'Upcoming birthdays';
+    if (names.isEmpty) return 'Birthdays today';
     if (names.length == 1) return "${names[0]}'s Birthday";
     if (names.length == 2) return "${names[0]}'s & ${names[1]}'s Birthday";
     return "${names[0]}'s, ${names[1]} & ${names[2]} Birthday";
@@ -289,7 +278,7 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         }
 
         // پیدا کردن بچه‌های مربوطه
-        final birthdayChildren = _getUpcomingBirthdays(children, contacts);
+        final birthdayChildren = _getTodaysBirthdays(children, contacts);
         final dietaryRestrictionChildren = _getChildrenWithDietaryRestrictions(
           children,
           dietaryRestrictions,
