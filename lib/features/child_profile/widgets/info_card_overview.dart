@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian_entity.dart';
 import 'package:teacher_app/features/child_profile/widgets/phone_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -28,7 +29,8 @@ class InfoCardOverview extends StatelessWidget {
     final name = contact != null
         ? '${contact!.firstName ?? ''} ${contact!.lastName ?? ''}'.trim()
         : 'Unknown';
-    final relation = guardian.relation ?? 'Unknown';
+    final capitalizedRelation = StringUtils.capitalizeFirstLetter(guardian.relation);
+    final relation = capitalizedRelation.isEmpty ? 'Unknown' : capitalizedRelation;
     final photo = contact?.photo;
 
     return Expanded(

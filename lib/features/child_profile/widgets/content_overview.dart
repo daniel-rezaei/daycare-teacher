@@ -4,6 +4,7 @@ import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_emergency_contact/domain/entity/child_emergency_contact_entity.dart';
 import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
+import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian_entity.dart';
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/emergency_contacts.dart';
@@ -769,7 +770,8 @@ class PickUpWidget extends StatelessWidget {
     final name = contact != null
         ? '${contact!.firstName ?? ''} ${contact!.lastName ?? ''}'.trim()
         : 'Unknown';
-    final relation = guardian.relation ?? 'Unknown';
+    final capitalizedRelation = StringUtils.capitalizeFirstLetter(guardian.relation);
+    final relation = capitalizedRelation.isEmpty ? 'Unknown' : capitalizedRelation;
 
     return Expanded(
       child: Container(

@@ -7,6 +7,7 @@ import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/utils/contact_utils.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/core/utils/photo_utils.dart';
+import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
@@ -402,7 +403,10 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                pickup.relationToChild ?? AppConstants.unknownContact,
+                                                () {
+                                                  final capitalized = StringUtils.capitalizeFirstLetter(pickup.relationToChild);
+                                                  return capitalized.isEmpty ? AppConstants.unknownContact : capitalized;
+                                                }(),
                                                 style: TextStyle(
                                                   color: AppColors.textTertiary
                                                       .withValues(alpha: .8),
