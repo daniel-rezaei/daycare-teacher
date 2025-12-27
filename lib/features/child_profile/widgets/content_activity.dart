@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +10,14 @@ import 'package:teacher_app/features/attendance/presentation/bloc/attendance_blo
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_emergency_contact/domain/entity/child_emergency_contact_entity.dart';
+import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
+import 'package:teacher_app/features/child_guardian/domain/entity/child_guardian_entity.dart';
+import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/child_profile/widgets/activity_section_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/day_strip_widget.dart';
+import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 
 // Helper class برای نگهداری اطلاعات فعالیت
@@ -39,7 +46,7 @@ class _ContentActivityState extends State<ContentActivity> {
   DateTime _selectedDate = DateTime.now();
   String? _actualChildId;
   String? _classId;
-  bool _hasRequestedAttendance = false;
+  String? _lastRequestedDate; // Track last requested date to prevent duplicate requests
 
   @override
   void initState() {
@@ -67,7 +74,7 @@ class _ContentActivityState extends State<ContentActivity> {
             setState(() {
               _actualChildId = foundChild.id;
             });
-            _loadAttendance();
+            _loadAttendanceForDate(_selectedDate);
           }
         } catch (e) {
           debugPrint('[CONTENT_ACTIVITY] Child not found with contactId: ${widget.childId}');
@@ -76,30 +83,73 @@ class _ContentActivityState extends State<ContentActivity> {
     }
   }
 
-  void _loadAttendance() {
-    if (_classId != null && _actualChildId != null && !_hasRequestedAttendance) {
-      _hasRequestedAttendance = true;
-      context.read<AttendanceBloc>().add(
-        GetAttendanceByClassIdEvent(
-          classId: _classId!,
-          childId: _actualChildId,
-        ),
-      );
-      
-      // Load staff classes if not already loaded
-      final authState = context.read<AuthBloc>().state;
-      if (authState is! GetStaffClassSuccess && _classId != null) {
-        context.read<AuthBloc>().add(GetStaffClassEvent(classId: _classId!));
-      }
+  /// Load attendance for the selected date
+  /// Always requests fresh data when date changes
+  void _loadAttendanceForDate(DateTime date) {
+    if (_classId == null || _actualChildId == null) return;
+    
+    // Format date as YYYY-MM-DD for comparison
+    final dateString = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    
+    // Only request if date changed (prevent duplicate requests)
+    if (_lastRequestedDate == dateString) {
+      debugPrint('[ACTIVITY] Date unchanged, skipping request: $dateString');
+      return;
     }
+    
+    _lastRequestedDate = dateString;
+    debugPrint('[ACTIVITY] ========== Loading attendance for date: $dateString ==========');
+    debugPrint('[ACTIVITY] classId: $_classId');
+    debugPrint('[ACTIVITY] childId: $_actualChildId');
+    
+    // Request attendance
+    context.read<AttendanceBloc>().add(
+      GetAttendanceByClassIdEvent(
+        classId: _classId!,
+        childId: _actualChildId,
+      ),
+    );
+    
+    // Load staff classes if not already loaded
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! GetStaffClassSuccess && _classId != null) {
+      context.read<AuthBloc>().add(GetStaffClassEvent(classId: _classId!));
+    }
+    
+    // Load pickup-related data for checkout person resolution
+    _loadPickupData();
+  }
+
+  /// Load pickup-related data (authorization, emergency contacts, guardians)
+  void _loadPickupData() {
+    if (_actualChildId == null) return;
+    
+    debugPrint('[ACTIVITY] Loading pickup data for childId: $_actualChildId');
+    
+    // Load pickup authorizations
+    context.read<PickupAuthorizationBloc>().add(
+      GetPickupAuthorizationByChildIdEvent(childId: _actualChildId!),
+    );
+    
+    // Load emergency contacts
+    context.read<ChildEmergencyContactBloc>().add(
+      const GetAllChildEmergencyContactsEvent(),
+    );
+    
+    // Load guardians
+    context.read<ChildGuardianBloc>().add(
+      GetChildGuardianByChildIdEvent(childId: _actualChildId!),
+    );
   }
 
   void _onDateSelected(DateTime date) {
+    debugPrint('[ACTIVITY] Date selected: $date');
     setState(() {
       _selectedDate = date;
+      _lastRequestedDate = null; // Reset to force new request
     });
-    // در صورت نیاز می‌توانیم attendance را دوباره دریافت کنیم
-    // اما چون قبلاً همه attendance ها را دریافت کرده‌ایم، فقط فیلتر می‌کنیم
+    // Always trigger new API call on date change
+    _loadAttendanceForDate(date);
   }
 
   // ساخت لیست فعالیت‌ها برای یک تاریخ خاص
@@ -152,6 +202,130 @@ class _ContentActivityState extends State<ContentActivity> {
     return activities;
   }
 
+  /// Find teacher contact for CHECK-IN activities
+  ContactEntity? _findTeacher(
+    AttendanceChildEntity attendance,
+    List<StaffClassEntity> staffClasses,
+    List<ContactEntity> contacts,
+  ) {
+    if (attendance.staffId == null || attendance.staffId!.isEmpty) {
+      debugPrint('[ACTIVITY] Check-in → No staffId found for attendance ${attendance.id}');
+      return null;
+    }
+    
+    try {
+      final staffClass = staffClasses.firstWhere(
+        (sc) => sc.staffId == attendance.staffId,
+      );
+      
+      if (staffClass.contactId != null && staffClass.contactId!.isNotEmpty) {
+        final contact = ContactUtils.getContactById(
+          staffClass.contactId,
+          contacts,
+        );
+        if (contact != null) {
+          final teacherName = ContactUtils.getContactName(contact);
+          debugPrint('[ACTIVITY] Check-in → Teacher: $teacherName (staffId: ${attendance.staffId})');
+          return contact;
+        }
+      }
+    } catch (e) {
+      debugPrint('[ACTIVITY] Check-in → StaffClass not found for staffId: ${attendance.staffId}');
+    }
+    
+    return null;
+  }
+
+  /// Find pickup person for CHECK-OUT activities
+  /// Priority: 1. Pickup Authorization, 2. Emergency Contact, 3. Guardian
+  /// Note: checkout_pickup_contact_id would be in raw API response but not available in entity
+  ContactEntity? _findPickupPerson(
+    AttendanceChildEntity attendance,
+    List<PickupAuthorizationEntity> pickupAuthorizations,
+    List<ChildEmergencyContactEntity> emergencyContacts,
+    List<ChildGuardianEntity> guardians,
+    List<ContactEntity> contacts,
+  ) {
+    debugPrint('[ACTIVITY] ========== Finding pickup person for attendance ${attendance.id} ==========');
+    debugPrint('[ACTIVITY] check_out_at: ${attendance.checkOutAt}');
+    debugPrint('[ACTIVITY] child_id: ${attendance.childId}');
+    
+    // Priority 1: Pickup Authorization (any authorized pickup for the child)
+    if (attendance.childId != null && attendance.childId!.isNotEmpty) {
+      try {
+        final pickupAuth = pickupAuthorizations.firstWhere(
+          (pa) => pa.childId == attendance.childId,
+        );
+        
+        if (pickupAuth.authorizedContactId != null && 
+            pickupAuth.authorizedContactId!.isNotEmpty) {
+          final contact = ContactUtils.getContactById(
+            pickupAuth.authorizedContactId,
+            contacts,
+          );
+          if (contact != null) {
+            final personName = ContactUtils.getContactName(contact);
+            debugPrint('[ACTIVITY] Check-out → Picked by: $personName (Authorized Pick-up #${pickupAuth.id})');
+            return contact;
+          }
+        }
+      } catch (e) {
+        debugPrint('[ACTIVITY] No authorized pickup found for childId: ${attendance.childId}');
+      }
+    }
+    
+    // Priority 2: Emergency Contact
+    if (attendance.childId != null && attendance.childId!.isNotEmpty) {
+      try {
+        final emergencyContact = emergencyContacts.firstWhere(
+          (ec) => ec.childId == attendance.childId && (ec.isActive == true || ec.isActive == null),
+        );
+        
+        if (emergencyContact.contactId != null && emergencyContact.contactId!.isNotEmpty) {
+          final contact = ContactUtils.getContactById(
+            emergencyContact.contactId,
+            contacts,
+          );
+          if (contact != null) {
+            final personName = ContactUtils.getContactName(contact);
+            debugPrint('[ACTIVITY] Check-out → Picked by: $personName (Emergency Contact)');
+            return contact;
+          }
+        }
+      } catch (e) {
+        debugPrint('[ACTIVITY] No emergency contact found for childId: ${attendance.childId}');
+      }
+    }
+    
+    // Priority 3: Guardian (fallback)
+    if (attendance.childId != null && attendance.childId!.isNotEmpty) {
+      try {
+        // Find first active guardian for the child
+        final guardian = guardians.firstWhere(
+          (g) => g.childId == attendance.childId && 
+                 (g.pickupAuthorized == true || g.pickupAuthorized == null),
+        );
+        
+        if (guardian.contactId != null && guardian.contactId!.isNotEmpty) {
+          final contact = ContactUtils.getContactById(
+            guardian.contactId,
+            contacts,
+          );
+          if (contact != null) {
+            final personName = ContactUtils.getContactName(contact);
+            debugPrint('[ACTIVITY] Check-out → Picked by: $personName (Guardian)');
+            return contact;
+          }
+        }
+      } catch (e) {
+        debugPrint('[ACTIVITY] Guardian not found for childId: ${attendance.childId}');
+      }
+    }
+    
+    debugPrint('[ACTIVITY] Check-out → No pickup person found → Will show "Unknown Pickup"');
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChildBloc, ChildState>(
@@ -167,7 +341,7 @@ class _ContentActivityState extends State<ContentActivity> {
                 setState(() {
                   _actualChildId = foundChild.id;
                 });
-                _loadAttendance();
+                _loadAttendanceForDate(_selectedDate);
               }
             });
           } catch (e) {
@@ -209,94 +383,159 @@ class _ContentActivityState extends State<ContentActivity> {
                   padding: EdgeInsets.fromLTRB(16, 16, 16, 36),
                   child: BlocBuilder<AttendanceBloc, AttendanceState>(
                     builder: (context, attendanceState) {
-                      List<AttendanceChildEntity> attendanceList = [];
-                      
-                      if (attendanceState is GetAttendanceByClassIdSuccess) {
-                        attendanceList = attendanceState.attendanceList;
-                      }
-                      
-                      final activities = _getActivitiesForDate(
-                        attendanceList,
-                        _selectedDate,
-                      );
-                      
-                      if (activities.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Text(
-                              'No activity for this date',
-                              style: TextStyle(
-                                color: Color(0xff6D6B76),
-                                fontSize: 14,
+                        // Show loading indicator while requesting
+                        if (attendanceState is GetAttendanceByClassIdLoading) {
+                          return Center(
+                            child: CupertinoActivityIndicator(),
+                          );
+                        }
+                        
+                        List<AttendanceChildEntity> attendanceList = [];
+                        
+                        if (attendanceState is GetAttendanceByClassIdSuccess) {
+                          attendanceList = attendanceState.attendanceList;
+                          
+                          // Log full raw API response data
+                          debugPrint('[ACTIVITY] ========== RAW API RESPONSE RECEIVED ==========');
+                          debugPrint('[ACTIVITY] Total attendance items: ${attendanceList.length}');
+                          
+                          // Log each attendance item with all available fields
+                          for (var i = 0; i < attendanceList.length; i++) {
+                            final att = attendanceList[i];
+                            final eventType = att.checkOutAt != null && att.checkOutAt!.isNotEmpty 
+                                ? 'check_out' 
+                                : 'check_in';
+                            
+                            debugPrint('[ACTIVITY] ========== Attendance Item #${i + 1} ==========');
+                            debugPrint('[ACTIVITY]   - id: ${att.id}');
+                            debugPrint('[ACTIVITY]   - event_type: $eventType');
+                            debugPrint('[ACTIVITY]   - check_in_at: ${att.checkInAt}');
+                            debugPrint('[ACTIVITY]   - check_out_at: ${att.checkOutAt}');
+                            debugPrint('[ACTIVITY]   - child_id: ${att.childId}');
+                            debugPrint('[ACTIVITY]   - staff_id: ${att.staffId}');
+                            debugPrint('[ACTIVITY]   - check_in_method: ${att.checkInMethod}');
+                            debugPrint('[ACTIVITY]   - check_out_method: ${att.checkOutMethod}');
+                            debugPrint('[ACTIVITY]   - Notes: ${att.notes}');
+                            
+                            if (eventType == 'check_out') {
+                              debugPrint('[ACTIVITY]   - pickup_person_id: (not available in entity - will resolve from sources)');
+                              debugPrint('[ACTIVITY]   - pickup authorization object: (will check from PickupAuthorizationBloc)');
+                            } else {
+                              debugPrint('[ACTIVITY]   - staff_name: (will resolve from staff_id)');
+                            }
+                          }
+                        }
+                        
+                        final activities = _getActivitiesForDate(
+                          attendanceList,
+                          _selectedDate,
+                        );
+                        
+                        if (activities.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(32.0),
+                              child: Text(
+                                'No activity for this date',
+                                style: TextStyle(
+                                  color: Color(0xff6D6B76),
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      }
-                      
-                      return BlocBuilder<AuthBloc, AuthState>(
-                        builder: (context, authState) {
-                          List<StaffClassEntity> staffClasses = [];
-                          if (authState is GetStaffClassSuccess) {
-                            staffClasses = authState.staffClasses;
-                          }
-                          final contacts = childState.contacts ?? [];
-                          
-                          return SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ...activities.map((activity) {
-                                  // پیدا کردن StaffClassEntity از staffId
-                                  StaffClassEntity? staffClass;
-                                  if (activity.attendance.staffId != null && 
-                                      activity.attendance.staffId!.isNotEmpty) {
-                                    try {
-                                      staffClass = staffClasses.firstWhere(
-                                        (sc) => sc.staffId == activity.attendance.staffId,
-                                      );
-                                    } catch (e) {
-                                      // StaffClass not found
-                                    }
-                                  }
-                                  
-                                  // پیدا کردن ContactEntity از contactId
-                                  ContactEntity? contact;
-                                  if (staffClass?.contactId != null && 
-                                      staffClass!.contactId!.isNotEmpty) {
-                                    contact = ContactUtils.getContactById(
-                                      staffClass.contactId,
-                                      contacts,
-                                    );
-                                  }
-                                  
-                                  // ساخت یک attendance entity موقت برای نمایش
-                                  final displayAttendance = AttendanceChildEntity(
-                                    id: activity.attendance.id,
-                                    checkInAt: activity.isCheckOut ? null : activity.attendance.checkInAt,
-                                    checkOutAt: activity.isCheckOut ? activity.attendance.checkOutAt : null,
-                                    childId: activity.attendance.childId,
-                                    classId: activity.attendance.classId,
-                                    staffId: activity.attendance.staffId,
-                                    checkInMethod: activity.isCheckOut ? null : activity.attendance.checkInMethod,
-                                    checkOutMethod: activity.isCheckOut ? activity.attendance.checkOutMethod : null,
-                                    notes: activity.attendance.notes,
-                                  );
-                                  
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: ActivitySectionWidget(
-                                      attendance: displayAttendance,
-                                      contact: contact,
-                                    ),
-                                  );
-                                }).toList(),
-                              ],
-                            ),
                           );
-                        },
-                      );
+                        }
+                        
+                        return BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, authState) {
+                            return BlocBuilder<PickupAuthorizationBloc, PickupAuthorizationState>(
+                              builder: (context, pickupState) {
+                                return BlocBuilder<ChildEmergencyContactBloc, ChildEmergencyContactState>(
+                                  builder: (context, emergencyState) {
+                                    return BlocBuilder<ChildGuardianBloc, ChildGuardianState>(
+                                      builder: (context, guardianState) {
+                                        List<StaffClassEntity> staffClasses = [];
+                                        if (authState is GetStaffClassSuccess) {
+                                          staffClasses = authState.staffClasses;
+                                        }
+                                        final contacts = childState.contacts ?? [];
+                                        
+                                        // Get pickup authorizations
+                                        List<PickupAuthorizationEntity> pickupAuthorizations = [];
+                                        if (pickupState is GetPickupAuthorizationByChildIdSuccess) {
+                                          pickupAuthorizations = pickupState.pickupAuthorizationList;
+                                        }
+                                        
+                                        // Get emergency contacts
+                                        List<ChildEmergencyContactEntity> emergencyContacts = [];
+                                        if (emergencyState is GetAllChildEmergencyContactsSuccess) {
+                                          emergencyContacts = emergencyState.emergencyContactList;
+                                        }
+                                        
+                                        // Get guardians
+                                        List<ChildGuardianEntity> guardians = [];
+                                        if (guardianState is GetChildGuardianByChildIdSuccess) {
+                                          guardians = guardianState.guardianList;
+                                        }
+                                        
+                                        return SingleChildScrollView(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              ...activities.map((activity) {
+                                                ContactEntity? contact;
+                                                
+                                                if (activity.isCheckOut) {
+                                                  // CHECK-OUT: Find pickup person
+                                                  contact = _findPickupPerson(
+                                                    activity.attendance,
+                                                    pickupAuthorizations,
+                                                    emergencyContacts,
+                                                    guardians,
+                                                    contacts,
+                                                  );
+                                                } else {
+                                                  // CHECK-IN: Find teacher
+                                                  contact = _findTeacher(
+                                                    activity.attendance,
+                                                    staffClasses,
+                                                    contacts,
+                                                  );
+                                                }
+                                                
+                                                // ساخت یک attendance entity موقت برای نمایش
+                                                final displayAttendance = AttendanceChildEntity(
+                                                  id: activity.attendance.id,
+                                                  checkInAt: activity.isCheckOut ? null : activity.attendance.checkInAt,
+                                                  checkOutAt: activity.isCheckOut ? activity.attendance.checkOutAt : null,
+                                                  childId: activity.attendance.childId,
+                                                  classId: activity.attendance.classId,
+                                                  staffId: activity.attendance.staffId,
+                                                  checkInMethod: activity.isCheckOut ? null : activity.attendance.checkInMethod,
+                                                  checkOutMethod: activity.isCheckOut ? activity.attendance.checkOutMethod : null,
+                                                  notes: activity.attendance.notes,
+                                                );
+                                                
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(bottom: 12),
+                                                  child: ActivitySectionWidget(
+                                                    attendance: displayAttendance,
+                                                    contact: contact,
+                                                    isCheckOut: activity.isCheckOut,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
                     },
                   ),
                 ),

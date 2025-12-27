@@ -10,11 +10,13 @@ import 'package:teacher_app/gen/assets.gen.dart';
 class ActivitySectionWidget extends StatelessWidget {
   final AttendanceChildEntity attendance;
   final ContactEntity? contact;
+  final bool isCheckOut; // Explicit flag to know if this is a check-out card
 
   const ActivitySectionWidget({
     super.key,
     required this.attendance,
     this.contact,
+    required this.isCheckOut,
   });
 
   String _getTime(String? dateTimeStr) {
@@ -200,8 +202,7 @@ class ActivitySectionWidget extends StatelessWidget {
                   if (activityType == 'Check_Out' && 
                       attendance.checkOutMethod != null && 
                       attendance.checkOutMethod!.isNotEmpty &&
-                      attendance.checkOutMethod == 'manually' &&
-                      contact != null) ...[
+                      attendance.checkOutMethod == 'manually') ...[
                     SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
