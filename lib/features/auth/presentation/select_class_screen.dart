@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
@@ -11,8 +13,13 @@ import 'package:teacher_app/gen/assets.gen.dart';
 
 class SelectClassScreen extends StatefulWidget {
   final List<ClassRoomEntity> classRooms;
+  final bool fromSharedModeSwitch; // CRITICAL: Flag indicating navigation from Shared Mode switch
 
-  const SelectClassScreen({super.key, required this.classRooms});
+  const SelectClassScreen({
+    super.key,
+    required this.classRooms,
+    this.fromSharedModeSwitch = false,
+  });
 
   @override
   State<SelectClassScreen> createState() => _SelectClassScreenState();
@@ -20,6 +27,7 @@ class SelectClassScreen extends StatefulWidget {
 
 class _SelectClassScreenState extends State<SelectClassScreen> {
   String? selectedClassId;
+  DateTime? _lastBackPressTime; // For double-tap to exit
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +47,43 @@ class _SelectClassScreenState extends State<SelectClassScreen> {
           );
         }
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              BackTitleWidget(
-                title: 'Select Class',
-                onTap: () => Navigator.pop(context),
-              ),
+      child: PopScope(
+        // CRITICAL: Intercept back button when fromSharedModeSwitch is true
+        canPop: !widget.fromSharedModeSwitch,
+        onPopInvokedWithResult: widget.fromSharedModeSwitch
+            ? (didPop, result) async {
+                if (didPop) return;
+                await _handleBackPress();
+              }
+            : null,
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              children: [
+                // CRITICAL: Hide back arrow when fromSharedModeSwitch is true
+                if (!widget.fromSharedModeSwitch)
+                  BackTitleWidget(
+                    title: 'Select Class',
+                    onTap: () => Navigator.pop(context),
+                  )
+                else
+                  // Show title without back button when from Shared Mode switch
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 32), // Spacer to align with other screens
+                        const Text(
+                          'Select Class',
+                          style: TextStyle(
+                            color: Color(0xff444349),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
               const SizedBox(height: 40),
               Assets.images.logoSample.image(height: 116),
@@ -117,6 +154,34 @@ class _SelectClassScreenState extends State<SelectClassScreen> {
           ),
         ),
       ),
+      ),
     );
+  }
+
+  /// CRITICAL: Handle back button press when from Shared Mode switch
+  /// Shows "Press back again to exit the app" on first press
+  /// Exits app on second press within 2 seconds
+  Future<void> _handleBackPress() async {
+    final now = DateTime.now();
+    
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      // First press or more than 2 seconds since last press
+      _lastBackPressTime = now;
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Press back again to exit the app'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      // Second press within 2 seconds - exit app
+      if (mounted) {
+        SystemNavigator.pop();
+      }
+    }
   }
 }

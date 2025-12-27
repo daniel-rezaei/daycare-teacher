@@ -312,19 +312,35 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     );
   }
 
-  void _navigateToSelectClass() {
+  void _navigateToSelectClass() async {
+    debugPrint('[SHARED_MODE_SWITCH] 🔒 Starting Shared Mode logout flow');
+    
+    // CRITICAL: Clear session context immediately
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('class_id');
+    await prefs.remove('contact_id');
+    await prefs.remove('staff_id');
+    await prefs.remove('selected_class');
+    debugPrint('[SHARED_MODE_SWITCH] ✅ Cleared session context (class_id, contact_id, staff_id, selected_class)');
+    
+    // Clear HomeBloc state by resetting to initial
     final homeBloc = context.read<HomeBloc>();
+    // Note: HomeBloc state will be naturally cleared when navigating away
+    
     final currentState = homeBloc.state;
     
-    // اگر کلاس‌ها قبلاً دریافت شده باشند، مستقیماً به صفحه برو
+    // CRITICAL: Use pushAndRemoveUntil to reset entire navigation stack
+    // This makes returning to Home technically impossible
     if (currentState.classRooms != null && currentState.classRooms!.isNotEmpty) {
-      Navigator.push(
-        context,
+      debugPrint('[SHARED_MODE_SWITCH] 🚪 Navigating with hard reset (pushAndRemoveUntil)');
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => SelectClassScreen(
             classRooms: currentState.classRooms!,
+            fromSharedModeSwitch: true, // CRITICAL: Flag for back button interception
           ),
         ),
+        (_) => false, // Remove all previous routes
       );
     } else {
       // در غیر این صورت، ابتدا کلاس‌ها را دریافت کن
@@ -338,13 +354,15 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
           listener: (context, state) {
             if (state.classRooms != null && state.classRooms!.isNotEmpty) {
               Navigator.pop(dialogContext); // بستن dialog
-              Navigator.push(
-                context,
+              debugPrint('[SHARED_MODE_SWITCH] 🚪 Navigating with hard reset (pushAndRemoveUntil)');
+              Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (context) => SelectClassScreen(
                     classRooms: state.classRooms!,
+                    fromSharedModeSwitch: true, // CRITICAL: Flag for back button interception
                   ),
                 ),
+                (_) => false, // Remove all previous routes
               );
             } else if (state.classRoomsError != null) {
               Navigator.pop(dialogContext); // بستن dialog
