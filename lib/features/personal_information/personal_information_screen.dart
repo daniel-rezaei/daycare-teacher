@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
+import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
@@ -304,9 +305,11 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                                       MailCardWidget(
                                         icon: Assets.images.phoneRounded.svg(),
                                         title: 'Phone',
-                                        subTitle: phone.isNotEmpty
-                                            ? phone
-                                            : 'Not available',
+                                        subTitle: () {
+                                          if (phone.isEmpty) return 'Not available';
+                                          final formatted = StringUtils.formatCanadianPhoneNumber(phone);
+                                          return formatted.isNotEmpty ? formatted : phone; // Fallback to original if formatting fails
+                                        }(),
                                       ),
                                     ],
                                   );
