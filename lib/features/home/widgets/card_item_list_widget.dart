@@ -179,30 +179,19 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
   ) {
     if (children.isEmpty) return 'No medications';
     
-    final firstChild = children.first;
-    final contact = _getContactForChild(firstChild.contactId, contacts);
-    final childName = _getChildName(contact);
-    
-    final childMedications = medications
-        .where((m) => m.childId == firstChild.id && 
-                     m.medicationName != null &&
-                     m.archived != true)
-        .map((m) => m.medicationName!)
+    // Collect full names of all children with medications
+    final childNames = children
+        .map((child) {
+          final contact = _getContactForChild(child.contactId, contacts);
+          return _getChildName(contact);
+        })
+        .where((name) => name != 'Unknown')
         .toList();
 
-    if (childMedications.isEmpty) return '$childName has medications';
+    if (childNames.isEmpty) return 'No medications';
     
-    final medicationText = childMedications.first;
-    final timeOfDay = medications
-        .where((m) => m.childId == firstChild.id && m.timeOfDay != null)
-        .map((m) => m.timeOfDay!)
-        .firstOrNull;
-    
-    if (timeOfDay != null) {
-      return '$childName $medicationText tablet at ${timeOfDay.replaceAll('_', ' ')}';
-    }
-    
-    return '$childName $medicationText tablet';
+    // Join all names with comma
+    return childNames.join(', ');
   }
 
   List<Widget> _buildChildAvatars(
