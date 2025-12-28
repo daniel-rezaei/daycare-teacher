@@ -1,9 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
+import 'package:teacher_app/features/messages/select_childs_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class LogActivityScreen extends StatelessWidget {
+class LogActivityScreen extends StatefulWidget {
   const LogActivityScreen({super.key});
+
+  @override
+  State<LogActivityScreen> createState() => _LogActivityScreenState();
+}
+
+class _LogActivityScreenState extends State<LogActivityScreen> {
+  String? _classId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClassId();
+  }
+
+  Future<void> _loadClassId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    debugPrint('[LOG_ACTIVITY] Loading class_id: $savedClassId');
+    
+    if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
+    }
+  }
+
+  void _navigateToMealActivity(BuildContext context) async {
+    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Meal Activity');
+    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
+    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
+    
+    // Navigate to SelectChildsScreen
+    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
+    // Back button will just navigate back without opening BottomSheet
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SelectChildsScreen(
+          returnSelectedChildren: true,
+          classId: _classId,
+        ),
+      ),
+    );
+
+    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
+    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
+    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +122,10 @@ class LogActivityScreen extends StatelessWidget {
                             child: InfoCardLogActivity(
                               icon: Assets.images.lunchPng.image(height: 48),
                               title: 'Meal',
-                              onTap: () {},
+                              onTap: () {
+                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Meal flow ==========');
+                                _navigateToMealActivity(context);
+                              },
                             ),
                           ),
                           SizedBox(
