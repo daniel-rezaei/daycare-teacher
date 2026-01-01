@@ -33,6 +33,7 @@ class MealActivityBottomSheet extends StatefulWidget {
 class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
   
   String? _selectedMealType;
@@ -64,6 +65,7 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
   @override
   void dispose() {
     _descriptionController.dispose();
+    _tagController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -148,6 +150,20 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
     setState(() {
       _selectedQuantity = value;
     });
+  }
+
+  void _onTagSubmitted(String value) {
+    final tag = value.trim();
+    if (tag.isNotEmpty && !_tags.contains(tag)) {
+      debugPrint('[MEAL_ACTIVITY] Adding tag (LOCAL ONLY): $tag');
+      setState(() {
+        _tags.add(tag);
+      });
+      _tagController.clear();
+      debugPrint('[MEAL_ACTIVITY] Tag added successfully - total tags: ${_tags.length}');
+    } else if (_tags.contains(tag)) {
+      debugPrint('[MEAL_ACTIVITY] Tag already exists: $tag');
+    }
   }
 
   void _onTagRemoved(String tag) {
@@ -413,47 +429,72 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  if (_tags.isEmpty)
-                    const Text(
-                      'No tags added',
-                      style: TextStyle(
+                  const SizedBox(height: 12),
+                  // Tag Input Field
+                  TextField(
+                    controller: _tagController,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      hintText: 'Enter tag and press done',
+                      hintStyle: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 14,
                       ),
-                    )
-                  else
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.divider,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.divider,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
+                    onSubmitted: _onTagSubmitted,
+                  ),
+                  const SizedBox(height: 12),
+                  // Tag Chips Display
+                  if (_tags.isNotEmpty)
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: _tags.map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(16),
+                        return Chip(
+                          label: Text(
+                            tag,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () => _onTagRemoved(tag),
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
+                          backgroundColor: AppColors.primaryLight,
+                          deleteIcon: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          onDeleted: () => _onTagRemoved(tag),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         );
                       }).toList(),
