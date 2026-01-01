@@ -39,7 +39,12 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
   String? _selectedQuantity;
   List<String> _tags = [];
   
+  // Options loaded from backend
+  List<String> _mealTypeOptions = [];
+  List<String> _quantityOptions = [];
+  
   bool _isSubmitting = false;
+  bool _isLoadingOptions = true;
   final ActivityMealsApi _api = GetIt.instance<ActivityMealsApi>();
   final FileUploadUsecase _fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
 
@@ -51,8 +56,7 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
     debugPrint('[MEAL_ACTIVITY] DateTime: ${widget.dateTime}');
     
     // Load meal types and quantities from API
-    _loadMealTypes();
-    _loadQuantities();
+    _loadAllOptions();
     // Tags are LOCAL-ONLY - no API loading needed
     debugPrint('[MEAL_ACTIVITY] Tags are LOCAL-ONLY - no API calls for tags');
   }
@@ -66,26 +70,58 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
 
   Future<void> _loadMealTypes() async {
     try {
-      debugPrint('[MEAL_ACTIVITY] Loading meal types...');
-      final response = await _api.getMealTypes();
-      debugPrint('[MEAL_ACTIVITY] Meal types response: ${response.statusCode}');
-      // Extract unique meal types from response
-      // This would need to be implemented based on actual API response structure
+      debugPrint('[MEAL_ACTIVITY] Loading meal types from backend...');
+      final options = await _api.getMealTypes();
+      debugPrint('[MEAL_ACTIVITY] Meal types loaded: $options');
+      if (mounted) {
+        setState(() {
+          _mealTypeOptions = options;
+        });
+      }
     } catch (e, stackTrace) {
       debugPrint('[MEAL_ACTIVITY] Error loading meal types: $e');
       debugPrint('[MEAL_ACTIVITY] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _mealTypeOptions = [];
+        });
+      }
     }
   }
 
   Future<void> _loadQuantities() async {
     try {
-      debugPrint('[MEAL_ACTIVITY] Loading quantities...');
-      final response = await _api.getQuantities();
-      debugPrint('[MEAL_ACTIVITY] Quantities response: ${response.statusCode}');
-      // Extract unique quantities from response
+      debugPrint('[MEAL_ACTIVITY] Loading quantities from backend...');
+      final options = await _api.getQuantities();
+      debugPrint('[MEAL_ACTIVITY] Quantities loaded: $options');
+      if (mounted) {
+        setState(() {
+          _quantityOptions = options;
+        });
+      }
     } catch (e, stackTrace) {
       debugPrint('[MEAL_ACTIVITY] Error loading quantities: $e');
       debugPrint('[MEAL_ACTIVITY] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _quantityOptions = [];
+        });
+      }
+    }
+  }
+
+  Future<void> _loadAllOptions() async {
+    setState(() {
+      _isLoadingOptions = true;
+    });
+    await Future.wait([
+      _loadMealTypes(),
+      _loadQuantities(),
+    ]);
+    if (mounted) {
+      setState(() {
+        _isLoadingOptions = false;
+      });
     }
   }
 
@@ -342,19 +378,30 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
                   ],
 
                   // Type Selector
-                  MealTypeSelectorWidget(
-                    title: 'Type',
-                    selectedValue: _selectedMealType,
-                    onChanged: _onMealTypeChanged,
-                  ),
+                  if (_isLoadingOptions)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else
+                    MealTypeSelectorWidget(
+                      title: 'Type',
+                      options: _mealTypeOptions,
+                      selectedValue: _selectedMealType,
+                      onChanged: _onMealTypeChanged,
+                    ),
                   const SizedBox(height: 24),
 
                   // Quantity Selector
-                  MealTypeSelectorWidget(
-                    title: 'Quantity',
-                    selectedValue: _selectedQuantity,
-                    onChanged: _onQuantityChanged,
-                  ),
+                  if (!_isLoadingOptions)
+                    MealTypeSelectorWidget(
+                      title: 'Quantity',
+                      options: _quantityOptions,
+                      selectedValue: _selectedQuantity,
+                      onChanged: _onQuantityChanged,
+                    ),
                   const SizedBox(height: 24),
 
                   // Tag Section

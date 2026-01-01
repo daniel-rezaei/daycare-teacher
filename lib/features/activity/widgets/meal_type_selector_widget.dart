@@ -5,28 +5,15 @@ class MealTypeSelectorWidget extends StatelessWidget {
   final String title;
   final String? selectedValue;
   final ValueChanged<String?> onChanged;
-  final List<String> options;
+  final List<String> options; // REQUIRED - must be provided from backend
 
   const MealTypeSelectorWidget({
     super.key,
     required this.title,
     required this.selectedValue,
     required this.onChanged,
-    this.options = const [],
+    required this.options, // REQUIRED - no fallback options
   });
-
-  // Default options if not provided
-  List<String> get _options {
-    if (options.isNotEmpty) return options;
-    
-    // Default options based on common meal types and quantities
-    if (title == 'Type') {
-      return ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
-    } else if (title == 'Quantity') {
-      return ['None', 'Little', 'Some', 'Most', 'All'];
-    }
-    return [];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +32,7 @@ class MealTypeSelectorWidget extends StatelessWidget {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: _options.map((option) {
+          children: options.map((option) {
             final isSelected = selectedValue == option;
             
             return Material(

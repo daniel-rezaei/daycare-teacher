@@ -63,26 +63,60 @@ class ActivityMealsApi {
     }
   }
 
-  /// Get meal type options
-  Future<Response> getMealTypes() async {
-    return await httpclient.get(
-      '/items/activity_meals',
-      queryParameters: {
-        'fields': 'meal_type',
-        'limit': 1000,
-      },
-    );
+  /// Get meal type options from field metadata
+  /// Returns list of choice values from data.meta.options.choices[].value
+  Future<List<String>> getMealTypes() async {
+    debugPrint('[MEAL_API] Fetching meal type options from /fields/activity_meals/meal_type');
+    try {
+      final response = await httpclient.get('/fields/activity_meals/meal_type');
+      debugPrint('[MEAL_API] Meal type response status: ${response.statusCode}');
+      debugPrint('[MEAL_API] Meal type response data: ${response.data}');
+      
+      final root = response.data as Map<String, dynamic>;
+      final data = root['data'] as Map<String, dynamic>;
+      final meta = data['meta'] as Map<String, dynamic>;
+      final options = meta['options'] as Map<String, dynamic>;
+      final choices = options['choices'] as List<dynamic>;
+
+      final values = choices
+          .map((e) => e['value'].toString())
+          .toList();
+
+      debugPrint('[MEAL_API] Parsed meal type values: $values');
+      return values;
+    } catch (e, stackTrace) {
+      debugPrint('[MEAL_API] Error fetching meal types: $e');
+      debugPrint('[MEAL_API] StackTrace: $stackTrace');
+      return [];
+    }
   }
 
-  /// Get quantity options
-  Future<Response> getQuantities() async {
-    return await httpclient.get(
-      '/items/activity_meals',
-      queryParameters: {
-        'fields': 'quantity',
-        'limit': 1000,
-      },
-    );
+  /// Get quantity options from field metadata
+  /// Returns list of choice values from data.meta.options.choices[].value
+  Future<List<String>> getQuantities() async {
+    debugPrint('[MEAL_API] Fetching quantity options from /fields/activity_meals/quantity');
+    try {
+      final response = await httpclient.get('/fields/activity_meals/quantity');
+      debugPrint('[MEAL_API] Quantity response status: ${response.statusCode}');
+      debugPrint('[MEAL_API] Quantity response data: ${response.data}');
+      
+      final root = response.data as Map<String, dynamic>;
+      final data = root['data'] as Map<String, dynamic>;
+      final meta = data['meta'] as Map<String, dynamic>;
+      final options = meta['options'] as Map<String, dynamic>;
+      final choices = options['choices'] as List<dynamic>;
+
+      final values = choices
+          .map((e) => e['value'].toString())
+          .toList();
+
+      debugPrint('[MEAL_API] Parsed quantity values: $values');
+      return values;
+    } catch (e, stackTrace) {
+      debugPrint('[MEAL_API] Error fetching quantities: $e');
+      debugPrint('[MEAL_API] StackTrace: $stackTrace');
+      return [];
+    }
   }
 
   // Tags are LOCAL-ONLY - removed getTags() method
