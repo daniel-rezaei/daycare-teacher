@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
@@ -83,10 +84,18 @@ class ActivityMealsApi {
     }
 
     if (photo != null && photo.isNotEmpty) {
-      data['photo'] = photo;
+      data['photo'] = {
+        'create': [
+          {'directus_files_id': photo}
+        ]
+      };
     }
 
     debugPrint('[MEAL_API] Meal details request data: $data');
+
+    debugPrint('================= DIRECTUS RAW BODY =================');
+    debugPrint(const JsonEncoder.withIndent('  ').convert(data));
+    debugPrint('=====================================================');
 
     try {
       final response = await httpclient.post(
