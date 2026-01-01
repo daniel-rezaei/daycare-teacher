@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
@@ -44,6 +46,9 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
   List<String> _mealTypeOptions = [];
   List<String> _quantityOptions = [];
   
+  // Class ID for creating activities
+  String? _classId;
+  
   bool _isSubmitting = false;
   bool _isLoadingOptions = true;
   final ActivityMealsApi _api = GetIt.instance<ActivityMealsApi>();
@@ -56,10 +61,27 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
     debugPrint('[MEAL_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
     debugPrint('[MEAL_ACTIVITY] DateTime: ${widget.dateTime}');
     
-    // Load meal types and quantities from API
+    // Load classId and meal options
+    _loadClassId();
     _loadAllOptions();
-    // Tags are LOCAL-ONLY - no API loading needed
-    debugPrint('[MEAL_ACTIVITY] Tags are LOCAL-ONLY - no API calls for tags');
+  }
+
+  Future<void> _loadClassId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedClassId = prefs.getString(AppConstants.classIdKey);
+      if (savedClassId != null && savedClassId.isNotEmpty) {
+        setState(() {
+          _classId = savedClassId;
+        });
+        debugPrint('[MEAL_ACTIVITY] ClassId loaded: $_classId');
+      } else {
+        debugPrint('[MEAL_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[MEAL_ACTIVITY] Error loading classId: $e');
+      debugPrint('[MEAL_ACTIVITY] StackTrace: $stackTrace');
+    }
   }
 
   @override
@@ -208,16 +230,23 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
     debugPrint('[MEAL_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
     debugPrint('[MEAL_ACTIVITY] Meal type: $_selectedMealType');
     debugPrint('[MEAL_ACTIVITY] Quantity: $_selectedQuantity');
-    debugPrint('[MEAL_ACTIVITY] Tags (LOCAL-ONLY, NOT sent to API): $_tags');
+    debugPrint('[MEAL_ACTIVITY] Tags: $_tags');
     debugPrint('[MEAL_ACTIVITY] Description: ${_descriptionController.text}');
     debugPrint('[MEAL_ACTIVITY] Images: ${_images.length}');
-    debugPrint('[MEAL_ACTIVITY] CRITICAL: Tags will NOT be included in API payload');
 
     // Validation
     if (widget.selectedChildren.isEmpty) {
       debugPrint('[MEAL_ACTIVITY] Validation failed: No children selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one child')),
+      );
+      return;
+    }
+
+    if (_classId == null || _classId!.isEmpty) {
+      debugPrint('[MEAL_ACTIVITY] Validation failed: No classId available');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
       return;
     }
@@ -249,16 +278,11 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
         photoFileId = await _uploadPhoto(_images.first);
       }
 
-      // Format date_time in UTC ISO 8601 format
-      final dateTimeUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[MEAL_ACTIVITY] date_time (UTC): $dateTimeUtc');
+      // Format start_at in UTC ISO 8601 format
+      final startAtUtc = widget.dateTime.toUtc().toIso8601String();
+      debugPrint('[MEAL_ACTIVITY] start_at (UTC): $startAtUtc');
 
-      // CRITICAL: Tags are LOCAL-ONLY - NOT included in API payload
-      debugPrint('[MEAL_ACTIVITY] Tags are LOCAL-ONLY - NOT sending to API');
-      debugPrint('[MEAL_ACTIVITY] Current tags (local only): $_tags');
-      debugPrint('[MEAL_ACTIVITY] Tags will NOT be included in API request');
-
-      // Create meal activity for each selected child
+      // Two-step flow: Create activity (parent) then meal details (child) for EACH child
       int successCount = 0;
       int failureCount = 0;
 
@@ -270,23 +294,33 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
         }
 
         try {
-          debugPrint('[MEAL_ACTIVITY] Creating meal activity for child: ${child.id}');
-          debugPrint('[MEAL_ACTIVITY] NOT including tags in API call (tags are LOCAL-ONLY)');
-          final response = await _api.createMealActivity(
+          debugPrint('[MEAL_ACTIVITY] ========== Processing child: ${child.id} ==========');
+          
+          // STEP A: Create parent activity
+          debugPrint('[MEAL_ACTIVITY] STEP A: Creating activity for child ${child.id}');
+          final activityId = await _api.createActivity(
             childId: child.id!,
-            dateTime: dateTimeUtc,
+            classId: _classId!,
+            startAtUtc: startAtUtc,
+          );
+          debugPrint('[MEAL_ACTIVITY] ✅ Activity created with ID: $activityId');
+
+          // STEP B: Create meal details linked to activity
+          debugPrint('[MEAL_ACTIVITY] STEP B: Creating meal details for activity $activityId');
+          final response = await _api.createMealDetails(
+            activityId: activityId,
             mealType: _selectedMealType!,
             quantity: _selectedQuantity!,
-            // Tags are LOCAL-ONLY - NOT sent to API
             description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            tags: _tags.isNotEmpty ? _tags : null,
             photo: photoFileId,
           );
 
-          debugPrint('[MEAL_ACTIVITY] Meal activity created for child ${child.id}: ${response.statusCode}');
+          debugPrint('[MEAL_ACTIVITY] ✅ Meal details created for child ${child.id}: ${response.statusCode}');
           debugPrint('[MEAL_ACTIVITY] Response data: ${response.data}');
           successCount++;
         } catch (e, stackTrace) {
-          debugPrint('[MEAL_ACTIVITY] Error creating meal activity for child ${child.id}: $e');
+          debugPrint('[MEAL_ACTIVITY] ❌ Error processing child ${child.id}: $e');
           debugPrint('[MEAL_ACTIVITY] StackTrace: $stackTrace');
           failureCount++;
         }
