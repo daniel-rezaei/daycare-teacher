@@ -10,6 +10,7 @@ import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
+import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
@@ -335,7 +336,15 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
         });
 
         if (successCount > 0) {
+          // Close bottom sheet first
           Navigator.pop(context);
+          // Navigate back to LogActivityScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LogActivityScreen(),
+            ),
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
