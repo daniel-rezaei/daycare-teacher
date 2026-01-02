@@ -51,6 +51,8 @@ class ActivityPlayApi {
     String? description,
     List<String>? tags,
     String? photo, // file ID
+    String? startAt,
+    String? endAt,
   }) async {
     debugPrint('[PLAY_API] ========== STEP B: Creating Play Details (Child) ==========');
     debugPrint('[PLAY_API] activityId: $activityId');
@@ -58,6 +60,8 @@ class ActivityPlayApi {
     debugPrint('[PLAY_API] tags: $tags');
     debugPrint('[PLAY_API] description: $description');
     debugPrint('[PLAY_API] photo: $photo');
+    debugPrint('[PLAY_API] start_at: $startAt');
+    debugPrint('[PLAY_API] end_at: $endAt');
 
     final data = <String, dynamic>{
       'activity_id': activityId,
@@ -78,6 +82,14 @@ class ActivityPlayApi {
           {'directus_files_id': photo}
         ]
       };
+    }
+
+    if (startAt != null && startAt.isNotEmpty) {
+      data['start_at'] = startAt;
+    }
+
+    if (endAt != null && endAt.isNotEmpty) {
+      data['end_at'] = endAt;
     }
 
     debugPrint('[PLAY_API] Play details request data: $data');

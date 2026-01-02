@@ -42,6 +42,10 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   String? _selectedType;
   List<String> _tags = [];
   
+  // Time range state
+  late DateTime _startTime;
+  late DateTime _endTime;
+  
   // Options loaded from backend
   List<String> _typeOptions = [];
   
@@ -60,10 +64,16 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
     debugPrint('[PLAY_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
     debugPrint('[PLAY_ACTIVITY] DateTime: ${widget.dateTime}');
     
+    // Initialize time range: start = widget.dateTime, end = start + 30 minutes
+    _startTime = widget.dateTime;
+    _endTime = _startTime.add(const Duration(minutes: 30));
+    
     // Load classId and play options
     _loadClassId();
     _loadAllOptions();
   }
+  
+  bool get _isTimeValid => _endTime.isAfter(_startTime);
 
   Future<void> _loadClassId() async {
     try {
@@ -130,6 +140,75 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
 
   String _formatTime(DateTime dateTime) {
     return DateFormat('h:mm a').format(dateTime);
+  }
+  
+  Future<void> _selectEndTime() async {
+    DateTime selectedTime = _endTime;
+    
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          // Check if selected time is valid
+          final newEndTime = DateTime(
+            widget.dateTime.year,
+            widget.dateTime.month,
+            widget.dateTime.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
+          final isValid = newEndTime.isAfter(_startTime);
+          
+          return Container(
+            height: 250,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: isValid ? () {
+                        Navigator.pop(context);
+                        setState(() {
+                          _endTime = newEndTime;
+                        });
+                      } : null,
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    initialDateTime: _endTime,
+                    onDateTimeChanged: (DateTime newTime) {
+                      selectedTime = newTime;
+                      setModalState(() {}); // Trigger rebuild to update Done button state
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
+  void _toggleEndAmPm() {
+    setState(() {
+      if (_endTime.hour < 12) {
+        // AM -> PM: add 12 hours
+        _endTime = _endTime.add(const Duration(hours: 12));
+      } else {
+        // PM -> AM: subtract 12 hours
+        _endTime = _endTime.subtract(const Duration(hours: 12));
+      }
+    });
   }
 
   void _onTypeChanged(String? value) {
@@ -223,6 +302,14 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
       return;
     }
 
+    if (!_isTimeValid) {
+      debugPrint('[PLAY_ACTIVITY] Validation failed: Invalid time range');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('End time cannot be before start time')),
+      );
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
@@ -234,9 +321,11 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
         photoFileId = await _uploadPhoto(_images.first);
       }
 
-      // Format start_at in UTC ISO 8601 format
-      final startAtUtc = widget.dateTime.toUtc().toIso8601String();
+      // Format start_at and end_at in UTC ISO 8601 format
+      final startAtUtc = _startTime.toUtc().toIso8601String();
+      final endAtUtc = _endTime.toUtc().toIso8601String();
       debugPrint('[PLAY_ACTIVITY] start_at (UTC): $startAtUtc');
+      debugPrint('[PLAY_ACTIVITY] end_at (UTC): $endAtUtc');
 
       // Two-step flow: Create activity (parent) then play details (child) for EACH child
       int successCount = 0;
@@ -269,6 +358,8 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
             description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
             tags: _tags.isNotEmpty ? _tags : null,
             photo: photoFileId,
+            startAt: startAtUtc,
+            endAt: endAtUtc,
           );
 
           debugPrint('[PLAY_ACTIVITY] ✅ Play details created for child ${child.id}: ${response.statusCode}');
@@ -387,8 +478,40 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 24),
                   ],
+
+                  // Time Range Selector
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 32),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _TimeColumn(
+                            label: 'Start',
+                            time: _startTime,
+                            onTimeTap: null,
+                            onAmPmTap: null,
+                            enabled: false,
+                          ),
+                        ),
+                        Expanded(
+                          child: _TimeColumn(
+                            label: 'End',
+                            time: _endTime,
+                            onTimeTap: _selectEndTime,
+                            onAmPmTap: _toggleEndAmPm,
+                            enabled: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Type Selector
                   if (_isLoadingOptions)
@@ -505,7 +628,7 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
 
                   // Add Button
                   ButtonWidget(
-                    isEnabled: !_isSubmitting,
+                    isEnabled: !_isSubmitting && _isTimeValid,
                     onTap: _handleAdd,
                     child: _isSubmitting
                         ? const SizedBox(
@@ -531,6 +654,85 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TimeColumn extends StatelessWidget {
+  final String label;
+  final DateTime time;
+  final VoidCallback? onTimeTap;
+  final VoidCallback? onAmPmTap;
+  final bool enabled;
+
+  const _TimeColumn({
+    required this.label,
+    required this.time,
+    required this.onTimeTap,
+    required this.onAmPmTap,
+    this.enabled = true,
+  });
+
+  String _formatTimeForDisplay(DateTime dateTime) {
+    return DateFormat('hh:mm').format(dateTime);
+  }
+
+  String _getAmPm(DateTime dateTime) {
+    return DateFormat('a').format(dateTime).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textTertiary,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Opacity(
+          opacity: enabled ? 1.0 : 0.5,
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: enabled ? onTimeTap : null,
+                child: Text(
+                  _formatTimeForDisplay(time),
+                  style: TextStyle(
+                    color: enabled ? AppColors.textPrimary : AppColors.textTertiary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: enabled ? onAmPmTap : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: enabled ? AppColors.primaryLight : AppColors.divider,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    _getAmPm(time),
+                    style: TextStyle(
+                      color: enabled ? AppColors.primary : AppColors.textTertiary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
