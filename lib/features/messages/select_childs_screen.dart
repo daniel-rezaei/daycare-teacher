@@ -4,6 +4,7 @@ import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/features/activity/widgets/bathroom_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
+import 'package:teacher_app/features/activity/widgets/play_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
@@ -14,7 +15,7 @@ class SelectChildsScreen extends StatefulWidget {
   /// If true, returns selected children when back button is pressed
   /// If false (default), works as before for Chat flow
   final bool returnSelectedChildren;
-  
+
   /// Class ID to filter children by primary_room_id (only used when returnSelectedChildren is true)
   final String? classId;
 
@@ -39,10 +40,14 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('[SELECT_CHILDS] ========== Entering SelectChildsScreen ==========');
-    debugPrint('[SELECT_CHILDS] returnSelectedChildren: ${widget.returnSelectedChildren}');
+    debugPrint(
+      '[SELECT_CHILDS] ========== Entering SelectChildsScreen ==========',
+    );
+    debugPrint(
+      '[SELECT_CHILDS] returnSelectedChildren: ${widget.returnSelectedChildren}',
+    );
     debugPrint('[SELECT_CHILDS] classId: ${widget.classId}');
-    
+
     // Load children and contacts if needed
     final childState = context.read<ChildBloc>().state;
     if (childState.children == null) {
@@ -57,7 +62,8 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
 
   bool get allSelected {
     final filteredChildren = _filteredChildren;
-    return filteredChildren.isNotEmpty && selectedChildIds.length == filteredChildren.length;
+    return filteredChildren.isNotEmpty &&
+        selectedChildIds.length == filteredChildren.length;
   }
 
   List<ChildEntity> get _children {
@@ -68,21 +74,29 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
   /// Filter children by primary_room_id = class_id when used from Log Activity
   List<ChildEntity> get _filteredChildren {
     final allChildren = _children;
-    
+
     // If returnSelectedChildren is true and classId is provided, filter by primary_room_id
-    if (widget.returnSelectedChildren && widget.classId != null && widget.classId!.isNotEmpty) {
-      debugPrint('[SELECT_CHILDS] Filtering children by class_id: ${widget.classId}');
+    if (widget.returnSelectedChildren &&
+        widget.classId != null &&
+        widget.classId!.isNotEmpty) {
+      debugPrint(
+        '[SELECT_CHILDS] Filtering children by class_id: ${widget.classId}',
+      );
       final filtered = allChildren.where((child) {
         final matches = child.primaryRoomId == widget.classId;
         if (matches) {
-          debugPrint('[SELECT_CHILDS] Child ${child.id} matches class_id (primary_room_id: ${child.primaryRoomId})');
+          debugPrint(
+            '[SELECT_CHILDS] Child ${child.id} matches class_id (primary_room_id: ${child.primaryRoomId})',
+          );
         }
         return matches;
       }).toList();
-      debugPrint('[SELECT_CHILDS] Filtered children count: ${filtered.length} out of ${allChildren.length}');
+      debugPrint(
+        '[SELECT_CHILDS] Filtered children count: ${filtered.length} out of ${allChildren.length}',
+      );
       return filtered;
     }
-    
+
     // No filtering for Chat flow
     return allChildren;
   }
@@ -106,28 +120,42 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
     if (contact == null) return 'Unknown';
     final firstName = contact.firstName ?? '';
     final lastName = contact.lastName ?? '';
-    return '$firstName $lastName'.trim().isEmpty ? 'Unknown' : '$firstName $lastName'.trim();
+    return '$firstName $lastName'.trim().isEmpty
+        ? 'Unknown'
+        : '$firstName $lastName'.trim();
   }
 
   void _handleBack() {
     debugPrint('[SELECT_CHILDS] ========== TOP BACK ICON TAPPED ==========');
     debugPrint('[SELECT_CHILDS] Back button pressed - navigating back only');
-    debugPrint('[SELECT_CHILDS] Selected children count: ${selectedChildIds.length}');
-    debugPrint('[SELECT_CHILDS] BottomSheet will NOT be triggered from back button');
-    debugPrint('[SELECT_CHILDS] Navigation popped - returning to previous screen');
-    
+    debugPrint(
+      '[SELECT_CHILDS] Selected children count: ${selectedChildIds.length}',
+    );
+    debugPrint(
+      '[SELECT_CHILDS] BottomSheet will NOT be triggered from back button',
+    );
+    debugPrint(
+      '[SELECT_CHILDS] Navigation popped - returning to previous screen',
+    );
+
     // CRITICAL: Back button ALWAYS just navigates back
     // It NEVER returns children and NEVER triggers BottomSheet
     Navigator.pop(context);
-    
-    debugPrint('[SELECT_CHILDS] Navigation completed - BottomSheet not triggered');
+
+    debugPrint(
+      '[SELECT_CHILDS] Navigation completed - BottomSheet not triggered',
+    );
   }
 
   void _handleActionIconTap() {
-    debugPrint('[SELECT_CHILDS] ========== BOTTOM ACTION ICON TAPPED ==========');
+    debugPrint(
+      '[SELECT_CHILDS] ========== BOTTOM ACTION ICON TAPPED ==========',
+    );
     debugPrint('[SELECT_CHILDS] Action icon tapped');
-    debugPrint('[SELECT_CHILDS] Selected children count: ${selectedChildIds.length}');
-    
+    debugPrint(
+      '[SELECT_CHILDS] Selected children count: ${selectedChildIds.length}',
+    );
+
     if (selectedChildIds.isEmpty) {
       debugPrint('[SELECT_CHILDS] No children selected, action icon disabled');
       return;
@@ -138,11 +166,17 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
       return;
     }
 
-    final selectedChildren = _filteredChildren.where((c) => c.id != null && selectedChildIds.contains(c.id)).toList();
+    final selectedChildren = _filteredChildren
+        .where((c) => c.id != null && selectedChildIds.contains(c.id))
+        .toList();
     final activityType = widget.activityType ?? 'meal';
-    debugPrint('[SELECT_CHILDS] Opening ${activityType}ActivityBottomSheet with ${selectedChildren.length} children');
-    debugPrint('[SELECT_CHILDS] BottomSheet triggered from BOTTOM ACTION ICON only');
-    
+    debugPrint(
+      '[SELECT_CHILDS] Opening ${activityType}ActivityBottomSheet with ${selectedChildren.length} children',
+    );
+    debugPrint(
+      '[SELECT_CHILDS] BottomSheet triggered from BOTTOM ACTION ICON only',
+    );
+
     if (selectedChildren.isNotEmpty) {
       final now = DateTime.now();
       showModalBottomSheet(
@@ -161,6 +195,11 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
               selectedChildren: selectedChildren,
               dateTime: now,
             );
+          } else if (activityType == 'play') {
+            return PlayActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
           } else {
             return MealActivityBottomSheet(
               selectedChildren: selectedChildren,
@@ -169,7 +208,9 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
           }
         },
       );
-      debugPrint('[SELECT_CHILDS] ${activityType}ActivityBottomSheet opened successfully');
+      debugPrint(
+        '[SELECT_CHILDS] ${activityType}ActivityBottomSheet opened successfully',
+      );
     }
   }
 
@@ -243,7 +284,8 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(24.0),
                               child: Text(
-                                widget.returnSelectedChildren && widget.classId != null
+                                widget.returnSelectedChildren &&
+                                        widget.classId != null
                                     ? 'No children found for this class'
                                     : 'No children found',
                                 style: const TextStyle(
@@ -260,21 +302,30 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
                             final child = filteredChildren[index];
-                            if (child.id == null) return const SizedBox.shrink();
-                            
-                            final isSelected = selectedChildIds.contains(child.id);
+                            if (child.id == null)
+                              return const SizedBox.shrink();
+
+                            final isSelected = selectedChildIds.contains(
+                              child.id,
+                            );
                             final childName = _getChildName(child);
 
                             return GestureDetector(
                               onTap: () {
-                                debugPrint('[SELECT_CHILDS] Child tapped: ${child.id}, name: $childName');
+                                debugPrint(
+                                  '[SELECT_CHILDS] Child tapped: ${child.id}, name: $childName',
+                                );
                                 setState(() {
                                   if (isSelected) {
                                     selectedChildIds.remove(child.id);
-                                    debugPrint('[SELECT_CHILDS] Removed child: ${child.id}');
+                                    debugPrint(
+                                      '[SELECT_CHILDS] Removed child: ${child.id}',
+                                    );
                                   } else {
                                     selectedChildIds.add(child.id!);
-                                    debugPrint('[SELECT_CHILDS] Added child: ${child.id}');
+                                    debugPrint(
+                                      '[SELECT_CHILDS] Added child: ${child.id}',
+                                    );
                                   }
                                 });
                               },
@@ -343,27 +394,41 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
           children: [
             /// Icon left - Action icon (only functional when returnSelectedChildren is true)
             GestureDetector(
-              onTap: widget.returnSelectedChildren ? _handleActionIconTap : null,
+              onTap: widget.returnSelectedChildren
+                  ? _handleActionIconTap
+                  : null,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 200),
-                opacity: widget.returnSelectedChildren && selectedChildIds.isNotEmpty ? 1.0 : 0.5,
+                opacity:
+                    widget.returnSelectedChildren && selectedChildIds.isNotEmpty
+                    ? 1.0
+                    : 0.5,
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
                       width: 1,
-                      color: widget.returnSelectedChildren && selectedChildIds.isNotEmpty
+                      color:
+                          widget.returnSelectedChildren &&
+                              selectedChildIds.isNotEmpty
                           ? const Color(0xff9C5CFF)
                           : const Color(0xffDBDADD),
                     ),
                     borderRadius: BorderRadius.circular(8),
-                    color: widget.returnSelectedChildren && selectedChildIds.isNotEmpty
+                    color:
+                        widget.returnSelectedChildren &&
+                            selectedChildIds.isNotEmpty
                         ? const Color(0xffF0E7FF)
                         : Colors.transparent,
                   ),
                   padding: const EdgeInsets.all(8),
                   child: Assets.images.squareArrowRight.svg(
-                    colorFilter: widget.returnSelectedChildren && selectedChildIds.isNotEmpty
-                        ? const ColorFilter.mode(Color(0xff9C5CFF), BlendMode.srcIn)
+                    colorFilter:
+                        widget.returnSelectedChildren &&
+                            selectedChildIds.isNotEmpty
+                        ? const ColorFilter.mode(
+                            Color(0xff9C5CFF),
+                            BlendMode.srcIn,
+                          )
                         : null,
                   ),
                 ),
@@ -392,8 +457,11 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
             Builder(
               builder: (context) {
                 final filteredChildren = _filteredChildren;
-                final allChildIds = filteredChildren.where((c) => c.id != null).map((c) => c.id!).toSet();
-                
+                final allChildIds = filteredChildren
+                    .where((c) => c.id != null)
+                    .map((c) => c.id!)
+                    .toSet();
+
                 return GestureDetector(
                   onTap: () {
                     debugPrint('[SELECT_CHILDS] Select All tapped');
@@ -403,7 +471,9 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                         debugPrint('[SELECT_CHILDS] Cleared all selections');
                       } else {
                         selectedChildIds = allChildIds;
-                        debugPrint('[SELECT_CHILDS] Selected all: ${selectedChildIds.length}');
+                        debugPrint(
+                          '[SELECT_CHILDS] Selected all: ${selectedChildIds.length}',
+                        );
                       }
                     });
                   },
