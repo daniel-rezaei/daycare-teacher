@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
+import 'package:teacher_app/features/activity/widgets/bathroom_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
@@ -152,6 +153,11 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
         builder: (context) {
           if (activityType == 'drink') {
             return DrinkActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
+          } else if (activityType == 'bathroom') {
+            return BathroomActivityBottomSheet(
               selectedChildren: selectedChildren,
               dateTime: now,
             );
