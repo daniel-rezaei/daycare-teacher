@@ -29,16 +29,8 @@ class ActivityMealsApi {
       'status': 'published',
       'has_media': true,
       // UUID based M2M pivot (VERY IMPORTANT)
-      'class_id': {
-        'create': [
-          {'class_id': classId}
-        ]
-      },
-      'child_id': {
-        'create': [
-          {'children_id': childId}
-        ]
-      },
+      'class_id': classId,
+      'child_id': childId,
     };
 
     debugPrint('[MEAL_API] Activity request data: $data');
