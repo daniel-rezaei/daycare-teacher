@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
+import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
@@ -16,10 +17,14 @@ class SelectChildsScreen extends StatefulWidget {
   /// Class ID to filter children by primary_room_id (only used when returnSelectedChildren is true)
   final String? classId;
 
+  /// Activity type: 'meal' or 'drink' (only used when returnSelectedChildren is true)
+  final String? activityType;
+
   const SelectChildsScreen({
     super.key,
     this.returnSelectedChildren = false,
     this.classId,
+    this.activityType,
   });
 
   @override
@@ -133,7 +138,8 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
     }
 
     final selectedChildren = _filteredChildren.where((c) => c.id != null && selectedChildIds.contains(c.id)).toList();
-    debugPrint('[SELECT_CHILDS] Opening MealActivityBottomSheet with ${selectedChildren.length} children');
+    final activityType = widget.activityType ?? 'meal';
+    debugPrint('[SELECT_CHILDS] Opening ${activityType}ActivityBottomSheet with ${selectedChildren.length} children');
     debugPrint('[SELECT_CHILDS] BottomSheet triggered from BOTTOM ACTION ICON only');
     
     if (selectedChildren.isNotEmpty) {
@@ -143,12 +149,21 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         useSafeArea: true,
-        builder: (context) => MealActivityBottomSheet(
-          selectedChildren: selectedChildren,
-          dateTime: now,
-        ),
+        builder: (context) {
+          if (activityType == 'drink') {
+            return DrinkActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
+          } else {
+            return MealActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
+          }
+        },
       );
-      debugPrint('[SELECT_CHILDS] MealActivityBottomSheet opened successfully');
+      debugPrint('[SELECT_CHILDS] ${activityType}ActivityBottomSheet opened successfully');
     }
   }
 

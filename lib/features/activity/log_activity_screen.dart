@@ -47,6 +47,31 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
         builder: (context) => SelectChildsScreen(
           returnSelectedChildren: true,
           classId: _classId,
+          activityType: 'meal',
+        ),
+      ),
+    );
+
+    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
+    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
+    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+  }
+
+  void _navigateToDrinkActivity(BuildContext context) async {
+    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Drink Activity');
+    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
+    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
+    
+    // Navigate to SelectChildsScreen
+    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
+    // Back button will just navigate back without opening BottomSheet
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SelectChildsScreen(
+          returnSelectedChildren: true,
+          classId: _classId,
+          activityType: 'drink',
         ),
       ),
     );
@@ -133,7 +158,10 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.drink.image(height: 48),
                               title: 'Drink',
-                              onTap: () {},
+                              onTap: () {
+                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Drink flow ==========');
+                                _navigateToDrinkActivity(context);
+                              },
                             ),
                           ),
                           SizedBox(
