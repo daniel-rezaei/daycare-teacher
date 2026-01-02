@@ -5,6 +5,7 @@ import 'package:teacher_app/features/activity/widgets/bathroom_activity_bottom_s
 import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/play_activity_bottom_sheet.dart';
+import 'package:teacher_app/features/activity/widgets/sleep_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
@@ -197,6 +198,11 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
             );
           } else if (activityType == 'play') {
             return PlayActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
+          } else if (activityType == 'sleep') {
+            return SleepActivityBottomSheet(
               selectedChildren: selectedChildren,
               dateTime: now,
             );

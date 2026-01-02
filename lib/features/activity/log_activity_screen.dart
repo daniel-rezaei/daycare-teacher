@@ -129,6 +129,30 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
   }
 
+  void _navigateToSleepActivity(BuildContext context) async {
+    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Sleep Activity');
+    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
+    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
+    
+    // Navigate to SelectChildsScreen
+    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
+    // Back button will just navigate back without opening BottomSheet
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SelectChildsScreen(
+          returnSelectedChildren: true,
+          classId: _classId,
+          activityType: 'sleep',
+        ),
+      ),
+    );
+
+    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
+    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
+    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+  }
+
   @override
   Widget build(BuildContext context) {
     final double cardWidth =
@@ -247,7 +271,10 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.sleep.image(height: 48),
                               title: 'Sleep',
-                              onTap: () {},
+                              onTap: () {
+                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Sleep flow ==========');
+                                _navigateToSleepActivity(context);
+                              },
                             ),
                           ),
                           SizedBox(

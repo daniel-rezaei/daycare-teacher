@@ -1,63 +1,145 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
+import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/core/data_state.dart';
 
 class SleepActivityBottomSheet extends StatefulWidget {
   final List<ChildEntity> selectedChildren;
   final DateTime dateTime;
-  final String? startAt; // activity_sleep.start_at
-  final String? endAt; // activity_sleep.end_at
-  final List<String> sleepMonitoringOptions; // activity_sleep.sleep_monitoring
 
   const SleepActivityBottomSheet({
     super.key,
     required this.selectedChildren,
     required this.dateTime,
-    this.startAt,
-    this.endAt,
-    this.sleepMonitoringOptions = const [],
   });
 
   @override
-  State<SleepActivityBottomSheet> createState() => _SleepActivityBottomSheetState();
+  State<SleepActivityBottomSheet> createState() =>
+      _SleepActivityBottomSheetState();
 }
 
 class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  
-  String? _selectedSleepMonitoring;
+
+  String? _selectedType;
   List<String> _tags = [];
+
+  // Time range state
+  late DateTime _startTime;
+  late DateTime _endTime;
+
+  // Options loaded from backend
+  List<String> _typeOptions = [];
+
+  // Class ID for creating activities
+  String? _classId;
+
+  bool _isSubmitting = false;
+  bool _isLoadingOptions = true;
+  final ActivitySleepApi _api = GetIt.instance<ActivitySleepApi>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[SLEEP_ACTIVITY] ========== Opening SleepActivityBottomSheet ==========');
-    debugPrint('[SLEEP_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
+    debugPrint(
+      '[SLEEP_ACTIVITY] ========== Opening SleepActivityBottomSheet ==========',
+    );
+    debugPrint(
+      '[SLEEP_ACTIVITY] Selected children count: ${widget.selectedChildren.length}',
+    );
     debugPrint('[SLEEP_ACTIVITY] DateTime: ${widget.dateTime}');
-    debugPrint('[SLEEP_ACTIVITY] start_at: ${widget.startAt}');
-    debugPrint('[SLEEP_ACTIVITY] end_at: ${widget.endAt}');
-    debugPrint('[SLEEP_ACTIVITY] Sleep Monitoring options: ${widget.sleepMonitoringOptions.length}');
-    debugPrint('[SLEEP_ACTIVITY] CRITICAL: This is READ-ONLY / LOCAL SELECT ONLY');
-    debugPrint('[SLEEP_ACTIVITY] NO API mutations will be performed');
+
+    // Initialize time range: start = widget.dateTime, end = start + 30 minutes
+    _startTime = widget.dateTime;
+    _endTime = _startTime.add(const Duration(minutes: 30));
+
+    // Load classId and sleep options
+    _loadClassId();
+    _loadAllOptions();
+  }
+
+  bool get _isTimeValid => _endTime.isAfter(_startTime);
+
+  Future<void> _loadClassId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedClassId = prefs.getString(AppConstants.classIdKey);
+      if (savedClassId != null && savedClassId.isNotEmpty) {
+        setState(() {
+          _classId = savedClassId;
+        });
+        debugPrint('[SLEEP_ACTIVITY] ClassId loaded: $_classId');
+      } else {
+        debugPrint(
+          '[SLEEP_ACTIVITY] ⚠️ ClassId not found in SharedPreferences',
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[SLEEP_ACTIVITY] Error loading classId: $e');
+      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+    }
   }
 
   @override
   void dispose() {
     _descriptionController.dispose();
+    _tagController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadTypes() async {
+    try {
+      debugPrint('[SLEEP_ACTIVITY] Loading sleep types from backend...');
+      final options = await _api.getSleepTypes();
+      debugPrint('[SLEEP_ACTIVITY] Sleep types loaded: $options');
+      if (mounted) {
+        setState(() {
+          _typeOptions = options;
+        });
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[SLEEP_ACTIVITY] Error loading sleep types: $e');
+      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _typeOptions = [];
+        });
+      }
+    }
+  }
+
+  Future<void> _loadAllOptions() async {
+    setState(() {
+      _isLoadingOptions = true;
+    });
+    await _loadTypes();
+    if (mounted) {
+      setState(() {
+        _isLoadingOptions = false;
+      });
+    }
   }
 
   String _formatDate(DateTime dateTime) {
@@ -68,51 +150,115 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
     return DateFormat('h:mm a').format(dateTime);
   }
 
-  /// Format time string from activity_sleep.start_at or end_at
-  /// Expected format: "08:30" -> "08:30 PM" (with PM appended)
-  String _formatSleepTime(String? timeStr) {
-    if (timeStr == null || timeStr.isEmpty) {
-      return '--:--';
-    }
-    
-    try {
-      // Parse time string (assuming format like "08:30" or "20:30")
-      final parts = timeStr.split(':');
-      if (parts.length >= 2) {
-        final hour = int.parse(parts[0]);
-        final minute = parts[1];
-        
-        // Determine AM/PM
-        final period = hour >= 12 ? 'PM' : 'AM';
-        final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        
-        // Format as "08:30 PM" (with leading zero for hour if needed)
-        final formattedHour = displayHour.toString().padLeft(2, '0');
-        return '$formattedHour:$minute $period';
-      }
-      return timeStr;
-    } catch (e) {
-      debugPrint('[SLEEP_ACTIVITY] Error formatting time: $e');
-      return timeStr;
-    }
+  Future<void> _selectEndTime() async {
+    DateTime selectedTime = _endTime;
+
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          // Check if selected time is valid
+          final newEndTime = DateTime(
+            widget.dateTime.year,
+            widget.dateTime.month,
+            widget.dateTime.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
+          final isValid = newEndTime.isAfter(_startTime);
+
+          return Container(
+            height: 250,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: isValid
+                          ? () {
+                              Navigator.pop(context);
+                              setState(() {
+                                _endTime = newEndTime;
+                              });
+                            }
+                          : null,
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    initialDateTime: _endTime,
+                    onDateTimeChanged: (DateTime newTime) {
+                      selectedTime = newTime;
+                      setModalState(
+                        () {},
+                      ); // Trigger rebuild to update Done button state
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
-  void _onSleepMonitoringChanged(String? value) {
-    debugPrint('[SLEEP_ACTIVITY] Sleep Monitoring changed: $value');
-    debugPrint('[SLEEP_ACTIVITY] This is LOCAL SELECT ONLY - no API call');
+  void _toggleEndAmPm() {
     setState(() {
-      _selectedSleepMonitoring = value;
+      if (_endTime.hour < 12) {
+        // AM -> PM: add 12 hours
+        _endTime = _endTime.add(const Duration(hours: 12));
+      } else {
+        // PM -> AM: subtract 12 hours
+        _endTime = _endTime.subtract(const Duration(hours: 12));
+      }
     });
+  }
+
+  void _onTypeChanged(String? value) {
+    debugPrint('[SLEEP_ACTIVITY] Type changed: $value');
+    setState(() {
+      _selectedType = value;
+    });
+  }
+
+  void _onTagSubmitted(String value) {
+    final tag = value.trim();
+    if (tag.isNotEmpty && !_tags.contains(tag)) {
+      debugPrint('[SLEEP_ACTIVITY] Adding tag (LOCAL ONLY): $tag');
+      setState(() {
+        _tags.add(tag);
+      });
+      _tagController.clear();
+      debugPrint(
+        '[SLEEP_ACTIVITY] Tag added successfully - total tags: ${_tags.length}',
+      );
+    } else if (_tags.contains(tag)) {
+      debugPrint('[SLEEP_ACTIVITY] Tag already exists: $tag');
+    }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint('[SLEEP_ACTIVITY] ========== Tag removed (LOCAL ONLY) ==========');
+    debugPrint(
+      '[SLEEP_ACTIVITY] ========== Tag removed (LOCAL ONLY) ==========',
+    );
     debugPrint('[SLEEP_ACTIVITY] Tag removed locally: $tag');
     debugPrint('[SLEEP_ACTIVITY] NO API call executed for tag removal');
+    debugPrint('[SLEEP_ACTIVITY] Tags are LOCAL-ONLY - changes stay in UI');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint('[SLEEP_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}');
+    debugPrint(
+      '[SLEEP_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}',
+    );
   }
 
   void _onImagesChanged(List<File> images) {
@@ -123,21 +269,192 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
     });
   }
 
-  void _handleAdd() {
+  Future<String?> _uploadPhoto(File imageFile) async {
+    try {
+      debugPrint('[SLEEP_ACTIVITY] Uploading photo: ${imageFile.path}');
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
+      if (uploadResult is DataSuccess && uploadResult.data != null) {
+        debugPrint(
+          '[SLEEP_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}',
+        );
+        return uploadResult.data;
+      } else {
+        debugPrint('[SLEEP_ACTIVITY] Photo upload failed');
+        return null;
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[SLEEP_ACTIVITY] Error uploading photo: $e');
+      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+      return null;
+    }
+  }
+
+  Future<void> _handleAdd() async {
     debugPrint('[SLEEP_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint('[SLEEP_ACTIVITY] CRITICAL: This is READ-ONLY / LOCAL SELECT ONLY');
-    debugPrint('[SLEEP_ACTIVITY] NO API mutation will be performed');
-    debugPrint('[SLEEP_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[SLEEP_ACTIVITY] Start time: ${widget.startAt}');
-    debugPrint('[SLEEP_ACTIVITY] End time: ${widget.endAt}');
-    debugPrint('[SLEEP_ACTIVITY] Sleep Monitoring: $_selectedSleepMonitoring');
-    debugPrint('[SLEEP_ACTIVITY] Tags (LOCAL-ONLY): $_tags');
+    debugPrint(
+      '[SLEEP_ACTIVITY] Selected children: ${widget.selectedChildren.length}',
+    );
+    debugPrint('[SLEEP_ACTIVITY] Type: $_selectedType');
+    debugPrint('[SLEEP_ACTIVITY] Tags: $_tags');
     debugPrint('[SLEEP_ACTIVITY] Description: ${_descriptionController.text}');
     debugPrint('[SLEEP_ACTIVITY] Images: ${_images.length}');
-    debugPrint('[SLEEP_ACTIVITY] ========== No API mutation - closing BottomSheet ==========');
-    
-    // This is READ-ONLY - just close the BottomSheet
-    Navigator.pop(context);
+
+    // Validation
+    if (widget.selectedChildren.isEmpty) {
+      debugPrint('[SLEEP_ACTIVITY] Validation failed: No children selected');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one child')),
+      );
+      return;
+    }
+
+    if (_classId == null || _classId!.isEmpty) {
+      debugPrint('[SLEEP_ACTIVITY] Validation failed: No classId available');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Class ID not found. Please try again.')),
+      );
+      return;
+    }
+
+    if (_selectedType == null || _selectedType!.isEmpty) {
+      debugPrint('[SLEEP_ACTIVITY] Validation failed: No type selected');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a type')));
+      return;
+    }
+
+    if (!_isTimeValid) {
+      debugPrint('[SLEEP_ACTIVITY] Validation failed: Invalid time range');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('End time cannot be before start time')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Upload photo if exists
+      String? photoFileId;
+      if (_images.isNotEmpty) {
+        photoFileId = await _uploadPhoto(_images.first);
+      }
+
+      // Format start_at and end_at in UTC ISO 8601 format
+      final startAtUtc = _startTime.toUtc().toIso8601String();
+      final endAtUtc = _endTime.toUtc().toIso8601String();
+      debugPrint('[SLEEP_ACTIVITY] start_at (UTC): $startAtUtc');
+      debugPrint('[SLEEP_ACTIVITY] end_at (UTC): $endAtUtc');
+
+      // Two-step flow: Create activity (parent) then sleep details (child) for EACH child
+      int successCount = 0;
+      int failureCount = 0;
+
+      for (final child in widget.selectedChildren) {
+        if (child.id == null || child.id!.isEmpty) {
+          debugPrint('[SLEEP_ACTIVITY] Skipping child with null ID');
+          failureCount++;
+          continue;
+        }
+
+        try {
+          debugPrint(
+            '[SLEEP_ACTIVITY] ========== Processing child: ${child.id} ==========',
+          );
+
+          // STEP A: Create parent activity
+          debugPrint(
+            '[SLEEP_ACTIVITY] STEP A: Creating activity for child ${child.id}',
+          );
+          final activityId = await _api.createActivity(
+            childId: child.id!,
+            classId: _classId!,
+            startAtUtc: startAtUtc,
+          );
+          debugPrint(
+            '[SLEEP_ACTIVITY] ✅ Activity created with ID: $activityId',
+          );
+
+          // STEP B: Create sleep details linked to activity
+          debugPrint(
+            '[SLEEP_ACTIVITY] STEP B: Creating sleep details for activity $activityId',
+          );
+          final response = await _api.createSleepDetails(
+            activityId: activityId,
+            type: _selectedType!,
+            description: _descriptionController.text.isEmpty
+                ? null
+                : _descriptionController.text,
+            tags: _tags.isNotEmpty ? _tags : null,
+            photo: photoFileId,
+            startAt: startAtUtc,
+            endAt: endAtUtc,
+          );
+
+          debugPrint(
+            '[SLEEP_ACTIVITY] ✅ Sleep details created for child ${child.id}: ${response.statusCode}',
+          );
+          debugPrint('[SLEEP_ACTIVITY] Response data: ${response.data}');
+          successCount++;
+        } catch (e, stackTrace) {
+          debugPrint(
+            '[SLEEP_ACTIVITY] ❌ Error processing child ${child.id}: $e',
+          );
+          debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+          failureCount++;
+        }
+      }
+
+      debugPrint('[SLEEP_ACTIVITY] ========== Submission complete ==========');
+      debugPrint(
+        '[SLEEP_ACTIVITY] Success: $successCount, Failures: $failureCount',
+      );
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        if (successCount > 0) {
+          // Close bottom sheet first
+          Navigator.pop(context);
+          // Navigate back to LogActivityScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LogActivityScreen()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                failureCount > 0
+                    ? 'Created $successCount sleep activities (${failureCount} failed)'
+                    : 'Sleep activities created successfully',
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to create sleep activities')),
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[SLEEP_ACTIVITY] Error in _handleAdd: $e');
+      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   @override
@@ -199,94 +516,56 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 24),
                   ],
 
-                  // Time Row: Start Time and End Time
-                  Row(
-                    children: [
-                      // Column 1: Start Time
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Start Time',
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: double.infinity,
-                              height: 44,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: AppColors.backgroundGray,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                _formatSleepTime(widget.startAt),
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
+                  // Time Range Selector
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 32),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _TimeColumn(
+                            label: 'Start',
+                            time: _startTime,
+                            onTimeTap: null,
+                            onAmPmTap: null,
+                            enabled: false,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Column 2: End Time
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'End Time',
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: double.infinity,
-                              height: 44,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: AppColors.backgroundGray,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                _formatSleepTime(widget.endAt),
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          child: _TimeColumn(
+                            label: 'End',
+                            time: _endTime,
+                            onTimeTap: _selectEndTime,
+                            onAmPmTap: _toggleEndAmPm,
+                            enabled: true,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Sleep Monitoring Selector
-                  MealTypeSelectorWidget(
-                    title: 'Sleep Monitoring',
-                    selectedValue: _selectedSleepMonitoring,
-                    onChanged: _onSleepMonitoringChanged,
-                    options: widget.sleepMonitoringOptions, // Loaded from activity_sleep.sleep_monitoring
-                  ),
+                  // Type Selector
+                  if (_isLoadingOptions)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else
+                    MealTypeSelectorWidget(
+                      title: 'Sleep Monitoring',
+                      options: _typeOptions,
+                      selectedValue: _selectedType,
+                      onChanged: _onTypeChanged,
+                    ),
                   const SizedBox(height: 24),
 
                   // Tag Section
@@ -298,47 +577,68 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  if (_tags.isEmpty)
-                    const Text(
-                      'No tags added',
-                      style: TextStyle(
+                  const SizedBox(height: 12),
+                  // Tag Input Field
+                  TextField(
+                    controller: _tagController,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      hintText: 'Enter tag and press done',
+                      hintStyle: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 14,
                       ),
-                    )
-                  else
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.divider),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.divider),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
+                    onSubmitted: _onTagSubmitted,
+                  ),
+                  const SizedBox(height: 12),
+                  // Tag Chips Display
+                  if (_tags.isNotEmpty)
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: _tags.map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(16),
+                        return Chip(
+                          label: Text(
+                            tag,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                tag,
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () => _onTagRemoved(tag),
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
+                          backgroundColor: AppColors.primaryLight,
+                          deleteIcon: const Icon(
+                            Icons.close,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          onDeleted: () => _onTagRemoved(tag),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         );
                       }).toList(),
@@ -360,18 +660,27 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Add Button (READ-ONLY - just closes BottomSheet)
+                  // Add Button
                   ButtonWidget(
-                    isEnabled: true,
+                    isEnabled: !_isSubmitting && _isTimeValid,
                     onTap: _handleAdd,
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CupertinoActivityIndicator(
+                              radius: 10,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Add',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -383,3 +692,88 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   }
 }
 
+class _TimeColumn extends StatelessWidget {
+  final String label;
+  final DateTime time;
+  final VoidCallback? onTimeTap;
+  final VoidCallback? onAmPmTap;
+  final bool enabled;
+
+  const _TimeColumn({
+    required this.label,
+    required this.time,
+    required this.onTimeTap,
+    required this.onAmPmTap,
+    this.enabled = true,
+  });
+
+  String _formatTimeForDisplay(DateTime dateTime) {
+    return DateFormat('hh:mm').format(dateTime);
+  }
+
+  String _getAmPm(DateTime dateTime) {
+    return DateFormat('a').format(dateTime).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textTertiary,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Opacity(
+          opacity: enabled ? 1.0 : 0.5,
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: enabled ? onTimeTap : null,
+                child: Text(
+                  _formatTimeForDisplay(time),
+                  style: TextStyle(
+                    color: enabled
+                        ? AppColors.textPrimary
+                        : AppColors.textTertiary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: enabled ? onAmPmTap : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: enabled ? AppColors.primaryLight : AppColors.divider,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    _getAmPm(time),
+                    style: TextStyle(
+                      color: enabled
+                          ? AppColors.primary
+                          : AppColors.textTertiary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

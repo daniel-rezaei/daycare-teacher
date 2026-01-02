@@ -21,6 +21,8 @@ import 'package:teacher_app/features/activity/data/data_source/activity_meals_ap
     as _i491;
 import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart'
     as _i1025;
+import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart'
+    as _i765;
 import 'package:teacher_app/features/attendance/data/data_source/attendance_api.dart'
     as _i472;
 import 'package:teacher_app/features/attendance/data/repository/attendance_repository_impl.dart'
@@ -164,6 +166,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i1025.ActivityPlayApi>(
       () => _i1025.ActivityPlayApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i765.ActivitySleepApi>(
+      () => _i765.ActivitySleepApi(gh<_i361.Dio>()),
     );
     gh.singleton<_i472.AttendanceApi>(
       () => _i472.AttendanceApi(gh<_i361.Dio>()),
