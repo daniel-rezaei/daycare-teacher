@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import '../../../resorces/pallete.dart';
+import 'package:teacher_app/core/pallete.dart';
 
 class StaffCircleItem extends StatelessWidget {
   final String image;
@@ -59,8 +57,7 @@ class StaffCircleItem extends StatelessWidget {
                 Positioned(
                   bottom: 0,
                   right: 2,
-                  child:
-                  Container(
+                  child: Container(
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
@@ -85,7 +82,7 @@ class StaffCircleItem extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 4,),
+          SizedBox(height: 4),
           Text(
             subTitle,
             style: const TextStyle(

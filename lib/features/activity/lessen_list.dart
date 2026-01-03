@@ -1,17 +1,9 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:parent_app/features/new-f/widgets/lessen_card_colaps.dart';
-
+import 'package:teacher_app/features/activity/widgets/lessen_card_colaps.dart';
 
 class LessenList extends StatelessWidget {
-
-
-  const LessenList({
-    super.key,
-
-  });
+  const LessenList({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +15,6 @@ class LessenList extends StatelessWidget {
       "Storytelling",
       "Nature Walk",
       "Sensory Exploration",
-
     ];
     for (var title in titles) {
       cards.add(
@@ -51,13 +42,7 @@ class LessenList extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ListView(
-                children: cards,
-              ),
-            ),
-          ],
+          children: [Expanded(child: ListView(children: cards))],
         ),
       ),
     );

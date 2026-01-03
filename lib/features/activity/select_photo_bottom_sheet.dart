@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:parent_app/features/new-f/widgets/tag_selector.dart';
-
-
-import '../../../../../resorces/pallete.dart';
+import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
 Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
-    BuildContext context,
-    ) {
+  BuildContext context,
+) {
   final filters = {
     'Category': [
       'Art & Craft',
@@ -25,22 +23,11 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
       'Sensory Play',
       'Health & Nutrition',
       'Fine Motor Skills',
-      'STEM Activities'
+      'STEM Activities',
     ],
-    'Age Band': [
-      'Infant',
-      'Toddler',
-      'Preschool',
-      'Kindergarten',
-    ],
-    'Class': [
-      'Room A',
-      'Room B',
-      'Room C',
-      'Room D',
-    ],
+    'Age Band': ['Infant', 'Toddler', 'Preschool', 'Kindergarten'],
+    'Class': ['Room A', 'Room B', 'Room C', 'Room D'],
   };
-
 
   final Map<String, String> selected = {};
   return showModalBottomSheet<Map<String, String>>(
@@ -91,9 +78,9 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                       Text(
                         'Lesson Title',
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Palette.textForeground
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Palette.textForeground,
                         ),
                       ),
                       Padding(
@@ -101,9 +88,9 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                         child: Text(
                           'Storytelling',
                           style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Palette.textForeground
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Palette.textForeground,
                           ),
                         ),
                       ),
@@ -132,11 +119,11 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                           SvgPicture.asset('assets/images/ic_calanders.svg'),
                           Text(
                             ' 13 June 2023 - 14 July 2023',
-                           style: TextStyle(
-                             fontSize: 14,
-                             color: Palette.textForeground,
-                             fontWeight: FontWeight.w600,
-                           )
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Palette.textForeground,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
@@ -161,10 +148,8 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
-                            children:
-                            entry.value.map((option) {
-                              final isSelected =
-                                  selected[entry.key] == option;
+                            children: entry.value.map((option) {
+                              final isSelected = selected[entry.key] == option;
                               return GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -177,18 +162,17 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color:
-                                    isSelected
-                                        ? Palette.txtTagForeground3
-                                        .withOpacity(0.8)
+                                    color: isSelected
+                                        ? Palette.txtTagForeground3.withOpacity(
+                                            0.8,
+                                          )
                                         : Palette.borderPrimary20,
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Text(
                                     option,
                                     style: TextStyle(
-                                      color:
-                                      isSelected
+                                      color: isSelected
                                           ? Colors.white
                                           : Palette.textForeground,
                                       fontWeight: FontWeight.w500,
@@ -239,7 +223,7 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                   const SizedBox(height: 8),
                   TagSelector(
                     initialTags: ["Story", "Lunch"],
-                    suggestions: ["Lunch",],
+                    suggestions: ["Lunch"],
                     hasBackground: true,
                     showSuggestions: true,
                   ),
@@ -292,7 +276,7 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children:  [
+                        children: [
                           SvgPicture.asset('assets/images/ic_attachh.svg'),
                           SizedBox(width: 8),
                           Text(
@@ -312,10 +296,7 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(
-                          context,
-                          selected,
-                        );
+                        Navigator.pop(context, selected);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Palette.borderPrimary80,
@@ -344,6 +325,4 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
       );
     },
   );
-
 }
-

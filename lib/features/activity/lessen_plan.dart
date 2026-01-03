@@ -1,23 +1,18 @@
-
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/pallete.dart';
 
-import '../../resorces/pallete.dart';
 import 'lessen_list.dart';
 
 class LessenPlanScreen extends StatelessWidget {
-
-  const LessenPlanScreen({super.key,});
+  const LessenPlanScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return _LessenPlanScreenView();
-
   }
 }
 
 class _LessenPlanScreenView extends StatefulWidget {
-
   const _LessenPlanScreenView();
 
   @override
@@ -52,19 +47,27 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Lessen Plan', style: TextStyle(color: Colors.black)),
+                const Text(
+                  'Lessen Plan',
+                  style: TextStyle(color: Colors.black),
+                ),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                  ),child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('New Lessen',style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Palette.textForeground),),
                   ),
-                )
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'New Lessen',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Palette.textForeground,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -89,9 +92,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
-                      onChanged: (value) {
-
-                      },
+                      onChanged: (value) {},
                     ),
                   ),
                 ),
@@ -105,7 +106,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                         topRight: Radius.circular(24),
                       ),
                     ),
-                    child:  const Expanded(child: LessenList())
+                    child: const Expanded(child: LessenList()),
                   ),
                 ),
               ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:parent_app/features/new-f/widgets/tag_selector.dart';
-import 'package:parent_app/resorces/pallete.dart';
+import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
 class LessenScreen extends StatefulWidget {
   const LessenScreen({super.key});
@@ -13,7 +13,7 @@ class LessenScreen extends StatefulWidget {
 final List<String> images = [
   'assets/images/img1.jpg',
   'assets/images/img1.jpg',
-  'assets/images/img1.jpg'
+  'assets/images/img1.jpg',
 ];
 
 class _LessenScreenState extends State<LessenScreen> {
@@ -46,7 +46,7 @@ class _LessenScreenState extends State<LessenScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () {},
             ),
-            title:    const Text('Lessen', style: TextStyle(color: Colors.black)),
+            title: const Text('Lessen', style: TextStyle(color: Colors.black)),
           ),
           body: SingleChildScrollView(
             child: Padding(
@@ -55,11 +55,14 @@ class _LessenScreenState extends State<LessenScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 16, top: 8.0,right: 16),
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      top: 8.0,
+                      right: 16,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-
                         Text(
                           'Music & Movement',
                           style: TextStyle(
@@ -69,15 +72,18 @@ class _LessenScreenState extends State<LessenScreen> {
                           ),
                         ),
                         Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(Icons.edit),
-                            )
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(Icons.edit),
+                          ),
                         ),
                       ],
                     ),
@@ -181,8 +187,8 @@ class _LessenScreenState extends State<LessenScreen> {
                                 horizontal: 12,
                               ),
                               itemCount: images.length,
-                              separatorBuilder:
-                                  (_, __) => const SizedBox(width: 12),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 12),
                               itemBuilder: (context, index) {
                                 return Stack(
                                   children: [
@@ -200,14 +206,16 @@ class _LessenScreenState extends State<LessenScreen> {
                                       left: 8,
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color:Palette.pink,
+                                          color: Palette.pink,
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: SvgPicture.asset('assets/images/ic_trash.svg'),
+                                          child: SvgPicture.asset(
+                                            'assets/images/ic_trash.svg',
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -236,12 +244,18 @@ class _LessenScreenState extends State<LessenScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(color: Palette.textForeground, fontSize: 13)),
+          Text(
+            title,
+            style: const TextStyle(color: Palette.textForeground, fontSize: 13),
+          ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w600,color: Palette.textForeground,
-                fontSize: 14),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Palette.textForeground,
+              fontSize: 14,
+            ),
           ),
         ],
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../resorces/pallete.dart';
+import 'package:teacher_app/core/pallete.dart';
 
 class TagSelector extends StatefulWidget {
   final List<String> initialTags;
@@ -48,9 +48,9 @@ class _TagSelectorState extends State<TagSelector> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           decoration: widget.hasBackground
               ? BoxDecoration(
-            color: const Color(0xFFF4F4F4),
-            borderRadius: BorderRadius.circular(12),
-          )
+                  color: const Color(0xFFF4F4F4),
+                  borderRadius: BorderRadius.circular(12),
+                )
               : null,
 
           child: Wrap(
@@ -62,7 +62,7 @@ class _TagSelectorState extends State<TagSelector> {
               if (widget.showSuggestions) ...[
                 const SizedBox(height: 8),
                 ...widget.suggestions.map(
-                      (s) => GestureDetector(
+                  (s) => GestureDetector(
                     onTap: () {
                       if (!selectedTags.contains(s)) {
                         setState(() {
@@ -80,7 +80,7 @@ class _TagSelectorState extends State<TagSelector> {
                     ),
                   ),
                 ),
-              ]
+              ],
             ],
           ),
         ),
@@ -114,7 +114,7 @@ class _TagSelectorState extends State<TagSelector> {
               });
             },
             child: SvgPicture.asset('assets/images/ic_close_tag.svg'),
-          )
+          ),
         ],
       ),
     );

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:parent_app/features/new-f/widgets/staff_circle_item.dart';
-
-import '../../../../../resorces/pallete.dart';
+import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/features/activity/widgets/staff_circle_item.dart';
 
 Future<Map<String, String>?> showFilterBottomSheetAccident(
   BuildContext context,
@@ -133,15 +132,15 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Palette.textForeground
+                          color: Palette.textForeground,
                         ),
                       ),
                       Text(
                         '12:00 Am',
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Palette.textForeground
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Palette.textForeground,
                         ),
                       ),
                     ],
@@ -165,43 +164,40 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
-                            children:
-                                entry.value.map((option) {
-                                  final isSelected =
-                                      selected[entry.key] == option;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selected[entry.key] = option;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isSelected
-                                                ? Palette.txtTagForeground3
-                                                    .withOpacity(0.8)
-                                                : Palette.borderPrimary20,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Text(
-                                        option,
-                                        style: TextStyle(
-                                          color:
-                                              isSelected
-                                                  ? Colors.white
-                                                  : Palette.textForeground,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
-                                        ),
-                                      ),
+                            children: entry.value.map((option) {
+                              final isSelected = selected[entry.key] == option;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selected[entry.key] = option;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Palette.txtTagForeground3.withOpacity(
+                                            0.8,
+                                          )
+                                        : Palette.borderPrimary20,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Text(
+                                    option,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Palette.textForeground,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
                                     ),
-                                  );
-                                }).toList(),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
@@ -240,7 +236,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                       },
                     ),
                   ),
-                  SizedBox(height: 16,),
+                  SizedBox(height: 16),
                   ...filter2.entries.map((entry) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 24.0),
@@ -259,43 +255,40 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
-                            children:
-                                entry.value.map((option) {
-                                  final isSelected =
-                                      selected[entry.key] == option;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selected[entry.key] = option;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            isSelected
-                                                ? Palette.txtTagForeground3
-                                                    .withOpacity(0.8)
-                                                : Palette.borderPrimary20,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Text(
-                                        option,
-                                        style: TextStyle(
-                                          color:
-                                              isSelected
-                                                  ? Colors.white
-                                                  : Palette.textForeground,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
-                                        ),
-                                      ),
+                            children: entry.value.map((option) {
+                              final isSelected = selected[entry.key] == option;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selected[entry.key] = option;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Palette.txtTagForeground3.withOpacity(
+                                            0.8,
+                                          )
+                                        : Palette.borderPrimary20,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Text(
+                                    option,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Palette.textForeground,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
                                     ),
-                                  );
-                                }).toList(),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
@@ -334,9 +327,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                             value: false,
                             activeColor: Colors.purple,
                             onChanged: (v) {
-                              setState(() {
-
-                              });
+                              setState(() {});
                             },
                           ),
                         ),
@@ -355,9 +346,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                             value: false,
                             activeColor: Colors.purple,
                             onChanged: (v) {
-                              setState(() {
-
-                              });
+                              setState(() {});
                             },
                           ),
                         ),
@@ -383,10 +372,8 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
-                            children:
-                            entry.value.map((option) {
-                              final isSelected =
-                                  selected[entry.key] == option;
+                            children: entry.value.map((option) {
+                              final isSelected = selected[entry.key] == option;
                               return GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -399,18 +386,17 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color:
-                                    isSelected
-                                        ? Palette.txtTagForeground3
-                                        .withOpacity(0.8)
+                                    color: isSelected
+                                        ? Palette.txtTagForeground3.withOpacity(
+                                            0.8,
+                                          )
                                         : Palette.borderPrimary20,
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Text(
                                     option,
                                     style: TextStyle(
-                                      color:
-                                      isSelected
+                                      color: isSelected
                                           ? Colors.white
                                           : Palette.textForeground,
                                       fontWeight: FontWeight.w500,
@@ -425,7 +411,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                       ),
                     );
                   }).toList(),
-                   Text(
+                  Text(
                     "Decription",
                     style: TextStyle(
                       fontSize: 14,
@@ -472,8 +458,8 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children:  [
-                       SvgPicture.asset('assets/images/ic_attachh.svg'),
+                        children: [
+                          SvgPicture.asset('assets/images/ic_attachh.svg'),
                           SizedBox(width: 8),
                           Text(
                             "Attach Photo",
@@ -492,10 +478,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(
-                          context,
-                          selected,
-                        );
+                        Navigator.pop(context, selected);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Palette.borderPrimary80,
