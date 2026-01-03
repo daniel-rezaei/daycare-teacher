@@ -8,9 +8,22 @@ class ActivityPlayApi {
   final Dio httpclient;
   ActivityPlayApi(this.httpclient);
 
-  // Play activity type UUID from backend
-  static const String playActivityTypeId =
-      '31b2a8b9-7485-4b2d-9f39-353d5b34c4de';
+  /// Get activity type ID from backend based on type
+  Future<String> _getActivityTypeId(String type) async {
+    debugPrint('[PLAY_API] Fetching activity type ID for type: $type');
+    final response = await httpclient.get('/items/activity_types');
+    final data = response.data['data'] as List<dynamic>;
+    
+    for (final item in data) {
+      if (item['type'] == type) {
+        final id = item['id'] as String;
+        debugPrint('[PLAY_API] Found activity type ID for $type: $id');
+        return id;
+      }
+    }
+    
+    throw Exception('[PLAY_API] Activity type not found for: $type');
+  }
 
   /// STEP A: Create parent activity record
   /// Returns the activity ID to be used for creating play details
@@ -22,8 +35,11 @@ class ActivityPlayApi {
   }) async {
     debugPrint('[PLAY_API] ========== STEP A: Creating Activity (Parent) ==========');
 
+    // Get activity type ID from backend
+    final activityTypeId = await _getActivityTypeId('play');
+
     final data = <String, dynamic>{
-      'activity_type_id': playActivityTypeId,
+      'activity_type_id': activityTypeId,
       'start_at': startAtUtc,
       'visibility': 'parents',
       'status': 'published',

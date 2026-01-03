@@ -8,9 +8,22 @@ class ActivityBathroomApi {
   final Dio httpclient;
   ActivityBathroomApi(this.httpclient);
 
-  // Bathroom activity type UUID from backend (same as meal for now, should be updated)
-  static const String bathroomActivityTypeId =
-      '31b2a8b9-7485-4b2d-9f39-353d5b34c4de';
+  /// Get activity type ID from backend based on type
+  Future<String> _getActivityTypeId(String type) async {
+    debugPrint('[BATHROOM_API] Fetching activity type ID for type: $type');
+    final response = await httpclient.get('/items/activity_types');
+    final data = response.data['data'] as List<dynamic>;
+
+    for (final item in data) {
+      if (item['type'] == type) {
+        final id = item['id'] as String;
+        debugPrint('[BATHROOM_API] Found activity type ID for $type: $id');
+        return id;
+      }
+    }
+
+    throw Exception('[BATHROOM_API] Activity type not found for: $type');
+  }
 
   /// STEP A: Create parent activity record
   /// Returns the activity ID to be used for creating bathroom details
@@ -20,10 +33,15 @@ class ActivityBathroomApi {
     required String classId,
     required String startAtUtc,
   }) async {
-    debugPrint('[BATHROOM_API] ========== STEP A: Creating Activity (Parent) ==========');
+    debugPrint(
+      '[BATHROOM_API] ========== STEP A: Creating Activity (Parent) ==========',
+    );
+
+    // Get activity type ID from backend
+    final activityTypeId = await _getActivityTypeId('bathroom');
 
     final data = <String, dynamic>{
-      'activity_type_id': bathroomActivityTypeId,
+      'activity_type_id': activityTypeId,
       'start_at': startAtUtc,
       'visibility': 'parents',
       'status': 'published',
@@ -53,7 +71,9 @@ class ActivityBathroomApi {
     List<String>? tags,
     String? photo, // file ID
   }) async {
-    debugPrint('[BATHROOM_API] ========== STEP B: Creating Bathroom Details (Child) ==========');
+    debugPrint(
+      '[BATHROOM_API] ========== STEP B: Creating Bathroom Details (Child) ==========',
+    );
     debugPrint('[BATHROOM_API] activityId: $activityId');
     debugPrint('[BATHROOM_API] type: $type');
     debugPrint('[BATHROOM_API] sub_type: $subType');
@@ -78,8 +98,8 @@ class ActivityBathroomApi {
     if (photo != null && photo.isNotEmpty) {
       data['photo'] = {
         'create': [
-          {'directus_files_id': photo}
-        ]
+          {'directus_files_id': photo},
+        ],
       };
     }
 
@@ -94,8 +114,12 @@ class ActivityBathroomApi {
         '/items/activity_bathroom',
         data: data,
       );
-      debugPrint('[BATHROOM_API] Bathroom details response status: ${response.statusCode}');
-      debugPrint('[BATHROOM_API] Bathroom details response data: ${response.data}');
+      debugPrint(
+        '[BATHROOM_API] Bathroom details response status: ${response.statusCode}',
+      );
+      debugPrint(
+        '[BATHROOM_API] Bathroom details response data: ${response.data}',
+      );
       return response;
     } catch (e, stackTrace) {
       debugPrint('[BATHROOM_API] Error creating bathroom details: $e');
@@ -107,21 +131,25 @@ class ActivityBathroomApi {
   /// Get bathroom type options from field metadata
   /// Returns list of choice values from data.meta.options.choices[].value
   Future<List<String>> getBathroomTypes() async {
-    debugPrint('[BATHROOM_API] Fetching bathroom type options from /fields/activity_bathroom/type');
+    debugPrint(
+      '[BATHROOM_API] Fetching bathroom type options from /fields/activity_bathroom/type',
+    );
     try {
       final response = await httpclient.get('/fields/activity_bathroom/type');
-      debugPrint('[BATHROOM_API] Bathroom type response status: ${response.statusCode}');
-      debugPrint('[BATHROOM_API] Bathroom type response data: ${response.data}');
-      
+      debugPrint(
+        '[BATHROOM_API] Bathroom type response status: ${response.statusCode}',
+      );
+      debugPrint(
+        '[BATHROOM_API] Bathroom type response data: ${response.data}',
+      );
+
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
       final meta = data['meta'] as Map<String, dynamic>;
       final options = meta['options'] as Map<String, dynamic>;
       final choices = options['choices'] as List<dynamic>;
 
-      final values = choices
-          .map((e) => e['value'].toString())
-          .toList();
+      final values = choices.map((e) => e['value'].toString()).toList();
 
       debugPrint('[BATHROOM_API] Parsed bathroom type values: $values');
       return values;
@@ -135,21 +163,25 @@ class ActivityBathroomApi {
   /// Get sub-type options from field metadata
   /// Returns list of choice values from data.meta.options.choices[].value
   Future<List<String>> getSubTypes() async {
-    debugPrint('[BATHROOM_API] Fetching sub-type options from /fields/activity_bathroom/sub_type');
+    debugPrint(
+      '[BATHROOM_API] Fetching sub-type options from /fields/activity_bathroom/sub_type',
+    );
     try {
-      final response = await httpclient.get('/fields/activity_bathroom/sub_type');
-      debugPrint('[BATHROOM_API] Sub-type response status: ${response.statusCode}');
+      final response = await httpclient.get(
+        '/fields/activity_bathroom/sub_type',
+      );
+      debugPrint(
+        '[BATHROOM_API] Sub-type response status: ${response.statusCode}',
+      );
       debugPrint('[BATHROOM_API] Sub-type response data: ${response.data}');
-      
+
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
       final meta = data['meta'] as Map<String, dynamic>;
       final options = meta['options'] as Map<String, dynamic>;
       final choices = options['choices'] as List<dynamic>;
 
-      final values = choices
-          .map((e) => e['value'].toString())
-          .toList();
+      final values = choices.map((e) => e['value'].toString()).toList();
 
       debugPrint('[BATHROOM_API] Parsed sub-type values: $values');
       return values;
@@ -163,4 +195,3 @@ class ActivityBathroomApi {
   // Tags are LOCAL-ONLY - removed getTags() method
   // Tags are display-only and local-editable, no API calls needed
 }
-
