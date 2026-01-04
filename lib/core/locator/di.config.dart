@@ -13,6 +13,8 @@ import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:teacher_app/core/http_client.dart' as _i567;
+import 'package:teacher_app/features/activity/data/data_source/activity_accident_api.dart'
+    as _i1024;
 import 'package:teacher_app/features/activity/data/data_source/activity_bathroom_api.dart'
     as _i255;
 import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart'
@@ -155,6 +157,9 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final dioModule = _$DioModule();
     gh.lazySingleton<_i361.Dio>(() => dioModule.dio());
+    gh.singleton<_i1024.ActivityAccidentApi>(
+      () => _i1024.ActivityAccidentApi(gh<_i361.Dio>()),
+    );
     gh.singleton<_i255.ActivityBathroomApi>(
       () => _i255.ActivityBathroomApi(gh<_i361.Dio>()),
     );

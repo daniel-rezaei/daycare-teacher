@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
+import 'package:teacher_app/features/activity/widgets/accident_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/bathroom_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
@@ -167,10 +168,51 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
       return;
     }
 
+    final activityType = widget.activityType ?? 'meal';
+    
+    // For accident: only one child allowed
+    if (activityType == 'accident') {
+      if (selectedChildIds.length != 1) {
+        debugPrint('[SELECT_CHILDS] Accident activity requires exactly 1 child, but ${selectedChildIds.length} selected');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select exactly one child for Accident Activity')),
+        );
+        return;
+      }
+      
+      final selectedChild = _filteredChildren
+          .firstWhere((c) => c.id != null && selectedChildIds.contains(c.id));
+      
+      debugPrint(
+        '[SELECT_CHILDS] Opening AccidentActivityBottomSheet with 1 child',
+      );
+      debugPrint(
+        '[SELECT_CHILDS] BottomSheet triggered from BOTTOM ACTION ICON only',
+      );
+
+      final now = DateTime.now();
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        useSafeArea: true,
+        builder: (context) {
+          return AccidentActivityBottomSheet(
+            selectedChild: selectedChild,
+            dateTime: now,
+          );
+        },
+      );
+      debugPrint(
+        '[SELECT_CHILDS] AccidentActivityBottomSheet opened successfully',
+      );
+      return;
+    }
+    
+    // For other activities: multi-select
     final selectedChildren = _filteredChildren
         .where((c) => c.id != null && selectedChildIds.contains(c.id))
         .toList();
-    final activityType = widget.activityType ?? 'meal';
     debugPrint(
       '[SELECT_CHILDS] Opening ${activityType}ActivityBottomSheet with ${selectedChildren.length} children',
     );
@@ -322,16 +364,34 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                                   '[SELECT_CHILDS] Child tapped: ${child.id}, name: $childName',
                                 );
                                 setState(() {
-                                  if (isSelected) {
-                                    selectedChildIds.remove(child.id);
-                                    debugPrint(
-                                      '[SELECT_CHILDS] Removed child: ${child.id}',
-                                    );
+                                  // For accident activity: single selection only
+                                  if (widget.activityType == 'accident') {
+                                    if (isSelected) {
+                                      selectedChildIds.remove(child.id);
+                                      debugPrint(
+                                        '[SELECT_CHILDS] Removed child: ${child.id} (accident - single select)',
+                                      );
+                                    } else {
+                                      // Clear all and select only this one
+                                      selectedChildIds.clear();
+                                      selectedChildIds.add(child.id!);
+                                      debugPrint(
+                                        '[SELECT_CHILDS] Selected child: ${child.id} (accident - single select, cleared others)',
+                                      );
+                                    }
                                   } else {
-                                    selectedChildIds.add(child.id!);
-                                    debugPrint(
-                                      '[SELECT_CHILDS] Added child: ${child.id}',
-                                    );
+                                    // Multi-select for other activities
+                                    if (isSelected) {
+                                      selectedChildIds.remove(child.id);
+                                      debugPrint(
+                                        '[SELECT_CHILDS] Removed child: ${child.id}',
+                                      );
+                                    } else {
+                                      selectedChildIds.add(child.id!);
+                                      debugPrint(
+                                        '[SELECT_CHILDS] Added child: ${child.id}',
+                                      );
+                                    }
                                   }
                                 });
                               },
