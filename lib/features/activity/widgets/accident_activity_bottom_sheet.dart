@@ -408,20 +408,6 @@ class _AccidentActivityBottomSheetState
                       ),
                     const SizedBox(height: 24),
 
-                    // How To Notify
-                    if (_notifyByOptions.isNotEmpty)
-                      MealTypeSelectorWidget(
-                        title: 'How To Notify',
-                        options: _notifyByOptions,
-                        selectedValue: _selectedNotifyBy,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedNotifyBy = value;
-                          });
-                        },
-                      ),
-                    if (_notifyByOptions.isNotEmpty) const SizedBox(height: 24),
-
                     // Date Notified
                     if (_dateNotifiedOptions.isNotEmpty)
                       MealTypeSelectorWidget(
@@ -517,6 +503,20 @@ class _AccidentActivityBottomSheetState
                       ],
                     ),
                     const SizedBox(height: 24),
+
+                    // How To Notify
+                    if (_notifyByOptions.isNotEmpty)
+                      MealTypeSelectorWidget(
+                        title: 'How To Notify',
+                        options: _notifyByOptions,
+                        selectedValue: _selectedNotifyBy,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedNotifyBy = value;
+                          });
+                        },
+                      ),
+                    if (_notifyByOptions.isNotEmpty) const SizedBox(height: 24),
 
                     // Description Field
                     NoteWidget(
