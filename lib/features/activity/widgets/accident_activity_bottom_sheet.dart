@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
-import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_accident_api.dart';
@@ -280,14 +279,8 @@ class _AccidentActivityBottomSheetState
                   ),
                   const SizedBox(height: 24),
 
-                  // Selected Child Avatar
-                  ChildAvatarWidget(
-                    photoId: widget.selectedChild.photo,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 24),
-
                   // Loading indicator
+                  // Note: Child information is available in widget.selectedChild but not displayed
                   if (_isLoadingOptions)
                     const Center(
                       child: Padding(
