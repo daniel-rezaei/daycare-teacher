@@ -159,34 +159,39 @@ class _AccidentActivityBottomSheetState
   }
 
   Future<void> _loadStaff() async {
-    if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[ACCIDENT_ACTIVITY] Cannot load staff: classId is null');
-      setState(() {
-        _isLoadingStaff = false;
-      });
-      return;
-    }
-
     setState(() {
       _isLoadingStaff = true;
     });
 
     try {
-      debugPrint('[ACCIDENT_ACTIVITY] Loading staff for class: $_classId');
-      final response = await _homeApi.staffClass(classId: _classId!);
+      debugPrint('[ACCIDENT_ACTIVITY] Loading all staff from all classes');
+      final response = await _homeApi.getAllStaff();
       final List<dynamic> data = response.data['data'] as List<dynamic>;
 
-      final staffList = data
+      // Parse all staff
+      final allStaff = data
           .map((e) => StaffClassModel.fromJson(e as Map<String, dynamic>))
           .toList();
 
+      // Remove duplicates based on staff_id (a staff might be in multiple classes)
+      final Map<String, StaffClassModel> uniqueStaffMap = {};
+      for (final staff in allStaff) {
+        if (staff.staffId != null && staff.staffId!.isNotEmpty) {
+          if (!uniqueStaffMap.containsKey(staff.staffId)) {
+            uniqueStaffMap[staff.staffId!] = staff;
+          }
+        }
+      }
+
+      final uniqueStaffList = uniqueStaffMap.values.toList();
+
       if (mounted) {
         setState(() {
-          _staffList = staffList;
+          _staffList = uniqueStaffList;
           _isLoadingStaff = false;
         });
         debugPrint(
-          '[ACCIDENT_ACTIVITY] Staff loaded: ${_staffList.length} members',
+          '[ACCIDENT_ACTIVITY] All staff loaded: ${_staffList.length} unique members (from ${allStaff.length} total records)',
         );
       }
     } catch (e, stackTrace) {

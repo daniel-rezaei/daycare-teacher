@@ -23,6 +23,17 @@ class HomeApi {
     );
   }
 
+  /// Get all staff from all classes (for Accident Activity)
+  Future<Response> getAllStaff() async {
+    return await httpclient.get(
+      '/items/Staff_Class',
+      queryParameters: {
+        'fields':
+            'id,Role,staff_id.id,staff_id.contact_id.id,staff_id.contact_id.first_name,staff_id.contact_id.last_name,staff_id.contact_id.email,staff_id.contact_id.photo.id',
+      },
+    );
+  }
+
   Future<Response> getClassIdByContactId({required String contactId}) async {
     return await httpclient.get(
       '/items/Staff_Class',
