@@ -14,9 +14,12 @@ import 'package:teacher_app/features/activity/data/data_source/activity_accident
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/auth/data/models/staff_class_model/staff_class_model.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
+import 'package:teacher_app/core/data_state.dart';
+import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/features/home/data/data_source/home_api.dart';
 
 class AccidentActivityBottomSheet extends StatefulWidget {
@@ -67,12 +70,15 @@ class _AccidentActivityBottomSheetState
 
   bool _isLoadingOptions = true;
   bool _isLoadingStaff = true;
+  bool _isSubmitting = false;
   bool _medicalFollowUpRequired = false;
   bool _incidentReportedToAuthority = false;
   bool _parentNotified = false;
 
   final ActivityAccidentApi _api = GetIt.instance<ActivityAccidentApi>();
   final HomeApi _homeApi = GetIt.instance<HomeApi>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
@@ -221,6 +227,162 @@ class _AccidentActivityBottomSheetState
       }
     });
     debugPrint('[ACCIDENT_ACTIVITY] Selected staff IDs: $_selectedStaffIds');
+  }
+
+  Future<String?> _uploadPhoto(File imageFile) async {
+    try {
+      debugPrint('[ACCIDENT_ACTIVITY] Uploading photo: ${imageFile.path}');
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
+      if (uploadResult is DataSuccess && uploadResult.data != null) {
+        debugPrint(
+          '[ACCIDENT_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}',
+        );
+        return uploadResult.data;
+      } else {
+        debugPrint('[ACCIDENT_ACTIVITY] Photo upload failed');
+        return null;
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[ACCIDENT_ACTIVITY] Error uploading photo: $e');
+      debugPrint('[ACCIDENT_ACTIVITY] StackTrace: $stackTrace');
+      return null;
+    }
+  }
+
+  Future<void> _handleAdd() async {
+    debugPrint('[ACCIDENT_ACTIVITY] ========== Add button pressed ==========');
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Selected child: ${widget.selectedChild.id}',
+    );
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Nature of injury: $_selectedNatureOfInjury',
+    );
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Injured body part: $_selectedInjuredBodyPart',
+    );
+    debugPrint('[ACCIDENT_ACTIVITY] Location: $_selectedLocation');
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] First aid provided: $_selectedFirstAidProvided',
+    );
+    debugPrint('[ACCIDENT_ACTIVITY] Child reaction: $_selectedChildReaction');
+    debugPrint('[ACCIDENT_ACTIVITY] Staff IDs: $_selectedStaffIds');
+    debugPrint('[ACCIDENT_ACTIVITY] Date notified: $_selectedDateNotified');
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Medical follow-up: $_medicalFollowUpRequired',
+    );
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Incident reported: $_incidentReportedToAuthority',
+    );
+    debugPrint('[ACCIDENT_ACTIVITY] Parent notified: $_parentNotified');
+    debugPrint('[ACCIDENT_ACTIVITY] Notify by: $_selectedNotifyBy');
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Description: ${_descriptionController.text}',
+    );
+    debugPrint('[ACCIDENT_ACTIVITY] Images: ${_images.length}');
+
+    // Validation
+    if (widget.selectedChild.id == null || widget.selectedChild.id!.isEmpty) {
+      debugPrint('[ACCIDENT_ACTIVITY] Validation failed: Child ID is null');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Child ID not found. Please try again.')),
+      );
+      return;
+    }
+
+    if (_classId == null || _classId!.isEmpty) {
+      debugPrint('[ACCIDENT_ACTIVITY] Validation failed: No classId available');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Class ID not found. Please try again.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Upload photo if exists
+      String? photoFileId;
+      if (_images.isNotEmpty) {
+        photoFileId = await _uploadPhoto(_images.first);
+      }
+
+      // Format start_at in UTC ISO 8601 format
+      final startAtUtc = widget.dateTime.toUtc().toIso8601String();
+      debugPrint('[ACCIDENT_ACTIVITY] start_at (UTC): $startAtUtc');
+
+      // STEP A: Create parent activity
+      debugPrint(
+        '[ACCIDENT_ACTIVITY] STEP A: Creating activity for child ${widget.selectedChild.id}',
+      );
+      final activityId = await _api.createActivity(
+        childId: widget.selectedChild.id!,
+        classId: _classId!,
+        startAtUtc: startAtUtc,
+      );
+      debugPrint('[ACCIDENT_ACTIVITY] ✅ Activity created with ID: $activityId');
+
+      // STEP B: Create accident details linked to activity
+      debugPrint(
+        '[ACCIDENT_ACTIVITY] STEP B: Creating accident details for activity $activityId',
+      );
+      final response = await _api.createAccidentDetails(
+        activityId: activityId,
+        natureOfInjuryText: _selectedNatureOfInjury,
+        injuredBodyTypeText: _selectedInjuredBodyPart,
+        locationText: _selectedLocation,
+        firstAidProvidedText: _selectedFirstAidProvided,
+        childReactionText: _selectedChildReaction,
+        staffIds: _selectedStaffIds.toList(),
+        dateTimeNotifiedText: _selectedDateNotified,
+        medicalFollowUpRequired: _medicalFollowUpRequired,
+        incidentReportedToAuthority: _incidentReportedToAuthority,
+        parentNotified: _parentNotified,
+        notifyByText: _selectedNotifyBy,
+        description: _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text,
+        photo: photoFileId,
+      );
+
+      debugPrint(
+        '[ACCIDENT_ACTIVITY] ✅ Accident details created: ${response.statusCode}',
+      );
+      debugPrint('[ACCIDENT_ACTIVITY] Response data: ${response.data}');
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        // Close bottom sheet first
+        Navigator.pop(context);
+        // Navigate back to LogActivityScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LogActivityScreen()),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Accident activity created successfully'),
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[ACCIDENT_ACTIVITY] Error in _handleAdd: $e');
+      debugPrint('[ACCIDENT_ACTIVITY] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   String _formatDate(DateTime dateTime) {
@@ -526,23 +688,27 @@ class _AccidentActivityBottomSheetState
                     ),
                     const SizedBox(height: 32),
 
-                    // Add Button (DISABLED - UI only, no functionality)
+                    // Add Button
                     ButtonWidget(
-                      isEnabled: false, // Disabled as per requirements
-                      onTap: () {
-                        // No implementation - button is disabled
-                        debugPrint(
-                          '[ACCIDENT_ACTIVITY] Add button pressed (disabled)',
-                        );
-                      },
-                      child: const Text(
-                        'Add',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      isEnabled: !_isSubmitting,
+                      onTap: _handleAdd,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CupertinoActivityIndicator(
+                                radius: 10,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Add',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ],
                 ],
