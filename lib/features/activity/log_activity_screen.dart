@@ -178,6 +178,31 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
   }
 
+  void _navigateToIncidentActivity(BuildContext context) async {
+    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Incident Activity');
+    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
+    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
+    debugPrint('[LOG_ACTIVITY] NOTE: Incident Activity requires SINGLE child selection only');
+    
+    // Navigate to SelectChildsScreen
+    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
+    // Back button will just navigate back without opening BottomSheet
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SelectChildsScreen(
+          returnSelectedChildren: true,
+          classId: _classId,
+          activityType: 'incident',
+        ),
+      ),
+    );
+
+    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
+    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected exactly 1 child)');
+    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+  }
+
   @override
   Widget build(BuildContext context) {
     final double cardWidth =
@@ -315,7 +340,10 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.incident.image(height: 48),
                               title: 'Incident',
-                              onTap: () {},
+                              onTap: () {
+                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Incident flow ==========');
+                                _navigateToIncidentActivity(context);
+                              },
                             ),
                           ),
                           SizedBox(

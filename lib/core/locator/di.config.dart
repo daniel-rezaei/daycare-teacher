@@ -19,6 +19,8 @@ import 'package:teacher_app/features/activity/data/data_source/activity_bathroom
     as _i255;
 import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart'
     as _i281;
+import 'package:teacher_app/features/activity/data/data_source/activity_incident_api.dart'
+    as _i343;
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart'
     as _i491;
 import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart'
@@ -165,6 +167,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i281.ActivityDrinksApi>(
       () => _i281.ActivityDrinksApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i343.ActivityIncidentApi>(
+      () => _i343.ActivityIncidentApi(gh<_i361.Dio>()),
     );
     gh.singleton<_i491.ActivityMealsApi>(
       () => _i491.ActivityMealsApi(gh<_i361.Dio>()),

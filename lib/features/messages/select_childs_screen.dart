@@ -4,6 +4,7 @@ import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/features/activity/widgets/accident_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/bathroom_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
+import 'package:teacher_app/features/activity/widgets/incident_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/play_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/sleep_activity_bottom_sheet.dart';
@@ -209,6 +210,45 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
       return;
     }
     
+    // For incident: only one child allowed
+    if (activityType == 'incident') {
+      if (selectedChildIds.length != 1) {
+        debugPrint('[SELECT_CHILDS] Incident activity requires exactly 1 child, but ${selectedChildIds.length} selected');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select exactly one child for Incident Activity')),
+        );
+        return;
+      }
+      
+      final selectedChild = _filteredChildren
+          .firstWhere((c) => c.id != null && selectedChildIds.contains(c.id));
+      
+      debugPrint(
+        '[SELECT_CHILDS] Opening IncidentActivityBottomSheet with 1 child',
+      );
+      debugPrint(
+        '[SELECT_CHILDS] BottomSheet triggered from BOTTOM ACTION ICON only',
+      );
+
+      final now = DateTime.now();
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        useSafeArea: true,
+        builder: (context) {
+          return IncidentActivityBottomSheet(
+            selectedChild: selectedChild,
+            dateTime: now,
+          );
+        },
+      );
+      debugPrint(
+        '[SELECT_CHILDS] IncidentActivityBottomSheet opened successfully',
+      );
+      return;
+    }
+    
     // For other activities: multi-select
     final selectedChildren = _filteredChildren
         .where((c) => c.id != null && selectedChildIds.contains(c.id))
@@ -364,19 +404,20 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                                   '[SELECT_CHILDS] Child tapped: ${child.id}, name: $childName',
                                 );
                                 setState(() {
-                                  // For accident activity: single selection only
-                                  if (widget.activityType == 'accident') {
+                                  // For accident and incident activities: single selection only
+                                  if (widget.activityType == 'accident' ||
+                                      widget.activityType == 'incident') {
                                     if (isSelected) {
                                       selectedChildIds.remove(child.id);
                                       debugPrint(
-                                        '[SELECT_CHILDS] Removed child: ${child.id} (accident - single select)',
+                                        '[SELECT_CHILDS] Removed child: ${child.id} (${widget.activityType} - single select)',
                                       );
                                     } else {
                                       // Clear all and select only this one
                                       selectedChildIds.clear();
                                       selectedChildIds.add(child.id!);
                                       debugPrint(
-                                        '[SELECT_CHILDS] Selected child: ${child.id} (accident - single select, cleared others)',
+                                        '[SELECT_CHILDS] Selected child: ${child.id} (${widget.activityType} - single select, cleared others)',
                                       );
                                     }
                                   } else {
@@ -531,6 +572,21 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                 return GestureDetector(
                   onTap: () {
                     debugPrint('[SELECT_CHILDS] Select All tapped');
+                    // For accident and incident: single selection only, so disable Select All
+                    if (widget.activityType == 'accident' ||
+                        widget.activityType == 'incident') {
+                      debugPrint(
+                        '[SELECT_CHILDS] Select All disabled for ${widget.activityType} (single selection only)',
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Only one child can be selected for ${widget.activityType == 'accident' ? 'Accident' : 'Incident'} Activity',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     setState(() {
                       if (allSelected) {
                         selectedChildIds.clear();
