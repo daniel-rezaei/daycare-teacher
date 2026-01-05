@@ -70,5 +70,10 @@ class ActivityAccidentApi {
     return getFieldOptions('notify_by');
   }
 
+  /// Get date notified options
+  Future<List<String>> getDateNotifiedOptions() async {
+    return getFieldOptions('date_time_notified');
+  }
+
   // Note: Add button is not implemented yet, so no create methods needed
 }

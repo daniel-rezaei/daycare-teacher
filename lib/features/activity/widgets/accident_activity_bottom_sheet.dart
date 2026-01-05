@@ -31,14 +31,16 @@ class AccidentActivityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<AccidentActivityBottomSheet> createState() => _AccidentActivityBottomSheetState();
+  State<AccidentActivityBottomSheet> createState() =>
+      _AccidentActivityBottomSheetState();
 }
 
-class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomSheet> {
+class _AccidentActivityBottomSheetState
+    extends State<AccidentActivityBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _descriptionController = TextEditingController();
   final List<File> _images = [];
-  
+
   // Field selections
   String? _selectedNatureOfInjury;
   String? _selectedInjuredBodyPart;
@@ -46,7 +48,8 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
   String? _selectedFirstAidProvided;
   String? _selectedChildReaction;
   String? _selectedNotifyBy;
-  
+  String? _selectedDateNotified;
+
   // Options loaded from backend
   List<String> _natureOfInjuryOptions = [];
   List<String> _injuredBodyPartOptions = [];
@@ -54,30 +57,35 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
   List<String> _firstAidProvidedOptions = [];
   List<String> _childReactionOptions = [];
   List<String> _notifyByOptions = [];
-  
+  List<String> _dateNotifiedOptions = [];
+
   // Staff
   List<StaffClassModel> _staffList = [];
   Set<String> _selectedStaffIds = {}; // Multi-select for staff
-  
+
   // Class ID for fetching staff
   String? _classId;
-  
+
   bool _isLoadingOptions = true;
   bool _isLoadingStaff = true;
   bool _medicalFollowUpRequired = false;
   bool _incidentReportedToAuthority = false;
   bool _parentNotified = false;
-  
+
   final ActivityAccidentApi _api = GetIt.instance<ActivityAccidentApi>();
   final HomeApi _homeApi = GetIt.instance<HomeApi>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[ACCIDENT_ACTIVITY] ========== Opening AccidentActivityBottomSheet ==========');
-    debugPrint('[ACCIDENT_ACTIVITY] Selected child: ${widget.selectedChild.id}');
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] ========== Opening AccidentActivityBottomSheet ==========',
+    );
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Selected child: ${widget.selectedChild.id}',
+    );
     debugPrint('[ACCIDENT_ACTIVITY] DateTime: ${widget.dateTime}');
-    
+
     _loadClassId();
     _loadAllOptions();
     _loadStaff();
@@ -93,7 +101,9 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
         });
         debugPrint('[ACCIDENT_ACTIVITY] ClassId loaded: $_classId');
       } else {
-        debugPrint('[ACCIDENT_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
+        debugPrint(
+          '[ACCIDENT_ACTIVITY] ⚠️ ClassId not found in SharedPreferences',
+        );
       }
     } catch (e, stackTrace) {
       debugPrint('[ACCIDENT_ACTIVITY] Error loading classId: $e');
@@ -112,7 +122,7 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
     setState(() {
       _isLoadingOptions = true;
     });
-    
+
     try {
       final results = await Future.wait([
         _api.getNatureOfInjuryOptions(),
@@ -121,8 +131,9 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
         _api.getFirstAidProvidedOptions(),
         _api.getChildReactionOptions(),
         _api.getNotifyByOptions(),
+        _api.getDateNotifiedOptions(),
       ]);
-      
+
       if (mounted) {
         setState(() {
           _natureOfInjuryOptions = results[0];
@@ -131,6 +142,7 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
           _firstAidProvidedOptions = results[3];
           _childReactionOptions = results[4];
           _notifyByOptions = results[5];
+          _dateNotifiedOptions = results[6];
           _isLoadingOptions = false;
         });
         debugPrint('[ACCIDENT_ACTIVITY] All options loaded successfully');
@@ -154,26 +166,28 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
       });
       return;
     }
-    
+
     setState(() {
       _isLoadingStaff = true;
     });
-    
+
     try {
       debugPrint('[ACCIDENT_ACTIVITY] Loading staff for class: $_classId');
       final response = await _homeApi.staffClass(classId: _classId!);
       final List<dynamic> data = response.data['data'] as List<dynamic>;
-      
+
       final staffList = data
           .map((e) => StaffClassModel.fromJson(e as Map<String, dynamic>))
           .toList();
-      
+
       if (mounted) {
         setState(() {
           _staffList = staffList;
           _isLoadingStaff = false;
         });
-        debugPrint('[ACCIDENT_ACTIVITY] Staff loaded: ${_staffList.length} members');
+        debugPrint(
+          '[ACCIDENT_ACTIVITY] Staff loaded: ${_staffList.length} members',
+        );
       }
     } catch (e, stackTrace) {
       debugPrint('[ACCIDENT_ACTIVITY] Error loading staff: $e');
@@ -216,7 +230,9 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
   String _getStaffName(StaffClassModel staff) {
     final firstName = staff.firstName ?? '';
     final lastName = staff.lastName ?? '';
-    return '$firstName $lastName'.trim().isEmpty ? 'Unknown' : '$firstName $lastName'.trim();
+    return '$firstName $lastName'.trim().isEmpty
+        ? 'Unknown'
+        : '$firstName $lastName'.trim();
   }
 
   @override
@@ -366,8 +382,10 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
                           itemBuilder: (context, index) {
                             final staff = _staffList[index];
                             final staffId = staff.staffId ?? '';
-                            final isSelected = _selectedStaffIds.contains(staffId);
-                            
+                            final isSelected = _selectedStaffIds.contains(
+                              staffId,
+                            );
+
                             return GestureDetector(
                               onTap: () => _toggleStaffSelection(staffId),
                               child: Padding(
@@ -398,6 +416,21 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
                         },
                       ),
                     if (_notifyByOptions.isNotEmpty) const SizedBox(height: 24),
+
+                    // Date Notified
+                    if (_dateNotifiedOptions.isNotEmpty)
+                      MealTypeSelectorWidget(
+                        title: 'Date Notified',
+                        options: _dateNotifiedOptions,
+                        selectedValue: _selectedDateNotified,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDateNotified = value;
+                          });
+                        },
+                      ),
+                    if (_dateNotifiedOptions.isNotEmpty)
+                      const SizedBox(height: 24),
 
                     // Medical Follow-Up Required
                     Row(
@@ -500,7 +533,9 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
                       isEnabled: false, // Disabled as per requirements
                       onTap: () {
                         // No implementation - button is disabled
-                        debugPrint('[ACCIDENT_ACTIVITY] Add button pressed (disabled)');
+                        debugPrint(
+                          '[ACCIDENT_ACTIVITY] Add button pressed (disabled)',
+                        );
                       },
                       child: const Text(
                         'Add',
@@ -560,10 +595,7 @@ class _StaffCircleItem extends StatelessWidget {
               ),
 
               // Avatar
-              StaffAvatar(
-                photoId: photoId,
-                size: 72,
-              ),
+              StaffAvatar(photoId: photoId, size: 72),
 
               // Check Badge
               if (isSelected)
@@ -614,4 +646,3 @@ class _StaffCircleItem extends StatelessWidget {
     );
   }
 }
-
