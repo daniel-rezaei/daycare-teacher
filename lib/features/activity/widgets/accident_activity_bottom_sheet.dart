@@ -45,7 +45,7 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
   String? _selectedLocation;
   String? _selectedFirstAidProvided;
   String? _selectedChildReaction;
-  String? _selectedDateNotified;
+  String? _selectedNotifyBy;
   
   // Options loaded from backend
   List<String> _natureOfInjuryOptions = [];
@@ -53,7 +53,7 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
   List<String> _locationOptions = [];
   List<String> _firstAidProvidedOptions = [];
   List<String> _childReactionOptions = [];
-  List<String> _dateNotifiedOptions = [];
+  List<String> _notifyByOptions = [];
   
   // Staff
   List<StaffClassModel> _staffList = [];
@@ -120,7 +120,7 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
         _api.getLocationOptions(),
         _api.getFirstAidProvidedOptions(),
         _api.getChildReactionOptions(),
-        _api.getDateNotifiedOptions(),
+        _api.getNotifyByOptions(),
       ]);
       
       if (mounted) {
@@ -130,7 +130,7 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
           _locationOptions = results[2];
           _firstAidProvidedOptions = results[3];
           _childReactionOptions = results[4];
-          _dateNotifiedOptions = results[5];
+          _notifyByOptions = results[5];
           _isLoadingOptions = false;
         });
         debugPrint('[ACCIDENT_ACTIVITY] All options loaded successfully');
@@ -385,19 +385,19 @@ class _AccidentActivityBottomSheetState extends State<AccidentActivityBottomShee
                       ),
                     const SizedBox(height: 24),
 
-                    // Date Notified
-                    if (_dateNotifiedOptions.isNotEmpty)
+                    // How To Notify
+                    if (_notifyByOptions.isNotEmpty)
                       MealTypeSelectorWidget(
-                        title: 'Date Notified',
-                        options: _dateNotifiedOptions,
-                        selectedValue: _selectedDateNotified,
+                        title: 'How To Notify',
+                        options: _notifyByOptions,
+                        selectedValue: _selectedNotifyBy,
                         onChanged: (value) {
                           setState(() {
-                            _selectedDateNotified = value;
+                            _selectedNotifyBy = value;
                           });
                         },
                       ),
-                    if (_dateNotifiedOptions.isNotEmpty) const SizedBox(height: 24),
+                    if (_notifyByOptions.isNotEmpty) const SizedBox(height: 24),
 
                     // Medical Follow-Up Required
                     Row(

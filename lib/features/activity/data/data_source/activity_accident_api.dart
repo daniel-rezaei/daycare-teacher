@@ -7,15 +7,15 @@ class ActivityAccidentApi {
   final Dio httpclient;
   ActivityAccidentApi(this.httpclient);
 
-  /// Get field options from child_accident_report table
-  /// Returns list of choice values from data.meta.options.choices[].value
+  /// Get field options from Child_Accident_Report table
+  /// Returns list of choice texts from data.meta.options.choices[].text (for display)
   Future<List<String>> getFieldOptions(String fieldName) async {
     debugPrint(
-      '[ACCIDENT_API] Fetching $fieldName options from /fields/child_accident_report/$fieldName',
+      '[ACCIDENT_API] Fetching $fieldName options from /fields/Child_Accident_Report/$fieldName',
     );
     try {
       final response = await httpclient.get(
-        '/fields/child_accident_report/$fieldName',
+        '/fields/Child_Accident_Report/$fieldName',
       );
       debugPrint(
         '[ACCIDENT_API] $fieldName response status: ${response.statusCode}',
@@ -28,10 +28,11 @@ class ActivityAccidentApi {
       final options = meta['options'] as Map<String, dynamic>;
       final choices = options['choices'] as List<dynamic>;
 
-      final values = choices.map((e) => e['value'].toString()).toList();
+      // Use 'text' for display (e.g., "Bite" instead of "bite")
+      final texts = choices.map((e) => e['text'].toString()).toList();
 
-      debugPrint('[ACCIDENT_API] Parsed $fieldName values: $values');
-      return values;
+      debugPrint('[ACCIDENT_API] Parsed $fieldName texts: $texts');
+      return texts;
     } catch (e, stackTrace) {
       debugPrint('[ACCIDENT_API] Error fetching $fieldName: $e');
       debugPrint('[ACCIDENT_API] StackTrace: $stackTrace');
@@ -64,9 +65,9 @@ class ActivityAccidentApi {
     return getFieldOptions('child_reaction');
   }
 
-  /// Get date notified options (if exists)
-  Future<List<String>> getDateNotifiedOptions() async {
-    return getFieldOptions('date_time_notified');
+  /// Get notify by options
+  Future<List<String>> getNotifyByOptions() async {
+    return getFieldOptions('notify_by');
   }
 
   // Note: Add button is not implemented yet, so no create methods needed
