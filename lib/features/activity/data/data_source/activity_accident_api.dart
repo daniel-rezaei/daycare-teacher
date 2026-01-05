@@ -52,6 +52,42 @@ class ActivityAccidentApi {
     }
   }
 
+  /// Convert list of texts to list of values for a given field
+  /// Returns list of values corresponding to the texts
+  Future<List<String>> _getValuesFromTexts(
+    String fieldName,
+    List<String> texts,
+  ) async {
+    if (texts.isEmpty) return [];
+
+    try {
+      final response = await httpclient.get(
+        '/fields/Child_Accident_Report/$fieldName',
+      );
+      final root = response.data as Map<String, dynamic>;
+      final data = root['data'] as Map<String, dynamic>;
+      final meta = data['meta'] as Map<String, dynamic>;
+      final options = meta['options'] as Map<String, dynamic>;
+      final choices = options['choices'] as List<dynamic>;
+
+      final values = <String>[];
+      for (final text in texts) {
+        for (final choice in choices) {
+          if (choice['text'] == text) {
+            values.add(choice['value'].toString());
+            break;
+          }
+        }
+      }
+      return values;
+    } catch (e) {
+      debugPrint(
+        '[ACCIDENT_API] Error converting texts to values for $fieldName: $e',
+      );
+      return [];
+    }
+  }
+
   /// Get field options from Child_Accident_Report table
   /// Returns list of choice texts from data.meta.options.choices[].text (for display)
   Future<List<String>> getFieldOptions(String fieldName) async {
@@ -157,11 +193,13 @@ class ActivityAccidentApi {
   /// STEP B: Create accident details (child record) linked to activity
   Future<Response> createAccidentDetails({
     required String activityId,
-    required String? natureOfInjuryText,
-    required String? injuredBodyTypeText,
-    required String? locationText,
-    required String? firstAidProvidedText,
-    required String? childReactionText,
+    required String childId,
+    required String dateTime, // UTC ISO8601 string
+    required List<String> natureOfInjuryTexts,
+    required List<String> injuredBodyTypeTexts,
+    required List<String> locationTexts,
+    required List<String> firstAidProvidedTexts,
+    required List<String> childReactionTexts,
     required List<String> staffIds,
     String? dateTimeNotifiedText,
     required bool medicalFollowUpRequired,
@@ -169,75 +207,66 @@ class ActivityAccidentApi {
     required bool parentNotified,
     String? notifyByText,
     String? description,
-    String? photo, // file ID
+    String? photo, // file ID (string, not create[])
   }) async {
     debugPrint(
       '[ACCIDENT_API] ========== STEP B: Creating Accident Details (Child) ==========',
     );
     debugPrint('[ACCIDENT_API] activityId: $activityId');
+    debugPrint('[ACCIDENT_API] childId: $childId');
+    debugPrint('[ACCIDENT_API] dateTime: $dateTime');
 
-    final data = <String, dynamic>{'activity_id': activityId};
+    final data = <String, dynamic>{
+      'activity_id': activityId,
+      'child_id': childId,
+      'date_time': dateTime, // UTC ISO8601 string
+    };
 
-    // Convert text to value for each field
-    if (natureOfInjuryText != null && natureOfInjuryText.isNotEmpty) {
-      final value = await _getValueFromText(
+    // Multi-select enum fields (must be arrays)
+    if (natureOfInjuryTexts.isNotEmpty) {
+      final values = await _getValuesFromTexts(
         'nature_of_injury',
-        natureOfInjuryText,
+        natureOfInjuryTexts,
       );
-      if (value != null) {
-        data['nature_of_injury'] = [value];
+      if (values.isNotEmpty) {
+        data['nature_of_injury'] = values; // Array for multi-select
       }
     }
 
-    if (injuredBodyTypeText != null && injuredBodyTypeText.isNotEmpty) {
-      final value = await _getValueFromText(
+    if (injuredBodyTypeTexts.isNotEmpty) {
+      final values = await _getValuesFromTexts(
         'injured_body_type',
-        injuredBodyTypeText,
+        injuredBodyTypeTexts,
       );
-      if (value != null) {
-        data['injured_body_type'] = value;
+      if (values.isNotEmpty) {
+        data['injured_body_type'] = values; // Array for multi-select
       }
     }
 
-    if (locationText != null && locationText.isNotEmpty) {
-      final value = await _getValueFromText('location', locationText);
-      if (value != null) {
-        data['location'] = value;
+    if (locationTexts.isNotEmpty) {
+      final values = await _getValuesFromTexts('location', locationTexts);
+      if (values.isNotEmpty) {
+        data['location'] = values; // Array for multi-select
       }
     }
 
-    if (firstAidProvidedText != null && firstAidProvidedText.isNotEmpty) {
-      final value = await _getValueFromText(
+    if (firstAidProvidedTexts.isNotEmpty) {
+      final values = await _getValuesFromTexts(
         'first_aid_provided',
-        firstAidProvidedText,
+        firstAidProvidedTexts,
       );
-      if (value != null) {
-        data['first_aid_provided'] = value;
+      if (values.isNotEmpty) {
+        data['first_aid_provided'] = values; // Array for multi-select
       }
     }
 
-    if (childReactionText != null && childReactionText.isNotEmpty) {
-      final value = await _getValueFromText(
+    if (childReactionTexts.isNotEmpty) {
+      final values = await _getValuesFromTexts(
         'child_reaction',
-        childReactionText,
+        childReactionTexts,
       );
-      if (value != null) {
-        data['child_reaction'] = value;
-      }
-    }
-
-    // Staff IDs (multi-select)
-    if (staffIds.isNotEmpty) {
-      data['staff_id'] = staffIds;
-    }
-
-    if (dateTimeNotifiedText != null && dateTimeNotifiedText.isNotEmpty) {
-      final value = await _getValueFromText(
-        'date_time_notified',
-        dateTimeNotifiedText,
-      );
-      if (value != null) {
-        data['date_time_notified'] = value;
+      if (values.isNotEmpty) {
+        data['child_reaction'] = values; // Array for multi-select
       }
     }
 
@@ -245,30 +274,27 @@ class ActivityAccidentApi {
     data['incident_reported_to_authority'] = incidentReportedToAuthority;
     data['parent_notified'] = parentNotified;
 
+    // notify_by: array format (multi-select)
     if (notifyByText != null && notifyByText.isNotEmpty) {
       final value = await _getValueFromText('notify_by', notifyByText);
       if (value != null) {
-        data['notify_by'] = value;
+        data['notify_by'] = [value]; // Array format
       }
     }
 
     if (description != null && description.isNotEmpty) {
-      data['description'] = description;
+      data['description'] = description; // Single value
     }
 
+    // photo: string file ID (not create[])
     if (photo != null && photo.isNotEmpty) {
-      data['photo'] = {
-        'create': [
-          {'directus_files_id': photo},
-        ],
-      };
+      data['photo'] = photo; // String file ID
     }
 
-    debugPrint('[ACCIDENT_API] Accident details request data: $data');
-
-    debugPrint('================= DIRECTUS RAW BODY =================');
+    // Log final payload before sending
+    debugPrint('[ACCIDENT_PAYLOAD_DEBUG] ========== FINAL PAYLOAD ==========');
     debugPrint(const JsonEncoder.withIndent('  ').convert(data));
-    debugPrint('=====================================================');
+    debugPrint('[ACCIDENT_PAYLOAD_DEBUG] ====================================');
 
     try {
       final response = await httpclient.post(

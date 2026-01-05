@@ -12,6 +12,7 @@ import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_accident_api.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
+import 'package:teacher_app/features/activity/widgets/multi_select_type_selector_widget.dart';
 import 'package:teacher_app/features/auth/data/models/staff_class_model/staff_class_model.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -43,12 +44,12 @@ class _AccidentActivityBottomSheetState
   final TextEditingController _descriptionController = TextEditingController();
   final List<File> _images = [];
 
-  // Field selections
-  String? _selectedNatureOfInjury;
-  String? _selectedInjuredBodyPart;
-  String? _selectedLocation;
-  String? _selectedFirstAidProvided;
-  String? _selectedChildReaction;
+  // Field selections (multi-select for enum fields)
+  List<String> _selectedNatureOfInjury = [];
+  List<String> _selectedInjuredBodyPart = [];
+  List<String> _selectedLocation = [];
+  List<String> _selectedFirstAidProvided = [];
+  List<String> _selectedChildReaction = [];
   String? _selectedNotifyBy;
   String? _selectedDateNotified;
 
@@ -314,6 +315,10 @@ class _AccidentActivityBottomSheetState
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
       debugPrint('[ACCIDENT_ACTIVITY] start_at (UTC): $startAtUtc');
 
+      // Format date_time in UTC ISO 8601 format for Step B
+      final dateTimeUtc = widget.dateTime.toUtc().toIso8601String();
+      debugPrint('[ACCIDENT_ACTIVITY] date_time (UTC): $dateTimeUtc');
+
       // STEP A: Create parent activity
       debugPrint(
         '[ACCIDENT_ACTIVITY] STEP A: Creating activity for child ${widget.selectedChild.id}',
@@ -331,11 +336,13 @@ class _AccidentActivityBottomSheetState
       );
       final response = await _api.createAccidentDetails(
         activityId: activityId,
-        natureOfInjuryText: _selectedNatureOfInjury,
-        injuredBodyTypeText: _selectedInjuredBodyPart,
-        locationText: _selectedLocation,
-        firstAidProvidedText: _selectedFirstAidProvided,
-        childReactionText: _selectedChildReaction,
+        childId: widget.selectedChild.id!,
+        dateTime: dateTimeUtc,
+        natureOfInjuryTexts: _selectedNatureOfInjury,
+        injuredBodyTypeTexts: _selectedInjuredBodyPart,
+        locationTexts: _selectedLocation,
+        firstAidProvidedTexts: _selectedFirstAidProvided,
+        childReactionTexts: _selectedChildReaction,
         staffIds: _selectedStaffIds.toList(),
         dateTimeNotifiedText: _selectedDateNotified,
         medicalFollowUpRequired: _medicalFollowUpRequired,
@@ -451,66 +458,66 @@ class _AccidentActivityBottomSheetState
                       ),
                     )
                   else ...[
-                    // Nature of Injury
-                    MealTypeSelectorWidget(
+                    // Nature of Injury (Multi-select)
+                    MultiSelectTypeSelectorWidget(
                       title: 'Nature of Injury',
                       options: _natureOfInjuryOptions,
-                      selectedValue: _selectedNatureOfInjury,
-                      onChanged: (value) {
+                      selectedValues: _selectedNatureOfInjury,
+                      onChanged: (values) {
                         setState(() {
-                          _selectedNatureOfInjury = value;
+                          _selectedNatureOfInjury = values;
                         });
                       },
                     ),
                     const SizedBox(height: 24),
 
-                    // Injured Body Part
-                    MealTypeSelectorWidget(
+                    // Injured Body Part (Multi-select)
+                    MultiSelectTypeSelectorWidget(
                       title: 'Injured Body Part',
                       options: _injuredBodyPartOptions,
-                      selectedValue: _selectedInjuredBodyPart,
-                      onChanged: (value) {
+                      selectedValues: _selectedInjuredBodyPart,
+                      onChanged: (values) {
                         setState(() {
-                          _selectedInjuredBodyPart = value;
+                          _selectedInjuredBodyPart = values;
                         });
                       },
                     ),
                     const SizedBox(height: 24),
 
-                    // Location
-                    MealTypeSelectorWidget(
+                    // Location (Multi-select)
+                    MultiSelectTypeSelectorWidget(
                       title: 'Location',
                       options: _locationOptions,
-                      selectedValue: _selectedLocation,
-                      onChanged: (value) {
+                      selectedValues: _selectedLocation,
+                      onChanged: (values) {
                         setState(() {
-                          _selectedLocation = value;
+                          _selectedLocation = values;
                         });
                       },
                     ),
                     const SizedBox(height: 24),
 
-                    // First Aid Provided
-                    MealTypeSelectorWidget(
+                    // First Aid Provided (Multi-select)
+                    MultiSelectTypeSelectorWidget(
                       title: 'First Aid Provided',
                       options: _firstAidProvidedOptions,
-                      selectedValue: _selectedFirstAidProvided,
-                      onChanged: (value) {
+                      selectedValues: _selectedFirstAidProvided,
+                      onChanged: (values) {
                         setState(() {
-                          _selectedFirstAidProvided = value;
+                          _selectedFirstAidProvided = values;
                         });
                       },
                     ),
                     const SizedBox(height: 24),
 
-                    // Child's Reaction
-                    MealTypeSelectorWidget(
+                    // Child's Reaction (Multi-select)
+                    MultiSelectTypeSelectorWidget(
                       title: 'Child\'s Reaction',
                       options: _childReactionOptions,
-                      selectedValue: _selectedChildReaction,
-                      onChanged: (value) {
+                      selectedValues: _selectedChildReaction,
+                      onChanged: (values) {
                         setState(() {
-                          _selectedChildReaction = value;
+                          _selectedChildReaction = values;
                         });
                       },
                     ),
