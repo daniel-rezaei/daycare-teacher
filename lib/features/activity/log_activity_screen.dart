@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,7 @@ class LogActivityScreen extends StatefulWidget {
 
 class _LogActivityScreenState extends State<LogActivityScreen> {
   String? _classId;
+  final Map<String, bool> _loadingStates = {};
 
   @override
   void initState() {
@@ -109,33 +111,49 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     BuildContext context,
     String activityType,
   ) async {
-    final hasHistory = await _hasActivityHistory(activityType, _classId);
+    // Set loading state to true
+    setState(() {
+      _loadingStates[activityType] = true;
+    });
 
-    if (hasHistory) {
-      debugPrint(
-        '[LOG_ACTIVITY] History exists, navigating to HistoryMealScreen for $activityType',
-      );
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              HistoryMealScreen(activityType: activityType, classId: _classId),
-        ),
-      );
-    } else {
-      debugPrint(
-        '[LOG_ACTIVITY] No history, navigating to SelectChildsScreen for $activityType',
-      );
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SelectChildsScreen(
-            returnSelectedChildren: true,
-            classId: _classId,
-            activityType: activityType,
+    try {
+      final hasHistory = await _hasActivityHistory(activityType, _classId);
+
+      if (hasHistory) {
+        debugPrint(
+          '[LOG_ACTIVITY] History exists, navigating to HistoryMealScreen for $activityType',
+        );
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HistoryMealScreen(
+              activityType: activityType,
+              classId: _classId,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        debugPrint(
+          '[LOG_ACTIVITY] No history, navigating to SelectChildsScreen for $activityType',
+        );
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SelectChildsScreen(
+              returnSelectedChildren: true,
+              classId: _classId,
+              activityType: activityType,
+            ),
+          ),
+        );
+      }
+    } finally {
+      // Set loading state to false after navigation completes or fails
+      if (mounted) {
+        setState(() {
+          _loadingStates[activityType] = false;
+        });
+      }
     }
   }
 
@@ -233,6 +251,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.lunchPng.image(height: 48),
                               title: 'Meal',
+                              isLoading: _loadingStates['meal'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Meal flow ==========',
@@ -246,6 +265,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.drink.image(height: 48),
                               title: 'Drink',
+                              isLoading: _loadingStates['drink'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Drink flow ==========',
@@ -267,6 +287,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.bathroom.image(height: 48),
                               title: 'Bathroom',
+                              isLoading: _loadingStates['bathroom'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Bathroom flow ==========',
@@ -280,6 +301,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.play.image(height: 48),
                               title: 'Play',
+                              isLoading: _loadingStates['play'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Play flow ==========',
@@ -293,6 +315,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.sleep.image(height: 48),
                               title: 'Sleep',
+                              isLoading: _loadingStates['sleep'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Sleep flow ==========',
@@ -314,6 +337,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.incident.image(height: 48),
                               title: 'Incident',
+                              isLoading: _loadingStates['incident'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Incident flow ==========',
@@ -327,6 +351,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.accident.image(height: 48),
                               title: 'Accident',
+                              isLoading: _loadingStates['accident'] ?? false,
                               onTap: () {
                                 debugPrint(
                                   '[LOG_ACTIVITY] ========== Entering Log Activity Accident flow ==========',
@@ -371,18 +396,20 @@ class InfoCardLogActivity extends StatelessWidget {
   final Widget icon;
   final String title;
   final Function() onTap;
+  final bool isLoading;
 
   const InfoCardLogActivity({
     super.key,
     required this.icon,
     required this.title,
     required this.onTap,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xffFFFFFF),
@@ -401,14 +428,16 @@ class InfoCardLogActivity extends StatelessWidget {
           children: [
             icon,
             const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xff444349),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            isLoading
+                ? const CupertinoActivityIndicator(radius: 8)
+                : Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xff444349),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ],
         ),
       ),
