@@ -13,9 +13,6 @@ class PhotoUtils {
 
   /// Get authorization header for image requests
   static Map<String, String> getImageHeaders() {
-    return {
-      'Authorization': 'Bearer ${AppConstants.bearerToken}',
-    };
+    return {'Authorization': 'Bearer ${AppConstants.bearerToken}'};
   }
 }
-

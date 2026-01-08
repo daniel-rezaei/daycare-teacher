@@ -48,9 +48,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     if (classId == null || classRooms == null) return null;
 
     try {
-      final classRoom = classRooms.firstWhere(
-        (room) => room.id == classId,
-      );
+      final classRoom = classRooms.firstWhere((room) => room.id == classId);
       return classRoom.roomName;
     } catch (e) {
       return null;
@@ -64,61 +62,59 @@ class _ActivityScreenState extends State<ActivityScreen> {
         children: [
           BackgroundWidget(),
           SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 34,
-                    ),
-                    child: BlocBuilder<HomeBloc, HomeState>(
-                      builder: (context, state) {
-                        final roomName = _getRoomName(state.classRooms);
-                        return Row(
-                          children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 34,
+                  ),
+                  child: BlocBuilder<HomeBloc, HomeState>(
+                    builder: (context, state) {
+                      final roomName = _getRoomName(state.classRooms);
+                      return Row(
+                        children: [
+                          Text(
+                            'Activity',
+                            style: TextStyle(
+                              color: Color(0xff444349),
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (roomName != null) ...[
                             Text(
-                              'Activity',
+                              ' – ',
                               style: TextStyle(
                                 color: Color(0xff444349),
                                 fontSize: 26,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            if (roomName != null) ...[
+                            if (state.isLoadingClassRooms)
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CupertinoActivityIndicator(radius: 8),
+                              )
+                            else
                               Text(
-                                ' – ',
+                                roomName,
                                 style: TextStyle(
                                   color: Color(0xff444349),
                                   fontSize: 26,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              if (state.isLoadingClassRooms)
-                                SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CupertinoActivityIndicator(
-                                    radius: 8,
-                                  ),
-                                )
-                              else
-                                Text(
-                                  roomName,
-                                  style: TextStyle(
-                                    color: Color(0xff444349),
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                            ],
                           ],
-                        );
-                      },
-                    ),
+                        ],
+                      );
+                    },
                   ),
-                  Container(
+                ),
+                Expanded(
+                  child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Color(0xffFFFFFF),
@@ -135,92 +131,86 @@ class _ActivityScreenState extends State<ActivityScreen> {
                       ],
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 36),
-                    child: Column(
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Assets.images.dateIconPng.image(height: 198),
-                            Positioned(
-                              top: MediaQuery.of(context).size.height * 0.08,
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Sun',
-                                    style: TextStyle(
-                                      color: Color(0xff444349),
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Assets.images.dateIconPng.image(height: 198),
+                              Positioned(
+                                top: MediaQuery.of(context).size.height * 0.08,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Sun',
+                                      style: TextStyle(
+                                        color: Color(0xff444349),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '8',
-                                    style: TextStyle(
-                                      color: Color(0xff7B2AF3),
-                                      fontSize: 60,
-                                      fontWeight: FontWeight.w800,
+                                    Text(
+                                      '8',
+                                      style: TextStyle(
+                                        color: Color(0xff7B2AF3),
+                                        fontSize: 60,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 48),
-                        GestureDetector(
-                          onTap: () {
-                            TimeInAccessGuard.guardNavigation(
-                              context,
-                              () {
+                            ],
+                          ),
+                          SizedBox(height: 48),
+                          GestureDetector(
+                            onTap: () {
+                              TimeInAccessGuard.guardNavigation(context, () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => RecordActivityScreen(),
+                                    builder: (context) =>
+                                        RecordActivityScreen(),
                                   ),
                                 );
-                              },
-                            );
-                          },
-                          child: Assets.images.infoCardPng.image(),
-                        ),
-                        SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () {
-                            TimeInAccessGuard.guardNavigation(
-                              context,
-                              () {
+                              });
+                            },
+                            child: Assets.images.infoCardPng.image(),
+                          ),
+                          SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () {
+                              TimeInAccessGuard.guardNavigation(context, () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => LogActivityScreen(),
                                   ),
                                 );
-                              },
-                            );
-                          },
-                          child: Assets.images.infoCard2.image(),
-                        ),
-                        SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () {
-                            TimeInAccessGuard.guardNavigation(
-                              context,
-                              () {
+                              });
+                            },
+                            child: Assets.images.infoCard2.image(),
+                          ),
+                          SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () {
+                              TimeInAccessGuard.guardNavigation(context, () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (context) => AddPhotoScreen(),
                                   ),
                                 );
-                              },
-                            );
-                          },
-                          child: Assets.images.infoCard3.image(),
-                        ),
-                      ],
+                              });
+                            },
+                            child: Assets.images.infoCard3.image(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
