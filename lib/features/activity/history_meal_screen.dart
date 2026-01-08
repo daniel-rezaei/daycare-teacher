@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/core/pallete.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
+import 'package:teacher_app/features/activity/activity_detail_screen.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
 
@@ -421,6 +422,10 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                                       type: item.type ?? '',
                                       quantity: item.quantity ?? '',
                                       photoId: item.childPhoto,
+                                      childId: item.childId,
+                                      activityDate: item.activityDate,
+                                      activityType: widget.activityType,
+                                      classId: widget.classId,
                                     );
                                   },
                                 ),
@@ -444,6 +449,10 @@ class HistoryMealCard extends StatelessWidget {
   final String type;
   final String quantity;
   final String? photoId;
+  final String childId;
+  final String activityDate;
+  final String activityType;
+  final String? classId;
 
   const HistoryMealCard({
     super.key,
@@ -452,61 +461,82 @@ class HistoryMealCard extends StatelessWidget {
     required this.type,
     required this.quantity,
     this.photoId,
+    required this.childId,
+    required this.activityDate,
+    required this.activityType,
+    this.classId,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ActivityDetailScreen(
+              childId: childId,
+              childName: name,
+              childPhoto: photoId,
+              activityType: activityType,
+              activityDate: activityDate,
+              classId: classId,
+            ),
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              ChildAvatarWidget(photoId: photoId, size: 48),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                ChildAvatarWidget(photoId: photoId, size: 48),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Palette.textForeground,
+                    ),
+                  ),
+                ),
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
                     color: Palette.textForeground,
                   ),
                 ),
-              ),
-              Text(
-                date,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: Palette.textForeground,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              if (type.isNotEmpty) _InfoText(label: 'Type', value: type),
-              if (type.isNotEmpty && quantity.isNotEmpty)
-                const SizedBox(width: 24),
-              if (quantity.isNotEmpty)
-                _InfoText(label: 'Quantity', value: quantity),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                if (type.isNotEmpty) _InfoText(label: 'Type', value: type),
+                if (type.isNotEmpty && quantity.isNotEmpty)
+                  const SizedBox(width: 24),
+                if (quantity.isNotEmpty)
+                  _InfoText(label: 'Quantity', value: quantity),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
