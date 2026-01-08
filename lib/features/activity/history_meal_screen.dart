@@ -1,23 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/features/messages/select_childs_screen.dart';
 
 class HistoryMealScreen extends StatelessWidget {
-  const HistoryMealScreen({super.key});
+  final String activityType;
+  final String? classId;
+
+  const HistoryMealScreen({
+    super.key,
+    required this.activityType,
+    this.classId,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return _LessenPlanScreenView();
+    return _LessenPlanScreenView(activityType: activityType, classId: classId);
   }
 }
 
 class _LessenPlanScreenView extends StatefulWidget {
-  const _LessenPlanScreenView();
+  final String activityType;
+  final String? classId;
+
+  const _LessenPlanScreenView({required this.activityType, this.classId});
 
   @override
   State<_LessenPlanScreenView> createState() => _LessenPlanScreenViewState();
 }
 
 class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
+  void _navigateToAddNew(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SelectChildsScreen(
+          returnSelectedChildren: true,
+          classId: widget.classId,
+          activityType: widget.activityType,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -45,23 +69,26 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'History-Meal',
-                  style: TextStyle(color: Colors.black),
+                Text(
+                  'History-${widget.activityType[0].toUpperCase()}${widget.activityType.substring(1)}',
+                  style: const TextStyle(color: Colors.black),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Add New',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Palette.textForeground,
+                GestureDetector(
+                  onTap: () => _navigateToAddNew(context),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Add New',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Palette.textForeground,
+                        ),
                       ),
                     ),
                   ),
@@ -242,7 +269,10 @@ class _InfoText extends StatelessWidget {
     return RichText(
       text: TextSpan(
         children: [
-          TextSpan(text: '$label ', style: TextStyle(fontSize: 14)),
+          TextSpan(
+            text: '$label ',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
           TextSpan(
             text: value,
             style: const TextStyle(

@@ -159,5 +159,34 @@ class ActivityPlayApi {
 
   // Tags are LOCAL-ONLY - removed getTags() method
   // Tags are display-only and local-editable, no API calls needed
+
+  /// Get activity history for a given class
+  /// Returns true if at least one activity exists, false otherwise
+  Future<bool> hasHistory(String classId) async {
+    debugPrint('[PLAY_API] ========== Checking history for classId: $classId ==========');
+    try {
+      final activityTypeId = await _getActivityTypeId('play');
+      debugPrint('[PLAY_API] Activity type ID: $activityTypeId');
+      
+      final response = await httpclient.get(
+        '/items/activities',
+        queryParameters: {
+          'filter[activity_type_id][_eq]': activityTypeId,
+          'filter[class_id][_eq]': classId,
+          'limit': 1, // Only need to check if any exists
+        },
+      );
+      
+      final data = response.data['data'] as List<dynamic>;
+      final hasHistory = data.isNotEmpty;
+      
+      debugPrint('[PLAY_API] ========== History check result: $hasHistory (found ${data.length} items) ==========');
+      return hasHistory;
+    } catch (e, stackTrace) {
+      debugPrint('[PLAY_API] Error checking history: $e');
+      debugPrint('[PLAY_API] StackTrace: $stackTrace');
+      return false; // On error, assume no history to show children list
+    }
+  }
 }
 

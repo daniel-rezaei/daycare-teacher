@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_accident_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_bathroom_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_incident_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
+import 'package:teacher_app/features/activity/history_meal_screen.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -25,7 +34,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString(AppConstants.classIdKey);
     debugPrint('[LOG_ACTIVITY] Loading class_id: $savedClassId');
-    
+
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
         _classId = savedClassId;
@@ -33,174 +42,129 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     }
   }
 
-  void _navigateToMealActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Meal Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'meal',
-        ),
-      ),
+  /// Check if history exists for the given activity type
+  /// Calls the appropriate API based on activity type
+  Future<bool> _hasActivityHistory(String activityType, String? classId) async {
+    if (classId == null || classId.isEmpty) {
+      debugPrint('[LOG_ACTIVITY] No classId provided, assuming no history');
+      return false;
+    }
+
+    debugPrint(
+      '[LOG_ACTIVITY] ========== Checking history for activity type: $activityType, classId: $classId ==========',
     );
 
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    try {
+      bool hasHistory = false;
+
+      switch (activityType) {
+        case 'meal':
+          final api = GetIt.instance<ActivityMealsApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'drink':
+          final api = GetIt.instance<ActivityDrinksApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'bathroom':
+          final api = GetIt.instance<ActivityBathroomApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'play':
+          final api = GetIt.instance<ActivityPlayApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'sleep':
+          final api = GetIt.instance<ActivitySleepApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'accident':
+          final api = GetIt.instance<ActivityAccidentApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'incident':
+          final api = GetIt.instance<ActivityIncidentApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        default:
+          debugPrint(
+            '[LOG_ACTIVITY] Unknown activity type: $activityType, assuming no history',
+          );
+          return false;
+      }
+
+      debugPrint(
+        '[LOG_ACTIVITY] ========== History check completed for $activityType: $hasHistory ==========',
+      );
+      return hasHistory;
+    } catch (e, stackTrace) {
+      debugPrint('[LOG_ACTIVITY] Error checking history for $activityType: $e');
+      debugPrint('[LOG_ACTIVITY] StackTrace: $stackTrace');
+      // On error, assume no history to show children list
+      return false;
+    }
+  }
+
+  Future<void> _navigateToActivity(
+    BuildContext context,
+    String activityType,
+  ) async {
+    final hasHistory = await _hasActivityHistory(activityType, _classId);
+
+    if (hasHistory) {
+      debugPrint(
+        '[LOG_ACTIVITY] History exists, navigating to HistoryMealScreen for $activityType',
+      );
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              HistoryMealScreen(activityType: activityType, classId: _classId),
+        ),
+      );
+    } else {
+      debugPrint(
+        '[LOG_ACTIVITY] No history, navigating to SelectChildsScreen for $activityType',
+      );
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SelectChildsScreen(
+            returnSelectedChildren: true,
+            classId: _classId,
+            activityType: activityType,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _navigateToMealActivity(BuildContext context) async {
+    await _navigateToActivity(context, 'meal');
   }
 
   void _navigateToDrinkActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Drink Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'drink',
-        ),
-      ),
-    );
-
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    await _navigateToActivity(context, 'drink');
   }
 
   void _navigateToBathroomActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Bathroom Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'bathroom',
-        ),
-      ),
-    );
-
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    await _navigateToActivity(context, 'bathroom');
   }
 
   void _navigateToPlayActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Play Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'play',
-        ),
-      ),
-    );
-
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    await _navigateToActivity(context, 'play');
   }
 
   void _navigateToSleepActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Sleep Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'sleep',
-        ),
-      ),
-    );
-
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected children)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    await _navigateToActivity(context, 'sleep');
   }
 
   void _navigateToAccidentActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Accident Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    debugPrint('[LOG_ACTIVITY] NOTE: Accident Activity requires SINGLE child selection only');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'accident',
-        ),
-      ),
-    );
-
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected exactly 1 child)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    await _navigateToActivity(context, 'accident');
   }
 
   void _navigateToIncidentActivity(BuildContext context) async {
-    debugPrint('[LOG_ACTIVITY] Navigating to SelectChildsScreen for Incident Activity');
-    debugPrint('[LOG_ACTIVITY] class_id: $_classId');
-    debugPrint('[LOG_ACTIVITY] NOTE: BottomSheet will be opened from BOTTOM ACTION ICON, not from back button');
-    debugPrint('[LOG_ACTIVITY] NOTE: Incident Activity requires SINGLE child selection only');
-    
-    // Navigate to SelectChildsScreen
-    // The BottomSheet will be opened by the BOTTOM ACTION ICON in SelectChildsScreen
-    // Back button will just navigate back without opening BottomSheet
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectChildsScreen(
-          returnSelectedChildren: true,
-          classId: _classId,
-          activityType: 'incident',
-        ),
-      ),
-    );
-
-    debugPrint('[LOG_ACTIVITY] Returning from SelectChildsScreen');
-    debugPrint('[LOG_ACTIVITY] BottomSheet was opened from BOTTOM ACTION ICON (if user selected exactly 1 child)');
-    debugPrint('[LOG_ACTIVITY] Back button does NOT trigger BottomSheet');
+    await _navigateToActivity(context, 'incident');
   }
 
   @override
@@ -270,7 +234,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.lunchPng.image(height: 48),
                               title: 'Meal',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Meal flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Meal flow ==========',
+                                );
                                 _navigateToMealActivity(context);
                               },
                             ),
@@ -281,7 +247,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.drink.image(height: 48),
                               title: 'Drink',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Drink flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Drink flow ==========',
+                                );
                                 _navigateToDrinkActivity(context);
                               },
                             ),
@@ -300,7 +268,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.bathroom.image(height: 48),
                               title: 'Bathroom',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Bathroom flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Bathroom flow ==========',
+                                );
                                 _navigateToBathroomActivity(context);
                               },
                             ),
@@ -311,7 +281,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.play.image(height: 48),
                               title: 'Play',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Play flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Play flow ==========',
+                                );
                                 _navigateToPlayActivity(context);
                               },
                             ),
@@ -322,7 +294,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.sleep.image(height: 48),
                               title: 'Sleep',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Sleep flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Sleep flow ==========',
+                                );
                                 _navigateToSleepActivity(context);
                               },
                             ),
@@ -341,7 +315,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.incident.image(height: 48),
                               title: 'Incident',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Incident flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Incident flow ==========',
+                                );
                                 _navigateToIncidentActivity(context);
                               },
                             ),
@@ -352,7 +328,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.accident.image(height: 48),
                               title: 'Accident',
                               onTap: () {
-                                debugPrint('[LOG_ACTIVITY] ========== Entering Log Activity Accident flow ==========');
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Accident flow ==========',
+                                );
                                 _navigateToAccidentActivity(context);
                               },
                             ),

@@ -54,5 +54,54 @@ class ActivityIncidentApi {
   Future<List<String>> getNotifyByOptions() async {
     return getFieldOptions('notify_by');
   }
-}
 
+  /// Get activity type ID from backend based on type
+  Future<String> _getActivityTypeId(String type) async {
+    debugPrint('[INCIDENT_API] Fetching activity type ID for type: $type');
+    final response = await httpclient.get('/items/activity_types');
+    final data = response.data['data'] as List<dynamic>;
+
+    for (final item in data) {
+      if (item['type'] == type) {
+        final id = item['id'] as String;
+        debugPrint('[INCIDENT_API] Found activity type ID for $type: $id');
+        return id;
+      }
+    }
+
+    throw Exception('[INCIDENT_API] Activity type not found for: $type');
+  }
+
+  /// Get activity history for a given class
+  /// Returns true if at least one activity exists, false otherwise
+  Future<bool> hasHistory(String classId) async {
+    debugPrint(
+      '[INCIDENT_API] ========== Checking history for classId: $classId ==========',
+    );
+    try {
+      final activityTypeId = await _getActivityTypeId('incident');
+      debugPrint('[INCIDENT_API] Activity type ID: $activityTypeId');
+
+      final response = await httpclient.get(
+        '/items/activities',
+        queryParameters: {
+          'filter[activity_type_id][_eq]': activityTypeId,
+          'filter[class_id][_eq]': classId,
+          'limit': 1, // Only need to check if any exists
+        },
+      );
+
+      final data = response.data['data'] as List<dynamic>;
+      final hasHistory = data.isNotEmpty;
+
+      debugPrint(
+        '[INCIDENT_API] ========== History check result: $hasHistory (found ${data.length} items) ==========',
+      );
+      return hasHistory;
+    } catch (e, stackTrace) {
+      debugPrint('[INCIDENT_API] Error checking history: $e');
+      debugPrint('[INCIDENT_API] StackTrace: $stackTrace');
+      return false; // On error, assume no history to show children list
+    }
+  }
+}
