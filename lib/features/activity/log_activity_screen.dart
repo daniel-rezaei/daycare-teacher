@@ -8,6 +8,8 @@ import 'package:teacher_app/features/activity/data/data_source/activity_bathroom
 import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_incident_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_mood_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_observation_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
 import 'package:teacher_app/features/activity/history_meal_screen.dart';
@@ -86,6 +88,14 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
           break;
         case 'incident':
           final api = GetIt.instance<ActivityIncidentApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'observation':
+          final api = GetIt.instance<ActivityObservationApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
+        case 'mood':
+          final api = GetIt.instance<ActivityMoodApi>();
           hasHistory = await api.hasHistory(classId);
           break;
         default:
@@ -183,6 +193,14 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
 
   void _navigateToIncidentActivity(BuildContext context) async {
     await _navigateToActivity(context, 'incident');
+  }
+
+  void _navigateToObservationActivity(BuildContext context) async {
+    await _navigateToActivity(context, 'observation');
+  }
+
+  void _navigateToMoodActivity(BuildContext context) async {
+    await _navigateToActivity(context, 'mood');
   }
 
   @override
@@ -329,7 +347,13 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.observation.image(height: 48),
                               title: 'Observation',
-                              onTap: () {},
+                              isLoading: _loadingStates['observation'] ?? false,
+                              onTap: () {
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Observation flow ==========',
+                                );
+                                _navigateToObservationActivity(context);
+                              },
                             ),
                           ),
                           SizedBox(
@@ -375,7 +399,13 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.mood.image(height: 48),
                               title: 'Mood',
-                              onTap: () {},
+                              isLoading: _loadingStates['mood'] ?? false,
+                              onTap: () {
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Mood flow ==========',
+                                );
+                                _navigateToMoodActivity(context);
+                              },
                             ),
                           ),
                         ],

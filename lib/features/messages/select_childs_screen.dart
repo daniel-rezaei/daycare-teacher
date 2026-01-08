@@ -6,6 +6,8 @@ import 'package:teacher_app/features/activity/widgets/bathroom_activity_bottom_s
 import 'package:teacher_app/features/activity/widgets/drink_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/incident_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/meal_activity_bottom_sheet.dart';
+import 'package:teacher_app/features/activity/widgets/mood_activity_bottom_sheet.dart';
+import 'package:teacher_app/features/activity/widgets/observation_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/play_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/sleep_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
@@ -288,6 +290,16 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
               selectedChildren: selectedChildren,
               dateTime: now,
             );
+          } else if (activityType == 'observation') {
+            return ObservationActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
+          } else if (activityType == 'mood') {
+            return MoodActivityBottomSheet(
+              selectedChildren: selectedChildren,
+              dateTime: now,
+            );
           } else {
             return MealActivityBottomSheet(
               selectedChildren: selectedChildren,
@@ -404,9 +416,10 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                                   '[SELECT_CHILDS] Child tapped: ${child.id}, name: $childName',
                                 );
                                 setState(() {
-                                  // For accident and incident activities: single selection only
+                                  // For accident, incident, and observation activities: single selection only
                                   if (widget.activityType == 'accident' ||
-                                      widget.activityType == 'incident') {
+                                      widget.activityType == 'incident' ||
+                                      widget.activityType == 'observation') {
                                     if (isSelected) {
                                       selectedChildIds.remove(child.id);
                                       debugPrint(
@@ -421,7 +434,7 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                                       );
                                     }
                                   } else {
-                                    // Multi-select for other activities
+                                    // Multi-select for other activities (meal, drink, bathroom, play, sleep, mood)
                                     if (isSelected) {
                                       selectedChildIds.remove(child.id);
                                       debugPrint(
@@ -572,16 +585,22 @@ class _SelectChildsScreenState extends State<SelectChildsScreen> {
                 return GestureDetector(
                   onTap: () {
                     debugPrint('[SELECT_CHILDS] Select All tapped');
-                    // For accident and incident: single selection only, so disable Select All
+                    // For accident, incident, and observation: single selection only, so disable Select All
                     if (widget.activityType == 'accident' ||
-                        widget.activityType == 'incident') {
+                        widget.activityType == 'incident' ||
+                        widget.activityType == 'observation') {
                       debugPrint(
                         '[SELECT_CHILDS] Select All disabled for ${widget.activityType} (single selection only)',
                       );
+                      String activityName = widget.activityType == 'accident'
+                          ? 'Accident'
+                          : widget.activityType == 'incident'
+                              ? 'Incident'
+                              : 'Observation';
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Only one child can be selected for ${widget.activityType == 'accident' ? 'Accident' : 'Incident'} Activity',
+                            'Only one child can be selected for $activityName Activity',
                           ),
                         ),
                       );

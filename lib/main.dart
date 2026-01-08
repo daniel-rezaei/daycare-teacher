@@ -25,10 +25,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // locator مربوط به گت ایت و
   await configureDependencies(environment: Env.prod);
-  
+
   // Initialize attendance session store (loads from persistent storage)
   await AttendanceSessionStore.instance.rehydrate();
-  
+
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
@@ -82,7 +82,9 @@ class MyApp extends StatelessWidget {
         ),
 
         // 🚀 تصمیم فقط با Shared
-        home: isLoggedIn! ? const PostLoginGuardScreen() : const WelcomeScreen(),
+        home: isLoggedIn!
+            ? const PostLoginGuardScreen()
+            : const WelcomeScreen(),
       ),
     );
   }

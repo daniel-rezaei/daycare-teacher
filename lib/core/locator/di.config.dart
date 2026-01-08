@@ -23,6 +23,10 @@ import 'package:teacher_app/features/activity/data/data_source/activity_incident
     as _i343;
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart'
     as _i491;
+import 'package:teacher_app/features/activity/data/data_source/activity_mood_api.dart'
+    as _i981;
+import 'package:teacher_app/features/activity/data/data_source/activity_observation_api.dart'
+    as _i791;
 import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart'
     as _i1025;
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart'
@@ -173,6 +177,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i491.ActivityMealsApi>(
       () => _i491.ActivityMealsApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i981.ActivityMoodApi>(
+      () => _i981.ActivityMoodApi(gh<_i361.Dio>()),
+    );
+    gh.singleton<_i791.ActivityObservationApi>(
+      () => _i791.ActivityObservationApi(gh<_i361.Dio>()),
     );
     gh.singleton<_i1025.ActivityPlayApi>(
       () => _i1025.ActivityPlayApi(gh<_i361.Dio>()),
