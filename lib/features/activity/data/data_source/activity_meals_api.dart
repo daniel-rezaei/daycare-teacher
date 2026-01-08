@@ -179,6 +179,69 @@ class ActivityMealsApi {
   // Tags are LOCAL-ONLY - removed getTags() method
   // Tags are display-only and local-editable, no API calls needed
 
+  /// Get activity history with details for a given class
+  /// Returns list of activities with child info and meal details
+  Future<Response> getHistory(String classId) async {
+    debugPrint('[MEAL_API] ========== Getting history for classId: $classId ==========');
+    try {
+      final activityTypeId = await _getActivityTypeId('meal');
+      debugPrint('[MEAL_API] Activity type ID: $activityTypeId');
+
+      final response = await httpclient.get(
+        '/items/activities',
+        queryParameters: {
+          'filter[activity_type_id][_eq]': activityTypeId,
+          'filter[class_id][_eq]': classId,
+          'fields': 'id,start_at,child_id.id,child_id.photo,child_id.contact_id.id,child_id.contact_id.first_name,child_id.contact_id.last_name',
+          'sort': '-start_at',
+        },
+      );
+
+      final activities = response.data['data'] as List<dynamic>;
+      debugPrint('[MEAL_API] Found ${activities.length} activities');
+
+      // Get meal details for each activity
+      final List<Map<String, dynamic>> historyItems = [];
+      for (final activity in activities) {
+        final activityId = activity['id'] as String;
+        try {
+          final mealResponse = await httpclient.get(
+            '/items/activity_meals',
+            queryParameters: {
+              'filter[activity_id][_eq]': activityId,
+              'fields': 'id,meal_type,quantity,date_created',
+              'limit': 1,
+            },
+          );
+
+          final meals = mealResponse.data['data'] as List<dynamic>;
+          if (meals.isNotEmpty) {
+            final meal = meals[0];
+            historyItems.add({
+              'activity': activity,
+              'meal': meal,
+            });
+          }
+        } catch (e) {
+          debugPrint('[MEAL_API] Error getting meal details for activity $activityId: $e');
+        }
+      }
+
+      debugPrint('[MEAL_API] ========== History items: ${historyItems.length} ==========');
+
+      // Create a mock response with the history items
+      return Response(
+        requestOptions: response.requestOptions,
+        data: {'data': historyItems},
+        statusCode: 200,
+      );
+    } catch (e, stackTrace) {
+      debugPrint('[MEAL_API] Error getting history: $e');
+      debugPrint('[MEAL_API] StackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
   Future<bool> hasHistory(String classId) async {
