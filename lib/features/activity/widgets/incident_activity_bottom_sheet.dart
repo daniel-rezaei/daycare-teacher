@@ -490,4 +490,3 @@ class _StaffCircleItem extends StatelessWidget {
     );
   }
 }
-
