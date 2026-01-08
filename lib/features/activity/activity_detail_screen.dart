@@ -2,12 +2,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/core/utils/photo_utils.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_bathroom_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart';
+import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
@@ -41,6 +47,20 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   List<_ActivityDetailItem> _activities = [];
   bool _isLoading = true;
 
+  // API instances
+  final ActivityMealsApi _mealsApi = GetIt.instance<ActivityMealsApi>();
+  final ActivityDrinksApi _drinksApi = GetIt.instance<ActivityDrinksApi>();
+  final ActivityBathroomApi _bathroomApi =
+      GetIt.instance<ActivityBathroomApi>();
+  final ActivityPlayApi _playApi = GetIt.instance<ActivityPlayApi>();
+  final ActivitySleepApi _sleepApi = GetIt.instance<ActivitySleepApi>();
+
+  // Options for each activity type
+  List<String> _typeOptions = [];
+  List<String> _quantityOptions = [];
+  List<String> _subTypeOptions = [];
+  bool _isLoadingOptions = true;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +77,80 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     }
     _loadActivitiesForDate(_selectedDate);
     _loadChildrenAndContacts();
+    _loadAllOptions();
+  }
+
+  Future<void> _loadAllOptions() async {
+    setState(() {
+      _isLoadingOptions = true;
+    });
+
+    try {
+      switch (widget.activityType) {
+        case 'meal':
+          final mealTypes = await _mealsApi.getMealTypes();
+          final quantities = await _mealsApi.getQuantities();
+          setState(() {
+            _typeOptions = mealTypes;
+            _quantityOptions = quantities;
+            _subTypeOptions = [];
+          });
+          break;
+        case 'drink':
+          final drinkTypes = await _drinksApi.getDrinkTypes();
+          final quantities = await _drinksApi.getQuantities();
+          setState(() {
+            _typeOptions = drinkTypes;
+            _quantityOptions = quantities;
+            _subTypeOptions = [];
+          });
+          break;
+        case 'bathroom':
+          final types = await _bathroomApi.getBathroomTypes();
+          final subTypes = await _bathroomApi.getSubTypes();
+          setState(() {
+            _typeOptions = types;
+            _quantityOptions = [];
+            _subTypeOptions = subTypes;
+          });
+          break;
+        case 'play':
+          final types = await _playApi.getPlayTypes();
+          setState(() {
+            _typeOptions = types;
+            _quantityOptions = [];
+            _subTypeOptions = [];
+          });
+          break;
+        case 'sleep':
+          final types = await _sleepApi.getSleepTypes();
+          setState(() {
+            _typeOptions = types;
+            _quantityOptions = [];
+            _subTypeOptions = [];
+          });
+          break;
+        default:
+          setState(() {
+            _typeOptions = [];
+            _quantityOptions = [];
+            _subTypeOptions = [];
+          });
+      }
+    } catch (e) {
+      debugPrint('[ACTIVITY_DETAIL] Error loading options: $e');
+      setState(() {
+        _typeOptions = [];
+        _quantityOptions = [];
+        _subTypeOptions = [];
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingOptions = false;
+        });
+      }
+    }
   }
 
   void _loadChildrenAndContacts() {
@@ -363,6 +457,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                       return _ActivityDetailSection(
                                         activity: activity,
                                         activityType: widget.activityType,
+                                        typeOptions: _typeOptions,
+                                        quantityOptions: _quantityOptions,
+                                        subTypeOptions: _subTypeOptions,
                                       );
                                     },
                                   ),
@@ -505,10 +602,16 @@ class _ProfileSection extends StatelessWidget {
 class _ActivityDetailSection extends StatelessWidget {
   final _ActivityDetailItem activity;
   final String activityType;
+  final List<String> typeOptions;
+  final List<String> quantityOptions;
+  final List<String> subTypeOptions;
 
   const _ActivityDetailSection({
     required this.activity,
     required this.activityType,
+    required this.typeOptions,
+    required this.quantityOptions,
+    required this.subTypeOptions,
   });
 
   String _getTime(String? dateTimeStr) {
@@ -535,9 +638,6 @@ class _ActivityDetailSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = _getTime(activity.startAt);
-    final amPm = _getAmPm(activity.startAt);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -550,198 +650,148 @@ class _ActivityDetailSection extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                time.isNotEmpty ? time : '--:--',
-                style: const TextStyle(
-                  color: Color(0xff444349),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                amPm,
-                style: const TextStyle(
-                  color: Color(0xff6D6B76),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 22),
-          Container(
-            height: 112,
-            decoration: const BoxDecoration(
-              border: Border.symmetric(
-                vertical: BorderSide(width: 1, color: Color(0xffDBDADD)),
+          // Type selector (read-only)
+          if (activity.type != null && typeOptions.isNotEmpty) ...[
+            _ReadOnlyTypeSelector(
+              title: 'Type',
+              selectedValue: activity.type!,
+              options: typeOptions,
+            ),
+            const SizedBox(height: 16),
+          ],
+          // Sub-Type selector (read-only)
+          if (activity.subType != null && subTypeOptions.isNotEmpty) ...[
+            _ReadOnlyTypeSelector(
+              title: 'Sub-Type',
+              selectedValue: activity.subType!,
+              options: subTypeOptions,
+            ),
+            const SizedBox(height: 16),
+          ],
+          // Quantity selector (read-only)
+          if (activity.quantity != null && quantityOptions.isNotEmpty) ...[
+            _ReadOnlyTypeSelector(
+              title: 'Quantity',
+              selectedValue: activity.quantity!,
+              options: quantityOptions,
+            ),
+            const SizedBox(height: 16),
+          ],
+          // Tags (read-only)
+          if (activity.tags.isNotEmpty) ...[
+            const Text(
+              'Tag',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    activityType[0].toUpperCase() + activityType.substring(1),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: activity.tags.map((tag) {
+                return Chip(
+                  label: Text(
+                    tag,
                     style: const TextStyle(
-                      color: Color(0xff444349),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Type selector (read-only)
-                  if (activity.type != null) ...[
-                    _ReadOnlyTypeSelector(
-                      title: 'Type',
-                      selectedValue: activity.type!,
-                      options: [activity.type!], // Only show selected option
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Sub-Type selector (read-only)
-                  if (activity.subType != null) ...[
-                    _ReadOnlyTypeSelector(
-                      title: 'Sub-Type',
-                      selectedValue: activity.subType!,
-                      options: [activity.subType!],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Quantity selector (read-only)
-                  if (activity.quantity != null) ...[
-                    _ReadOnlyTypeSelector(
-                      title: 'Quantity',
-                      selectedValue: activity.quantity!,
-                      options: [activity.quantity!],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Tags (read-only)
-                  if (activity.tags.isNotEmpty) ...[
-                    const Text(
-                      'Tag',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: activity.tags.map((tag) {
-                        return Chip(
-                          label: Text(
-                            tag,
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          backgroundColor: AppColors.primaryLight,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Description (read-only)
-                  if (activity.description != null &&
-                      activity.description!.isNotEmpty) ...[
-                    _ReadOnlyNoteWidget(
-                      title: 'Decription',
-                      text: activity.description!,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Photo (read-only)
-                  if (activity.photo != null && activity.photo!.isNotEmpty) ...[
-                    const Text(
-                      'Photo',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _ReadOnlyPhotoWidget(photoId: activity.photo!),
-                    const SizedBox(height: 16),
-                  ],
-                  // Time range for play/sleep
-                  if (activity.startAtTime != null ||
-                      activity.endAtTime != null) ...[
-                    Row(
-                      children: [
-                        if (activity.startAtTime != null) ...[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Start Time',
-                                style: TextStyle(
-                                  color: AppColors.textTertiary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_getTime(activity.startAtTime)} ${_getAmPm(activity.startAtTime)}',
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        if (activity.startAtTime != null &&
-                            activity.endAtTime != null)
-                          const SizedBox(width: 24),
-                        if (activity.endAtTime != null) ...[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'End Time',
-                                style: TextStyle(
-                                  color: AppColors.textTertiary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_getTime(activity.endAtTime)} ${_getAmPm(activity.endAtTime)}',
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ],
+                  backgroundColor: AppColors.primaryLight,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+          // Description (read-only)
+          if (activity.description != null &&
+              activity.description!.isNotEmpty) ...[
+            _ReadOnlyNoteWidget(
+              title: 'Decription',
+              text: activity.description!,
+            ),
+            const SizedBox(height: 16),
+          ],
+          // Photo (read-only)
+          if (activity.photo != null && activity.photo!.isNotEmpty) ...[
+            const Text(
+              'Photo',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
+            const SizedBox(height: 12),
+            _ReadOnlyPhotoWidget(photoId: activity.photo!),
+            const SizedBox(height: 16),
+          ],
+          // Time range for play/sleep
+          if (activity.startAtTime != null || activity.endAtTime != null) ...[
+            Row(
+              children: [
+                if (activity.startAtTime != null) ...[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Start Time',
+                        style: TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_getTime(activity.startAtTime)} ${_getAmPm(activity.startAtTime)}',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (activity.startAtTime != null && activity.endAtTime != null)
+                  const SizedBox(width: 24),
+                if (activity.endAtTime != null) ...[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'End Time',
+                        style: TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_getTime(activity.endAtTime)} ${_getAmPm(activity.endAtTime)}',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
