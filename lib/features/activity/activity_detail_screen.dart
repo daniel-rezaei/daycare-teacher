@@ -352,13 +352,42 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         }
       }
 
-      // Handle tags
+      // Handle tags - parse and clean up brackets and quotes
       List<String> tags = [];
       if (detail['tag'] != null) {
         if (detail['tag'] is List) {
-          tags = (detail['tag'] as List).map((e) => e.toString()).toList();
+          tags = (detail['tag'] as List).map((e) {
+            String tag = e.toString();
+            // Remove brackets and quotes if present
+            tag = tag.replaceAll('[', '').replaceAll(']', '');
+            tag = tag.replaceAll('"', '').replaceAll("'", '');
+            return tag.trim();
+          }).toList();
         } else if (detail['tag'] is String) {
-          tags = [detail['tag'] as String];
+          String tag = detail['tag'] as String;
+          // Try to parse if it's a JSON-like string
+          if (tag.startsWith('[') && tag.endsWith(']')) {
+            try {
+              // Remove brackets and parse
+              tag = tag.substring(1, tag.length - 1);
+              // Remove quotes
+              tag = tag.replaceAll('"', '').replaceAll("'", '');
+              tags = tag
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList();
+            } catch (e) {
+              // If parsing fails, use as is after cleaning
+              tag = tag.replaceAll('[', '').replaceAll(']', '');
+              tag = tag.replaceAll('"', '').replaceAll("'", '');
+              tags = [tag.trim()];
+            }
+          } else {
+            // Remove quotes if present
+            tag = tag.replaceAll('"', '').replaceAll("'", '');
+            tags = [tag.trim()];
+          }
         }
       }
 
@@ -883,6 +912,7 @@ class _ReadOnlyNoteWidget extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: Container(
+            width: double.infinity,
             constraints: const BoxConstraints(minHeight: 80),
             decoration: BoxDecoration(
               color: AppColors.backgroundLighter,
