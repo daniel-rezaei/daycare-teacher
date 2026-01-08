@@ -47,7 +47,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     // Parse activity date and set as selected date
     try {
       final parsedDate = DateTime.parse(widget.activityDate);
-      _selectedDate = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+      _selectedDate = DateTime(
+        parsedDate.year,
+        parsedDate.month,
+        parsedDate.day,
+      );
     } catch (e) {
       _selectedDate = DateTime.now();
     }
@@ -110,18 +114,20 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         // Get activity details based on type
         final details = await _getActivityDetails(activityId);
         if (details != null) {
-          items.add(_ActivityDetailItem(
-            activityId: activityId,
-            startAt: startAt ?? '',
-            type: details['type'],
-            quantity: details['quantity'],
-            description: details['description'],
-            tags: details['tags'],
-            photo: details['photo'],
-            subType: details['subType'],
-            startAtTime: details['startAtTime'],
-            endAtTime: details['endAtTime'],
-          ));
+          items.add(
+            _ActivityDetailItem(
+              activityId: activityId,
+              startAt: startAt ?? '',
+              type: details['type'],
+              quantity: details['quantity'],
+              description: details['description'],
+              tags: details['tags'],
+              photo: details['photo'],
+              subType: details['subType'],
+              startAtTime: details['startAtTime'],
+              endAtTime: details['endAtTime'],
+            ),
+          );
         }
       }
 
@@ -235,7 +241,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       if (data.isEmpty) return null;
 
       final detail = data[0] as Map<String, dynamic>;
-      
+
       // Handle photo - could be nested
       String? photoId;
       if (detail['photo'] != null) {
@@ -243,7 +249,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           photoId = detail['photo']['id'] as String?;
         } else if (detail['photo'] is String) {
           photoId = detail['photo'] as String;
-        } else if (detail['photo'] is List && (detail['photo'] as List).isNotEmpty) {
+        } else if (detail['photo'] is List &&
+            (detail['photo'] as List).isNotEmpty) {
           final photoList = detail['photo'] as List;
           if (photoList[0] is Map) {
             photoId = photoList[0]['directus_files_id'] as String?;
@@ -263,8 +270,12 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
       return {
         'type': typeField != null ? detail[typeField]?.toString() : null,
-        'quantity': quantityField != null ? detail[quantityField]?.toString() : null,
-        'subType': subTypeField != null ? detail[subTypeField]?.toString() : null,
+        'quantity': quantityField != null
+            ? detail[quantityField]?.toString()
+            : null,
+        'subType': subTypeField != null
+            ? detail[subTypeField]?.toString()
+            : null,
         'description': detail['description']?.toString(),
         'tags': tags,
         'photo': photoId,
@@ -294,7 +305,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             child: Column(
               children: [
                 BackTitleWidget(
-                  title: 'Activity Details',
+                  title:
+                      'History-${widget.activityType[0].toUpperCase()}${widget.activityType.substring(1)}',
                   onTap: () => Navigator.pop(context),
                 ),
                 _ProfileSection(
@@ -303,10 +315,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                   classId: widget.classId,
                 ),
                 const SizedBox(height: 20),
-                DayStripWidget(
-                  onDateSelected: _onDateSelected,
-                ),
-                const SizedBox(height: 12),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -324,44 +332,40 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     ),
                     child: Column(
                       children: [
+                        DayStripWidget(onDateSelected: _onDateSelected),
                         const SizedBox(height: 16),
                         Expanded(
                           child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xffFFFFFF).withValues(alpha: .8),
-                              borderRadius: const BorderRadius.vertical(
+                            decoration: const BoxDecoration(
+                              color: Color(0xffFFFFFF),
+                              borderRadius: BorderRadius.vertical(
                                 top: Radius.circular(24),
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xff000000).withValues(alpha: .1),
-                                  offset: const Offset(0, -4),
-                                  blurRadius: 16,
-                                ),
-                              ],
                             ),
                             padding: const EdgeInsets.fromLTRB(16, 16, 16, 36),
                             child: _isLoading
-                                ? const Center(child: CircularProgressIndicator())
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
                                 : _activities.isEmpty
-                                    ? Center(
-                                        child: Text(
-                                          'No activities found for this date',
-                                          style: TextStyle(
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                      )
-                                    : ListView.builder(
-                                        itemCount: _activities.length,
-                                        itemBuilder: (context, index) {
-                                          final activity = _activities[index];
-                                          return _ActivityDetailSection(
-                                            activity: activity,
-                                            activityType: widget.activityType,
-                                          );
-                                        },
+                                ? Center(
+                                    child: Text(
+                                      'No activities found for this date',
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
                                       ),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: _activities.length,
+                                    itemBuilder: (context, index) {
+                                      final activity = _activities[index];
+                                      return _ActivityDetailSection(
+                                        activity: activity,
+                                        activityType: widget.activityType,
+                                      );
+                                    },
+                                  ),
                           ),
                         ),
                       ],
@@ -432,18 +436,14 @@ class _ProfileSection extends StatelessWidget {
 
         return Row(
           children: [
-            const SizedBox(width: 16),
             Container(
               height: 68,
               width: 68,
-              decoration: BoxDecoration(
-                border: Border.all(width: 2, color: Colors.white),
-                shape: BoxShape.circle,
-              ),
-              child: ChildAvatarWidget(
-                photoId: childPhoto,
-                size: 68,
-              ),
+              margin: const EdgeInsets.only(left: 16),
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: childPhoto != null && childPhoto!.isNotEmpty
+                  ? ChildAvatarWidget(photoId: childPhoto, size: 68)
+                  : Assets.images.image.image(),
             ),
             const SizedBox(width: 12),
             Column(
@@ -462,7 +462,10 @@ class _ProfileSection extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.backgroundGray,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(width: 2, color: AppColors.backgroundBorder),
+                    border: Border.all(
+                      width: 2,
+                      color: AppColors.backgroundBorder,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         blurRadius: 8,
@@ -470,33 +473,21 @@ class _ProfileSection extends StatelessWidget {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Assets.images.group.image(height: 20),
+                      Assets.images.leftSlotItems.svg(),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Class',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w400,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 1,
-                        height: 24,
-                        decoration: const BoxDecoration(color: AppColors.divider),
-                      ),
-                      const SizedBox(width: 4),
                       Text(
                         className ?? 'Not available',
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -691,7 +682,8 @@ class _ActivityDetailSection extends StatelessWidget {
                     const SizedBox(height: 16),
                   ],
                   // Time range for play/sleep
-                  if (activity.startAtTime != null || activity.endAtTime != null) ...[
+                  if (activity.startAtTime != null ||
+                      activity.endAtTime != null) ...[
                     Row(
                       children: [
                         if (activity.startAtTime != null) ...[
@@ -822,10 +814,7 @@ class _ReadOnlyNoteWidget extends StatelessWidget {
   final String title;
   final String text;
 
-  const _ReadOnlyNoteWidget({
-    required this.title,
-    required this.text,
-  });
+  const _ReadOnlyNoteWidget({required this.title, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -878,7 +867,7 @@ class _ReadOnlyPhotoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final photoUrl = PhotoUtils.getPhotoUrl(photoId);
-    
+
     if (photoUrl.isEmpty) {
       return Container(
         height: 124,
@@ -887,10 +876,7 @@ class _ReadOnlyPhotoWidget extends StatelessWidget {
           color: const Color(0xffF0E7FF),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(
-          Icons.image,
-          color: Color(0xff7B2AF3),
-        ),
+        child: const Icon(Icons.image, color: Color(0xff7B2AF3)),
       );
     }
 
@@ -918,4 +904,3 @@ class _ReadOnlyPhotoWidget extends StatelessWidget {
     );
   }
 }
-
