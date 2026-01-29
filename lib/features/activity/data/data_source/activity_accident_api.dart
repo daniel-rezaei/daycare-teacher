@@ -201,7 +201,7 @@ class ActivityAccidentApi {
     required List<String> firstAidProvidedTexts,
     required List<String> childReactionTexts,
     required List<String> staffIds,
-    String? dateTimeNotifiedText,
+    String? dateTimeNotifiedText, // Can be enum text or ISO8601 datetime string
     required bool medicalFollowUpRequired,
     required bool incidentReportedToAuthority,
     required bool parentNotified,
@@ -270,6 +270,31 @@ class ActivityAccidentApi {
       }
     }
 
+    // contact_id: array format (multi-select) - using contact_id instead of staff_id
+    if (staffIds.isNotEmpty) {
+      data['contact_id'] = staffIds; // Array for multi-select
+    }
+
+    // date_time_notified: can be enum text (convert to value) or ISO8601 datetime string (use directly)
+    if (dateTimeNotifiedText != null && dateTimeNotifiedText.isNotEmpty) {
+      // Check if it's an ISO8601 datetime string (contains 'T' or ':' and digits)
+      if (dateTimeNotifiedText.contains('T') ||
+          (dateTimeNotifiedText.contains(':') &&
+              RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(dateTimeNotifiedText))) {
+        // It's a datetime string, use directly
+        data['date_time_notified'] = dateTimeNotifiedText;
+      } else {
+        // It's an enum text, convert to value
+        final value = await _getValueFromText(
+          'date_time_notified',
+          dateTimeNotifiedText,
+        );
+        if (value != null) {
+          data['date_time_notified'] = value;
+        }
+      }
+    }
+
     data['medical_follow_up_required'] = medicalFollowUpRequired;
     data['incident_reported_to_authority'] = incidentReportedToAuthority;
     data['parent_notified'] = parentNotified;
@@ -318,11 +343,13 @@ class ActivityAccidentApi {
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
   Future<bool> hasHistory(String classId) async {
-    debugPrint('[ACCIDENT_API] ========== Checking history for classId: $classId ==========');
+    debugPrint(
+      '[ACCIDENT_API] ========== Checking history for classId: $classId ==========',
+    );
     try {
       final activityTypeId = await _getActivityTypeId('accident');
       debugPrint('[ACCIDENT_API] Activity type ID: $activityTypeId');
-      
+
       final response = await httpclient.get(
         '/items/activities',
         queryParameters: {
@@ -331,11 +358,13 @@ class ActivityAccidentApi {
           'limit': 1, // Only need to check if any exists
         },
       );
-      
+
       final data = response.data['data'] as List<dynamic>;
       final hasHistory = data.isNotEmpty;
-      
-      debugPrint('[ACCIDENT_API] ========== History check result: $hasHistory (found ${data.length} items) ==========');
+
+      debugPrint(
+        '[ACCIDENT_API] ========== History check result: $hasHistory (found ${data.length} items) ==========',
+      );
       return hasHistory;
     } catch (e, stackTrace) {
       debugPrint('[ACCIDENT_API] Error checking history: $e');

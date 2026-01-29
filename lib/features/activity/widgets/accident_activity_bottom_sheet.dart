@@ -22,6 +22,7 @@ import 'package:teacher_app/features/child_status/widgets/header_check_out_widge
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
 import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/features/home/data/data_source/home_api.dart';
+import 'package:teacher_app/gen/assets.gen.dart';
 
 class AccidentActivityBottomSheet extends StatefulWidget {
   final ChildEntity selectedChild; // Only ONE child for accident
@@ -52,6 +53,7 @@ class _AccidentActivityBottomSheetState
   List<String> _selectedChildReaction = [];
   String? _selectedNotifyBy;
   String? _selectedDateNotified;
+  DateTime? _selectedDateTimeNotified; // Custom date/time selection
 
   // Options loaded from backend
   List<String> _natureOfInjuryOptions = [];
@@ -64,7 +66,7 @@ class _AccidentActivityBottomSheetState
 
   // Staff
   List<StaffClassModel> _staffList = [];
-  Set<String> _selectedStaffIds = {}; // Multi-select for staff
+  Set<String> _selectedStaffIds = {}; // Multi-select for staff (using contactId)
 
   // Class ID for fetching staff
   String? _classId;
@@ -182,9 +184,9 @@ class _AccidentActivityBottomSheetState
       // Remove duplicates based on staff_id (a staff might be in multiple classes)
       final Map<String, StaffClassModel> uniqueStaffMap = {};
       for (final staff in allStaff) {
-        if (staff.staffId != null && staff.staffId!.isNotEmpty) {
-          if (!uniqueStaffMap.containsKey(staff.staffId)) {
-            uniqueStaffMap[staff.staffId!] = staff;
+        if (staff.contactId != null && staff.contactId!.isNotEmpty) {
+          if (!uniqueStaffMap.containsKey(staff.contactId)) {
+            uniqueStaffMap[staff.contactId!] = staff;
           }
         }
       }
@@ -219,15 +221,15 @@ class _AccidentActivityBottomSheetState
     });
   }
 
-  void _toggleStaffSelection(String staffId) {
+  void _toggleStaffSelection(String contactId) {
     setState(() {
-      if (_selectedStaffIds.contains(staffId)) {
-        _selectedStaffIds.remove(staffId);
+      if (_selectedStaffIds.contains(contactId)) {
+        _selectedStaffIds.remove(contactId);
       } else {
-        _selectedStaffIds.add(staffId);
+        _selectedStaffIds.add(contactId);
       }
     });
-    debugPrint('[ACCIDENT_ACTIVITY] Selected staff IDs: $_selectedStaffIds');
+    debugPrint('[ACCIDENT_ACTIVITY] Selected staff contact IDs: $_selectedStaffIds');
   }
 
   Future<String?> _uploadPhoto(File imageFile) async {
@@ -344,7 +346,9 @@ class _AccidentActivityBottomSheetState
         firstAidProvidedTexts: _selectedFirstAidProvided,
         childReactionTexts: _selectedChildReaction,
         staffIds: _selectedStaffIds.toList(),
-        dateTimeNotifiedText: _selectedDateNotified,
+        dateTimeNotifiedText: _selectedDateTimeNotified != null 
+            ? _selectedDateTimeNotified!.toUtc().toIso8601String()
+            : _selectedDateNotified,
         medicalFollowUpRequired: _medicalFollowUpRequired,
         incidentReportedToAuthority: _incidentReportedToAuthority,
         parentNotified: _parentNotified,
@@ -548,13 +552,13 @@ class _AccidentActivityBottomSheetState
                           itemCount: _staffList.length,
                           itemBuilder: (context, index) {
                             final staff = _staffList[index];
-                            final staffId = staff.staffId ?? '';
+                            final contactId = staff.contactId ?? '';
                             final isSelected = _selectedStaffIds.contains(
-                              staffId,
+                              contactId,
                             );
 
                             return GestureDetector(
-                              onTap: () => _toggleStaffSelection(staffId),
+                              onTap: () => _toggleStaffSelection(contactId),
                               child: Padding(
                                 padding: const EdgeInsets.only(right: 12),
                                 child: _StaffCircleItem(
@@ -571,19 +575,93 @@ class _AccidentActivityBottomSheetState
                     const SizedBox(height: 24),
 
                     // Date Notified
-                    if (_dateNotifiedOptions.isNotEmpty)
-                      MealTypeSelectorWidget(
-                        title: 'Date Notified',
-                        options: _dateNotifiedOptions,
-                        selectedValue: _selectedDateNotified,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDateNotified = value;
-                          });
-                        },
-                      ),
-                    if (_dateNotifiedOptions.isNotEmpty)
-                      const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Date Notified',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            if (_selectedDateTimeNotified != null)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: Text(
+                                  DateFormat('MMM d, yyyy h:mm a').format(_selectedDateTimeNotified!),
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            GestureDetector(
+                              onTap: () async {
+                                final now = DateTime.now();
+                                final picked = await showModalBottomSheet<DateTime>(
+                                  context: context,
+                                  builder: (context) => Container(
+                                    height: 300,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                final selected = DateTime(
+                                                  now.year,
+                                                  now.month,
+                                                  now.day,
+                                                  now.hour,
+                                                  now.minute,
+                                                );
+                                                Navigator.pop(context, selected);
+                                              },
+                                              child: const Text('Done'),
+                                            ),
+                                          ],
+                                        ),
+                                        Expanded(
+                                          child: CupertinoDatePicker(
+                                            mode: CupertinoDatePickerMode.dateAndTime,
+                                            initialDateTime: _selectedDateTimeNotified ?? now,
+                                            minimumDate: DateTime(now.year - 1),
+                                            maximumDate: now,
+                                            onDateTimeChanged: (DateTime newDateTime) {
+                                              // Update will be handled when Done is pressed
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                                if (picked != null) {
+                                  setState(() {
+                                    _selectedDateTimeNotified = picked;
+                                    _selectedDateNotified = null; // Clear dropdown selection
+                                  });
+                                }
+                              },
+                              child: Assets.images.calendarDate.svg(
+                                width: 24,
+                                height: 24,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
                     // Medical Follow-Up Required
                     Row(
