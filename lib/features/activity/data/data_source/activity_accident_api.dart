@@ -272,7 +272,7 @@ class ActivityAccidentApi {
 
     // contact_id: array format (multi-select) - using contact_id instead of staff_id
     if (staffIds.isNotEmpty) {
-      data['contact_id'] = staffIds; // Array for multi-select
+      data['contact_id'] = staffIds.first; // Array for multi-select
     }
 
     // date_time_notified: can be enum text (convert to value) or ISO8601 datetime string (use directly)
