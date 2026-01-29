@@ -15,16 +15,22 @@ import 'package:teacher_app/features/session/domain/entity/staff_class_session_e
 abstract class HomeRepository {
   // ========== Auth Methods ==========
   Future<DataState<List<ClassRoomEntity>>> classRoom();
-  Future<DataState<List<StaffClassEntity>>> staffClass({required String classId});
+  Future<DataState<List<StaffClassEntity>>> staffClass({
+    required String classId,
+  });
   Future<DataState<String>> getClassIdByContactId({required String contactId});
-  Future<DataState<Map<String, String>>> getContactIdAndClassIdByEmail({required String email});
+  Future<DataState<Map<String, String>>> getContactIdAndClassIdByEmail({
+    required String email,
+  });
 
   // ========== Profile Methods ==========
   Future<DataState<ContactEntity>> getContact({required String id});
   Future<DataState<List<ContactEntity>>> getAllContacts();
 
   // ========== Session Methods ==========
-  Future<DataState<StaffClassSessionEntity?>> getSessionByClassId({required String classId});
+  Future<DataState<StaffClassSessionEntity?>> getSessionByClassId({
+    required String classId,
+  });
   Future<DataState<StaffClassSessionEntity>> createSession({
     required String staffId,
     required String classId,
@@ -39,10 +45,13 @@ abstract class HomeRepository {
   Future<DataState<List<ChildEntity>>> getAllChildren();
   Future<DataState<List<DietaryRestrictionEntity>>> getAllDietaryRestrictions();
   Future<DataState<List<MedicationEntity>>> getAllMedications();
-  Future<DataState<List<PhysicalRequirementEntity>>> getAllPhysicalRequirements();
+  Future<DataState<List<PhysicalRequirementEntity>>>
+  getAllPhysicalRequirements();
   Future<DataState<List<ReportableDiseaseEntity>>> getAllReportableDiseases();
   Future<DataState<ChildEntity>> getChildById({required String childId});
-  Future<DataState<ChildEntity>> getChildByContactId({required String contactId});
+  Future<DataState<ChildEntity>> getChildByContactId({
+    required String contactId,
+  });
 
   // ========== Attendance Methods ==========
   Future<DataState<List<AttendanceChildEntity>>> getAttendanceByClassId({
@@ -62,7 +71,8 @@ abstract class HomeRepository {
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
+    String?
+    pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
     String? checkoutPickupContactId, // Contact ID of the person picking up
   });
 
@@ -72,4 +82,3 @@ abstract class HomeRepository {
   // ========== Event Methods ==========
   Future<DataState<List<EventEntity>>> getAllEvents();
 }
-
