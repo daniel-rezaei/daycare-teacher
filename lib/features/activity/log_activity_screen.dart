@@ -15,6 +15,7 @@ import 'package:teacher_app/features/activity/data/data_source/activity_sleep_ap
 import 'package:teacher_app/features/activity/history_meal_screen.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
+import 'package:teacher_app/features/child_status/child_status.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class LogActivityScreen extends StatefulWidget {
@@ -393,8 +394,15 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.attendance.image(height: 48),
                               title: 'Attendance',
-                              onTap: () {},
-                              isDisabled: true,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ChildStatus(),
+                                  ),
+                                );
+                              },
+                              isDisabled: false,
                             ),
                           ),
 
