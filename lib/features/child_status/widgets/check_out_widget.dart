@@ -49,6 +49,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   final TextEditingController _noteController = TextEditingController();
   final List<File> _images = [];
   String? _selectedPickupAuthorizationId; // DOMAIN LOCKDOWN: Only select existing PickupAuthorization ID
+  String? _selectedPickupContactId; // Contact ID of the person picking up
   bool _isSubmitting = false;
   bool _checkoutSubmitted = false; // برای جلوگیری از pop چندباره
 
@@ -181,6 +182,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       debugPrint('[CHECKOUT_STEP2] - attendanceId: ${widget.attendanceId}');
       debugPrint('[CHECKOUT_STEP2] - checkOutAt: "$checkOutAt"');
       debugPrint('[CHECKOUT_STEP2] - pickupAuthorizationId: $_selectedPickupAuthorizationId');
+      debugPrint('[CHECKOUT_STEP2] - checkoutPickupContactId: $_selectedPickupContactId');
       debugPrint('[CHECKOUT_STEP2] - notes: $note');
       debugPrint('[CHECKOUT_STEP2] - photo fileId (first): $photoFileId');
       debugPrint('[CHECKOUT_STEP2] - total uploaded files: ${uploadedFileIds.length}');
@@ -201,6 +203,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
               checkOutAt: checkOutAt,
               notes: note,
               pickupAuthorizationId: _selectedPickupAuthorizationId!,
+              checkoutPickupContactId: _selectedPickupContactId,
               photo: photoFileId,
             ),
           );
@@ -339,6 +342,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                     setState(() {
                                       // DOMAIN LOCKDOWN: Store PickupAuthorization ID, not contact ID
                                       _selectedPickupAuthorizationId = pickup.id;
+                                      _selectedPickupContactId = pickup.authorizedContactId;
                                     });
                                   },
                                   child: Container(

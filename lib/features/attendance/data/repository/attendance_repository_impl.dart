@@ -28,8 +28,10 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
 
       final List<AttendanceChildEntity> attendanceList = dataList
-          .map((data) => AttendanceChildModel.fromJson(
-              data as Map<String, dynamic>))
+          .map(
+            (data) =>
+                AttendanceChildModel.fromJson(data as Map<String, dynamic>),
+          )
           .toList();
 
       return DataSuccess(attendanceList);
@@ -53,7 +55,8 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
         staffId: staffId,
       );
 
-      final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
+      final Map<String, dynamic> data =
+          response.data['data'] as Map<String, dynamic>;
       final AttendanceChildEntity attendanceEntity =
           AttendanceChildModel.fromJson(data);
 
@@ -69,35 +72,50 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
+    String?
+    pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
+    String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
-    debugPrint('[ATTENDANCE_REPO] ========== updateAttendance called ==========');
+    debugPrint(
+      '[ATTENDANCE_REPO] ========== updateAttendance called ==========',
+    );
     debugPrint('[ATTENDANCE_REPO] attendanceId: $attendanceId');
     debugPrint('[ATTENDANCE_REPO] checkOutAt: "$checkOutAt"');
     debugPrint('[ATTENDANCE_REPO] notes: $notes');
     debugPrint('[ATTENDANCE_REPO] photo: $photo');
-    debugPrint('[ATTENDANCE_REPO] pickupAuthorizationId: $pickupAuthorizationId');
-    
+    debugPrint(
+      '[ATTENDANCE_REPO] pickupAuthorizationId: $pickupAuthorizationId',
+    );
+    debugPrint(
+      '[ATTENDANCE_REPO] checkoutPickupContactId: $checkoutPickupContactId',
+    );
+
     try {
       // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
       // No contact/guardian/pickup creation allowed from checkout flow
-      debugPrint('[ATTENDANCE_REPO] Calling attendanceApi.updateAttendance (direct, no pre-fetch)...');
+      debugPrint(
+        '[ATTENDANCE_REPO] Calling attendanceApi.updateAttendance (direct, no pre-fetch)...',
+      );
       final Response response = await attendanceApi.updateAttendance(
         attendanceId: attendanceId,
         checkOutAt: checkOutAt,
         notes: notes,
         photo: photo,
         pickupAuthorizationId: pickupAuthorizationId,
+        checkoutPickupContactId: checkoutPickupContactId,
       );
 
-      final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
+      final Map<String, dynamic> data =
+          response.data['data'] as Map<String, dynamic>;
       final AttendanceChildEntity attendanceEntity =
           AttendanceChildModel.fromJson(data);
 
       debugPrint('[ATTENDANCE_REPO] Update successful:');
-      debugPrint('[ATTENDANCE_REPO] - checkOutAt: ${attendanceEntity.checkOutAt}');
+      debugPrint(
+        '[ATTENDANCE_REPO] - checkOutAt: ${attendanceEntity.checkOutAt}',
+      );
       debugPrint('[ATTENDANCE_REPO] - notes: ${attendanceEntity.notes}');
-      
+
       return DataSuccess(attendanceEntity);
     } on DioException catch (e) {
       return _handleDioError(e);
@@ -108,7 +126,8 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
     String errorMessage = 'Error retrieving information';
 
     if (e.response != null) {
-      errorMessage = e.response?.data['message'] ??
+      errorMessage =
+          e.response?.data['message'] ??
           e.response?.statusMessage ??
           'Error connecting to server';
     } else if (e.type == DioExceptionType.connectionTimeout ||
@@ -121,4 +140,3 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
     return DataFailed(errorMessage);
   }
 }
-

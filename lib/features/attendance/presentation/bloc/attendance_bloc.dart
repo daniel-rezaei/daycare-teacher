@@ -144,6 +144,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         notes: event.notes,
         photo: event.photo,
         pickupAuthorizationId: event.pickupAuthorizationId,
+        checkoutPickupContactId: event.checkoutPickupContactId,
       );
 
       if (dataState is DataSuccess) {

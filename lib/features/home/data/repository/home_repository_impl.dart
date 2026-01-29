@@ -344,6 +344,7 @@ class HomeRepositoryImpl extends HomeRepository {
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
     String? pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
+    String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
     try {
       // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
@@ -354,6 +355,7 @@ class HomeRepositoryImpl extends HomeRepository {
         notes: notes,
         photo: photo,
         pickupAuthorizationId: pickupAuthorizationId,
+        checkoutPickupContactId: checkoutPickupContactId,
       );
 
       final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;

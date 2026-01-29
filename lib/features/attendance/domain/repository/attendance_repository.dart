@@ -25,6 +25,6 @@ abstract class AttendanceRepository {
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
     String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
+    String? checkoutPickupContactId, // Contact ID of the person picking up
   });
 }
-

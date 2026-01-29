@@ -69,6 +69,7 @@ class AttendanceApi {
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
     String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
+    String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
     debugPrint('[ATTENDANCE_API] ========== updateAttendance called ==========');
     debugPrint('[ATTENDANCE_API] attendanceId: $attendanceId');
@@ -76,6 +77,7 @@ class AttendanceApi {
     debugPrint('[ATTENDANCE_API] notes: $notes');
     debugPrint('[ATTENDANCE_API] photo: $photo');
     debugPrint('[ATTENDANCE_API] pickupAuthorizationId: $pickupAuthorizationId');
+    debugPrint('[ATTENDANCE_API] checkoutPickupContactId: $checkoutPickupContactId');
     
     // فقط فیلدهای لازم - اگر checkOutAt خالی است، فقط note/photo را به‌روز می‌کنیم
     final data = <String, dynamic>{};
@@ -99,6 +101,11 @@ class AttendanceApi {
     // Reject any contact/guardian/pickup creation attempts
     if (pickupAuthorizationId != null && pickupAuthorizationId.isNotEmpty) {
       data['pickup_authorization_id'] = pickupAuthorizationId;
+    }
+
+    // ارسال checkout_pickup_contact_id به API
+    if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
+      data['checkout_pickup_contact_id'] = checkoutPickupContactId;
     }
 
     debugPrint('[ATTENDANCE_API] ========== Final Request Body ==========');

@@ -298,6 +298,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.learn.image(height: 48),
                               title: 'Learn',
                               onTap: () {},
+                              isDisabled: true,
                             ),
                           ),
                           SizedBox(
@@ -354,6 +355,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToObservationActivity(context);
                               },
+                              isDisabled: true,
                             ),
                           ),
                           SizedBox(
@@ -368,6 +370,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToIncidentActivity(context);
                               },
+                              isDisabled: true,
                             ),
                           ),
                           SizedBox(
@@ -382,6 +385,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToAccidentActivity(context);
                               },
+                              isDisabled: true,
                             ),
                           ),
                           SizedBox(
@@ -390,6 +394,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.attendance.image(height: 48),
                               title: 'Attendance',
                               onTap: () {},
+                              isDisabled: true,
                             ),
                           ),
 
@@ -406,6 +411,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToMoodActivity(context);
                               },
+                              isDisabled: true,
                             ),
                           ),
                         ],
@@ -425,50 +431,49 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
 class InfoCardLogActivity extends StatelessWidget {
   final Widget icon;
   final String title;
-  final Function() onTap;
+  final Function()? onTap;
   final bool isLoading;
+  final bool isDisabled;
 
   const InfoCardLogActivity({
     super.key,
     required this.icon,
     required this.title,
-    required this.onTap,
+    this.onTap,
     this.isLoading = false,
+    this.isDisabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isLoading ? null : onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xffFFFFFF),
-          border: Border.all(color: const Color(0xffFAFAFA), width: 2),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xffE4D3FF).withValues(alpha: .5),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(height: 8),
-            isLoading
-                ? const CupertinoActivityIndicator(radius: 8)
-                : Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xff444349),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+      onTap: (isLoading || isDisabled) ? null : onTap,
+      child: Opacity(
+        opacity: isDisabled ? 0.4 : 1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xffFFFFFF),
+            border: Border.all(color: const Color(0xffFAFAFA), width: 2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              icon,
+              const SizedBox(height: 8),
+              isLoading
+                  ? const CupertinoActivityIndicator(radius: 8)
+                  : Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xff444349),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-          ],
+            ],
+          ),
         ),
       ),
     );

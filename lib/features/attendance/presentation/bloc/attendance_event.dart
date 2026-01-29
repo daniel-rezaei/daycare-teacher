@@ -48,6 +48,7 @@ class UpdateAttendanceEvent extends AttendanceEvent {
   final String? notes;
   final String? photo; // String of file ID (first file ID if multiple)
   final String? pickupAuthorizationId; // ONLY accepts existing PickupAuthorization ID
+  final String? checkoutPickupContactId; // Contact ID of the person picking up
 
   const UpdateAttendanceEvent({
     required this.attendanceId,
@@ -55,6 +56,7 @@ class UpdateAttendanceEvent extends AttendanceEvent {
     this.notes,
     this.photo,
     this.pickupAuthorizationId,
+    this.checkoutPickupContactId,
   });
 
   @override
@@ -64,6 +66,7 @@ class UpdateAttendanceEvent extends AttendanceEvent {
         notes ?? '',
         photo ?? '',
         pickupAuthorizationId ?? '',
+        checkoutPickupContactId ?? '',
       ];
 }
 

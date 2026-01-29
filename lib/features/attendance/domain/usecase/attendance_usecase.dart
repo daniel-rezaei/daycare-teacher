@@ -44,6 +44,7 @@ class AttendanceUsecase {
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
     String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
+    String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
     return await attendanceRepository.updateAttendance(
       attendanceId: attendanceId,
@@ -51,6 +52,7 @@ class AttendanceUsecase {
       notes: notes,
       photo: photo,
       pickupAuthorizationId: pickupAuthorizationId,
+      checkoutPickupContactId: checkoutPickupContactId,
     );
   }
 }

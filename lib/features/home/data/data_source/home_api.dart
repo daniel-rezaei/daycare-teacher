@@ -202,6 +202,7 @@ class HomeApi {
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
     String? pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
+    String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
     // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
     // No contact/guardian/pickup creation allowed from checkout flow
@@ -223,6 +224,11 @@ class HomeApi {
     // Reject any contact/guardian/pickup creation attempts
     if (pickupAuthorizationId != null && pickupAuthorizationId.isNotEmpty) {
       data['pickup_authorization_id'] = pickupAuthorizationId;
+    }
+
+    // ارسال checkout_pickup_contact_id به API
+    if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
+      data['checkout_pickup_contact_id'] = checkoutPickupContactId;
     }
 
     // PATCH مستقیم بدون wrapper - مشابه createAttendance
