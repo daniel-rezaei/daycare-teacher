@@ -386,7 +386,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToAccidentActivity(context);
                               },
-                              isDisabled: true,
+                              isDisabled: false,
                             ),
                           ),
                           SizedBox(
