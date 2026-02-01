@@ -356,7 +356,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToObservationActivity(context);
                               },
-                              isDisabled: true,
+                              isDisabled: false,
                             ),
                           ),
                           SizedBox(
