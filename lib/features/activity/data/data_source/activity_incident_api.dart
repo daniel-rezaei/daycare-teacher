@@ -150,10 +150,28 @@ class ActivityIncidentApi {
     final response = await httpclient.get('/items/activity_types');
     final data = response.data['data'] as List<dynamic>;
 
+    // Debug: Log all available activity types
+    debugPrint('[INCIDENT_API] Available activity types:');
+    for (final item in data) {
+      debugPrint('[INCIDENT_API]   - type: ${item['type']}, id: ${item['id']}');
+    }
+
+    // Try exact match first
     for (final item in data) {
       if (item['type'] == type) {
         final id = item['id'] as String;
         debugPrint('[INCIDENT_API] Found activity type ID for $type: $id');
+        return id;
+      }
+    }
+
+    // Try case-insensitive match
+    for (final item in data) {
+      if ((item['type'] as String).toLowerCase() == type.toLowerCase()) {
+        final id = item['id'] as String;
+        debugPrint(
+          '[INCIDENT_API] Found activity type ID for $type (case-insensitive): $id',
+        );
         return id;
       }
     }
@@ -266,7 +284,10 @@ class ActivityIncidentApi {
       data['notify_parent_date_time'] = notifyParentDateTime;
     }
     if (notifyParentByText != null && notifyParentByText.isNotEmpty) {
-      final value = await _getValueFromText('notify_parent_by', notifyParentByText);
+      final value = await _getValueFromText(
+        'notify_parent_by',
+        notifyParentByText,
+      );
       if (value != null) {
         data['notify_parent_by'] = [value]; // Array format
       }
@@ -276,17 +297,24 @@ class ActivityIncidentApi {
       data['notify_ministry_date_time'] = notifyMinistryDateTime;
     }
     if (notifyMinistryByText != null && notifyMinistryByText.isNotEmpty) {
-      final value = await _getValueFromText('notify_ministry_by', notifyMinistryByText);
+      final value = await _getValueFromText(
+        'notify_ministry_by',
+        notifyMinistryByText,
+      );
       if (value != null) {
         data['notify_ministry_by'] = [value]; // Array format
       }
     }
 
-    if (notifySupervisorDateTime != null && notifySupervisorDateTime.isNotEmpty) {
+    if (notifySupervisorDateTime != null &&
+        notifySupervisorDateTime.isNotEmpty) {
       data['notify_supervisor_date_time'] = notifySupervisorDateTime;
     }
     if (notifySupervisorByText != null && notifySupervisorByText.isNotEmpty) {
-      final value = await _getValueFromText('notify_supervisor_by', notifySupervisorByText);
+      final value = await _getValueFromText(
+        'notify_supervisor_by',
+        notifySupervisorByText,
+      );
       if (value != null) {
         data['notify_supervisor_by'] = [value]; // Array format
       }
@@ -306,7 +334,10 @@ class ActivityIncidentApi {
       data['notify_police_date_time'] = notifyPoliceDateTime;
     }
     if (notifyPoliceByText != null && notifyPoliceByText.isNotEmpty) {
-      final value = await _getValueFromText('notify_police_by', notifyPoliceByText);
+      final value = await _getValueFromText(
+        'notify_police_by',
+        notifyPoliceByText,
+      );
       if (value != null) {
         data['notify_police_by'] = [value]; // Array format
       }
