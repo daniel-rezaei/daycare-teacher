@@ -66,7 +66,8 @@ class _AccidentActivityBottomSheetState
 
   // Staff
   List<StaffClassModel> _staffList = [];
-  Set<String> _selectedStaffIds = {}; // Multi-select for staff (using contactId)
+  Set<String> _selectedStaffIds =
+      {}; // Multi-select for staff (using contactId)
 
   // Class ID for fetching staff
   String? _classId;
@@ -229,7 +230,9 @@ class _AccidentActivityBottomSheetState
         _selectedStaffIds.add(contactId);
       }
     });
-    debugPrint('[ACCIDENT_ACTIVITY] Selected staff contact IDs: $_selectedStaffIds');
+    debugPrint(
+      '[ACCIDENT_ACTIVITY] Selected staff contact IDs: $_selectedStaffIds',
+    );
   }
 
   Future<String?> _uploadPhoto(File imageFile) async {
@@ -346,7 +349,7 @@ class _AccidentActivityBottomSheetState
         firstAidProvidedTexts: _selectedFirstAidProvided,
         childReactionTexts: _selectedChildReaction,
         staffIds: _selectedStaffIds.toList(),
-        dateTimeNotifiedText: _selectedDateTimeNotified != null 
+        dateTimeNotifiedText: _selectedDateTimeNotified != null
             ? _selectedDateTimeNotified!.toUtc().toIso8601String()
             : _selectedDateNotified,
         medicalFollowUpRequired: _medicalFollowUpRequired,
@@ -592,7 +595,9 @@ class _AccidentActivityBottomSheetState
                               Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: Text(
-                                  DateFormat('MMM d, yyyy h:mm a').format(_selectedDateTimeNotified!),
+                                  DateFormat(
+                                    'MMM d, yyyy h:mm a',
+                                  ).format(_selectedDateTimeNotified!),
                                   style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontSize: 14,
@@ -609,10 +614,12 @@ class _AccidentActivityBottomSheetState
                                     child: Column(
                                       children: [
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             TextButton(
-                                              onPressed: () => Navigator.pop(context),
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
                                               child: const Text('Cancel'),
                                             ),
                                             TextButton(
@@ -624,7 +631,10 @@ class _AccidentActivityBottomSheetState
                                                   now.hour,
                                                   now.minute,
                                                 );
-                                                Navigator.pop(context, selected);
+                                                Navigator.pop(
+                                                  context,
+                                                  selected,
+                                                );
                                               },
                                               child: const Text('Done'),
                                             ),
@@ -632,13 +642,17 @@ class _AccidentActivityBottomSheetState
                                         ),
                                         Expanded(
                                           child: CupertinoDatePicker(
-                                            mode: CupertinoDatePickerMode.dateAndTime,
-                                            initialDateTime: _selectedDateTimeNotified ?? now,
+                                            mode: CupertinoDatePickerMode
+                                                .dateAndTime,
+                                            initialDateTime:
+                                                _selectedDateTimeNotified ??
+                                                now,
                                             minimumDate: DateTime(now.year - 1),
                                             maximumDate: now,
-                                            onDateTimeChanged: (DateTime newDateTime) {
-                                              // Update will be handled when Done is pressed
-                                            },
+                                            onDateTimeChanged:
+                                                (DateTime newDateTime) {
+                                                  // Update will be handled when Done is pressed
+                                                },
                                           ),
                                         ),
                                       ],
@@ -648,7 +662,8 @@ class _AccidentActivityBottomSheetState
                                 if (picked != null) {
                                   setState(() {
                                     _selectedDateTimeNotified = picked;
-                                    _selectedDateNotified = null; // Clear dropdown selection
+                                    _selectedDateNotified =
+                                        null; // Clear dropdown selection
                                   });
                                 }
                               },
