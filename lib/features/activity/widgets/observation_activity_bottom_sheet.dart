@@ -374,11 +374,35 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
           children: [
             const HeaderCheckOut(isIcon: false, title: 'Observation Activity'),
             const Divider(color: AppColors.divider),
+            
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                    // Header Row: Date and Time
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatDate(widget.dateTime),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        _formatTime(widget.dateTime),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   // Development Area (Tag) Section - BEFORE Category
                   const Text(
                     'Development Area',
@@ -477,29 +501,7 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
                     ),
                   if (_categoryOptions.isNotEmpty) const SizedBox(height: 24),
 
-                  // Header Row: Date and Time
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatDate(widget.dateTime),
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        _formatTime(widget.dateTime),
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                
 
                   // Domain Selector (for skill_observed)
                   if (!_isLoadingOptions && _domainOptions.isNotEmpty)
