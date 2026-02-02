@@ -47,7 +47,6 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
   
   // Options loaded from backend
  List<CategoryModel> _categoryOptions = [];
-  List<Map<String, String>> _domainOptions = [];
   
   // Class ID for creating activities
   String? _classId;
@@ -94,26 +93,6 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
     _scrollController.dispose();
     super.dispose();
   }
-  Future<void> _loadDomainOptions() async {
-    try {
-      debugPrint('[OBSERVATION_ACTIVITY] Loading domain options from backend...');
-      final options = await _api.getDomainOptions();
-      debugPrint('[OBSERVATION_ACTIVITY] Domain options loaded: $options');
-      if (mounted) {
-        setState(() {
-          _domainOptions = options;
-        });
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_ACTIVITY] Error loading domain options: $e');
-      debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
-      if (mounted) {
-        setState(() {
-          _domainOptions = [];
-        });
-      }
-    }
-  }
 
 Future<void> _loadCategoryOptions() async {
   try {
@@ -146,10 +125,7 @@ Future<void> _loadCategoryOptions() async {
     setState(() {
       _isLoadingOptions = true;
     });
-    await Future.wait([
-      _loadDomainOptions(),
-      _loadCategoryOptions(),
-    ]);
+    await _loadCategoryOptions();
     if (mounted) {
       setState(() {
         _isLoadingOptions = false;
@@ -172,6 +148,7 @@ void _onCategoryNameChanged(String? name) {
     setState(() {
       _selectedCategoryName = null;
       _selectedCategoryModel = null;
+      _selectedDomainId = null; // Clear domain when category is cleared
     });
     return;
   }
@@ -184,25 +161,22 @@ void _onCategoryNameChanged(String? name) {
     setState(() {
       _selectedCategoryName = name;     // برای UI
       _selectedCategoryModel = model;   // برای backend
+      _selectedDomainId = model.value;   // Set Domain ID to Category value
     });
     debugPrint('[OBSERVATION_ACTIVITY] Category selected: ${model.name} (value: ${model.value})');
+    debugPrint('[OBSERVATION_ACTIVITY] Domain ID set to: ${model.value}');
   } catch (e) {
     debugPrint('[OBSERVATION_ACTIVITY] Error finding category: $e');
     setState(() {
       _selectedCategoryName = null;
       _selectedCategoryModel = null;
+      _selectedDomainId = null;
     });
   }
 }
 
 
 
-  void _onDomainChanged(String? domainId) {
-    debugPrint('[OBSERVATION_ACTIVITY] Domain changed: $domainId');
-    setState(() {
-      _selectedDomainId = domainId;
-    });
-  }
 
   void _onTagSubmitted(String value) {
     final tag = value.trim();
@@ -287,10 +261,19 @@ void _onCategoryNameChanged(String? name) {
       return;
     }
 
-    if (_selectedDomainId == null || _selectedDomainId!.isEmpty) {
-      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: No domain selected');
+    if (_selectedCategoryModel == null) {
+      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: No category selected');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a domain')),
+        const SnackBar(content: Text('Please select a category')),
+      );
+      return;
+    }
+
+    // Domain ID is automatically set from selected category value
+    if (_selectedDomainId == null || _selectedDomainId!.isEmpty) {
+      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: Domain ID not set from category');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a category')),
       );
       return;
     }
@@ -530,62 +513,6 @@ void _onCategoryNameChanged(String? name) {
                       }).toList(),
                     ),
                   const SizedBox(height: 24),
-
-           
-
-                
-
-                  // Domain Selector (for skill_observed)
-                  if (!_isLoadingOptions && _domainOptions.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Domain',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: _domainOptions.map((domain) {
-                            final isSelected = _selectedDomainId == domain['id'];
-                            return Material(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                              child: InkWell(
-                                onTap: () => _onDomainChanged(isSelected ? null : domain['id']),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.backgroundGray,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    domain['name'] ?? '',
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? AppColors.backgroundLight
-                                          : AppColors.textPrimary,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  if (!_isLoadingOptions && _domainOptions.isNotEmpty) const SizedBox(height: 24),
 
                   // Description Field
                   NoteWidget(
