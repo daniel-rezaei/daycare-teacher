@@ -38,14 +38,15 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
   
-  String? _selectedCategory;
+  CategoryModel? _selectedCategoryModel;
+  String? _selectedCategoryName;
   String? _selectedDomainId;
   List<String> _tags = [];
   bool _followUpRequired = false;
   bool _shareWithParent = false;
   
   // Options loaded from backend
-  List<String> _categoryOptions = [];
+ List<CategoryModel> _categoryOptions = [];
   List<Map<String, String>> _domainOptions = [];
   
   // Class ID for creating activities
@@ -93,28 +94,6 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
     _scrollController.dispose();
     super.dispose();
   }
-
-  Future<void> _loadCategoryOptions() async {
-    try {
-      debugPrint('[OBSERVATION_ACTIVITY] Loading category options from backend...');
-      final options = await _api.getCategoryOptions();
-      debugPrint('[OBSERVATION_ACTIVITY] Category options loaded: $options');
-      if (mounted) {
-        setState(() {
-          _categoryOptions = options;
-        });
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_ACTIVITY] Error loading category options: $e');
-      debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
-      if (mounted) {
-        setState(() {
-          _categoryOptions = [];
-        });
-      }
-    }
-  }
-
   Future<void> _loadDomainOptions() async {
     try {
       debugPrint('[OBSERVATION_ACTIVITY] Loading domain options from backend...');
@@ -136,13 +115,40 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
     }
   }
 
+Future<void> _loadCategoryOptions() async {
+  try {
+    debugPrint('[OBSERVATION_ACTIVITY] Loading categories from backend...');
+    final categories = await _api.getCategoryOptions();
+
+    debugPrint(
+      '[OBSERVATION_ACTIVITY] Categories loaded: ${categories.map((e) => e.name).toList()}',
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _categoryOptions = categories;
+    });
+  } catch (e, stackTrace) {
+    debugPrint('[OBSERVATION_ACTIVITY] Error loading categories: $e');
+    debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
+
+    if (!mounted) return;
+
+    setState(() {
+      _categoryOptions = [];
+    });
+  }
+}
+
+
   Future<void> _loadAllOptions() async {
     setState(() {
       _isLoadingOptions = true;
     });
     await Future.wait([
-      _loadCategoryOptions(),
       _loadDomainOptions(),
+      _loadCategoryOptions(),
     ]);
     if (mounted) {
       setState(() {
@@ -159,12 +165,37 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
     return DateFormat('h:mm a').format(dateTime);
   }
 
-  void _onCategoryChanged(String? value) {
-    debugPrint('[OBSERVATION_ACTIVITY] Category changed: $value');
+void _onCategoryNameChanged(String? name) {
+  debugPrint('[OBSERVATION_ACTIVITY] Category changed: $name');
+
+  if (name == null) {
     setState(() {
-      _selectedCategory = value;
+      _selectedCategoryName = null;
+      _selectedCategoryModel = null;
+    });
+    return;
+  }
+
+  try {
+    final model = _categoryOptions.firstWhere(
+      (c) => c.name == name,
+    );
+
+    setState(() {
+      _selectedCategoryName = name;     // برای UI
+      _selectedCategoryModel = model;   // برای backend
+    });
+    debugPrint('[OBSERVATION_ACTIVITY] Category selected: ${model.name} (value: ${model.value})');
+  } catch (e) {
+    debugPrint('[OBSERVATION_ACTIVITY] Error finding category: $e');
+    setState(() {
+      _selectedCategoryName = null;
+      _selectedCategoryModel = null;
     });
   }
+}
+
+
 
   void _onDomainChanged(String? domainId) {
     debugPrint('[OBSERVATION_ACTIVITY] Domain changed: $domainId');
@@ -224,7 +255,6 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
   Future<void> _handleAdd() async {
     debugPrint('[OBSERVATION_ACTIVITY] ========== Add button pressed ==========');
     debugPrint('[OBSERVATION_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[OBSERVATION_ACTIVITY] Category: $_selectedCategory');
     debugPrint('[OBSERVATION_ACTIVITY] Domain ID: $_selectedDomainId');
     debugPrint('[OBSERVATION_ACTIVITY] Tags (Development Area): $_tags');
     debugPrint('[OBSERVATION_ACTIVITY] Description: ${_descriptionController.text}');
@@ -306,7 +336,7 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
         final response = await _api.createObservationDetails(
           activityId: activityId,
           domainId: _selectedDomainId!,
-          skillObserved: _selectedCategory,
+          skillObserved: _selectedCategoryModel?.value,
           description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
           tags: _tags.isNotEmpty ? _tags : null,
           photo: photoFileId,
@@ -495,9 +525,9 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
                   else if (_categoryOptions.isNotEmpty)
                     MealTypeSelectorWidget(
                       title: 'Category',
-                      options: _categoryOptions,
-                      selectedValue: _selectedCategory,
-                      onChanged: _onCategoryChanged,
+                      options: _categoryOptions.map((e) => e.name).toList(),
+                      selectedValue: _selectedCategoryName,
+                      onChanged: _onCategoryNameChanged,
                     ),
                   if (_categoryOptions.isNotEmpty) const SizedBox(height: 24),
 

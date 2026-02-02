@@ -85,7 +85,7 @@ class ActivityObservationApi {
       'activity_id': activityId,
       'domain_id': domainId,
       if (skillObserved != null && skillObserved.isNotEmpty)
-        'skill_observed': skillObserved,
+        'skill_observed': skillObserved, // skillObserved is already the value from CategoryModel
       if (description != null && description.isNotEmpty)
         'description': description,
       if (tags != null && tags.isNotEmpty) 'tag': tags,
@@ -116,20 +116,34 @@ class ActivityObservationApi {
     }
   }
 
-  /// Get category options from field metadata
-  /// Returns list of choice values from data.meta.options.choices[].value
-  Future<List<String>> getCategoryOptions() async {
-    debugPrint(
-      '[OBSERVATION_API] Fetching category options from /fields/Observation_Record/category',
-    );
+  /// Get domain options (assessment_domain.id and name)
+  /// Returns list of maps with 'id' and 'name' keys
+Future<List<Map<String, String>>> getDomainOptions() async {
+  final response = await httpclient.get('/items/assessment_domain');
+
+  final data = response.data['data'] as List<dynamic>;
+
+  return data.map((item) {
+    return {
+      'id': item['id'].toString(),
+      'name': item['name']?.toString() ?? '',
+    };
+  }).toList();
+}
+
+  /// Get category options from Assessment_Domain.Name field
+  /// Returns list of CategoryModel with value and name from choices
+  Future<List<CategoryModel>> getCategoryOptions() async {
+    debugPrint('[OBSERVATION_API] Fetching categories from Assessment_Domain/Name');
+    
     try {
       final response = await httpclient.get(
-        '/fields/Observation_Record/category',
+        '/fields/Assessment_Domain/Name',
       );
       debugPrint(
-        '[OBSERVATION_API] Category response status: ${response.statusCode}',
+        '[OBSERVATION_API] Category options response status: ${response.statusCode}',
       );
-      debugPrint('[OBSERVATION_API] Category response data: ${response.data}');
+      debugPrint('[OBSERVATION_API] Category options response data: ${response.data}');
 
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
@@ -137,10 +151,16 @@ class ActivityObservationApi {
       final options = meta['options'] as Map<String, dynamic>;
       final choices = options['choices'] as List<dynamic>;
 
-      final values = choices.map((e) => e['value'].toString()).toList();
+      // Extract value and text (name) from choices
+      final categories = choices.map((choice) {
+        return CategoryModel(
+          value: choice['value']?.toString() ?? '',
+          name: choice['text']?.toString() ?? '',
+        );
+      }).toList();
 
-      debugPrint('[OBSERVATION_API] Parsed category values: $values');
-      return values;
+      debugPrint('[OBSERVATION_API] Parsed category options: ${categories.map((e) => e.name).toList()}');
+      return categories;
     } catch (e, stackTrace) {
       debugPrint('[OBSERVATION_API] Error fetching category options: $e');
       debugPrint('[OBSERVATION_API] StackTrace: $stackTrace');
@@ -148,37 +168,6 @@ class ActivityObservationApi {
     }
   }
 
-  /// Get domain options (assessment_domain.id and name)
-  /// Returns list of maps with 'id' and 'name' keys
-  Future<List<Map<String, String>>> getDomainOptions() async {
-    debugPrint(
-      '[OBSERVATION_API] Fetching domain options from /items/assessment_domain',
-    );
-    try {
-      final response = await httpclient.get('/items/assessment_domain');
-      debugPrint(
-        '[OBSERVATION_API] Domain response status: ${response.statusCode}',
-      );
-      debugPrint('[OBSERVATION_API] Domain response data: ${response.data}');
-
-      final root = response.data as Map<String, dynamic>;
-      final data = root['data'] as List<dynamic>;
-
-      final domains = data.map((item) {
-        return {
-          'id': item['id'].toString(),
-          'name': item['name']?.toString() ?? '',
-        };
-      }).toList();
-
-      debugPrint('[OBSERVATION_API] Parsed domain options: $domains');
-      return domains;
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_API] Error fetching domain options: $e');
-      debugPrint('[OBSERVATION_API] StackTrace: $stackTrace');
-      return [];
-    }
-  }
 
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
@@ -209,4 +198,10 @@ class ActivityObservationApi {
       return false;
     }
   }
+}
+class CategoryModel {
+  final String value;
+  final String name;
+
+  CategoryModel({required this.value, required this.name});
 }

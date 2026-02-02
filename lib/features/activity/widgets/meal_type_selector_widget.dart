@@ -42,20 +42,16 @@ class MealTypeSelectorWidget extends StatelessWidget {
                 onTap: () => onChanged(isSelected ? null : option),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  width: 100,
-                  height: 44,
-                  alignment: Alignment.center,
+                  constraints: const BoxConstraints(minWidth: 100),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary
                         : AppColors.backgroundGray,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
                     option,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: isSelected
