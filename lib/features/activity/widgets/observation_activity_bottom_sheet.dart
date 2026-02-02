@@ -433,6 +433,23 @@ void _onCategoryNameChanged(String? name) {
                     ],
                   ),
                   const SizedBox(height: 24),
+
+                         // Category Selector - BETWEEN Development Area and Date/Time
+                  if (_isLoadingOptions)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (_categoryOptions.isNotEmpty)
+                    MealTypeSelectorWidget(
+                      title: 'Category',
+                      options: _categoryOptions.map((e) => e.name).toList(),
+                      selectedValue: _selectedCategoryName,
+                      onChanged: _onCategoryNameChanged,
+                    ),
+                  if (_categoryOptions.isNotEmpty) const SizedBox(height: 24),
                   // Development Area (Tag) Section - BEFORE Category
                   const Text(
                     'Development Area',
@@ -514,22 +531,7 @@ void _onCategoryNameChanged(String? name) {
                     ),
                   const SizedBox(height: 24),
 
-                  // Category Selector - BETWEEN Development Area and Date/Time
-                  if (_isLoadingOptions)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else if (_categoryOptions.isNotEmpty)
-                    MealTypeSelectorWidget(
-                      title: 'Category',
-                      options: _categoryOptions.map((e) => e.name).toList(),
-                      selectedValue: _selectedCategoryName,
-                      onChanged: _onCategoryNameChanged,
-                    ),
-                  if (_categoryOptions.isNotEmpty) const SizedBox(height: 24),
+           
 
                 
 
