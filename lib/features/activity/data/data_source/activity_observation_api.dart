@@ -83,9 +83,9 @@ class ActivityObservationApi {
 
     final data = <String, dynamic>{
       'activity_id': activityId,
-      'domain_id': domainId,
-      if (skillObserved != null && skillObserved.isNotEmpty)
-        'skill_observed': skillObserved, // skillObserved is already the value from CategoryModel
+      // 'domain_id': domainId,
+      // if (skillObserved != null && skillObserved.isNotEmpty)
+      //   'skill_observed': skillObserved, // skillObserved is already the value from CategoryModel
       if (description != null && description.isNotEmpty)
         'description': description,
       if (tags != null && tags.isNotEmpty) 'tag': tags,
