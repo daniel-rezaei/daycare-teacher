@@ -78,7 +78,7 @@ class ActivityObservationApi {
     debugPrint('[OBSERVATION_API] tags: $tags');
     debugPrint('[OBSERVATION_API] description: $description');
     debugPrint('[OBSERVATION_API] photo: $photo');
-    debugPrint('[OBSERVATION_API] follow_up_required: $followUpRequired');
+    debugPrint('[OBSERVATION_API] follow_up: $followUpRequired');
     debugPrint('[OBSERVATION_API] share_with_parent: $shareWithParent');
 
     final data = <String, dynamic>{
@@ -90,7 +90,7 @@ class ActivityObservationApi {
         'description': description,
       if (tags != null && tags.isNotEmpty) 'tag': tags,
       if (photo != null && photo.isNotEmpty) 'photo': photo,
-      if (followUpRequired != null) 'follow_up_required': followUpRequired,
+      if (followUpRequired != null) 'follow_up': followUpRequired,
       if (shareWithParent != null) 'share_with_parent': shareWithParent,
     };
 
