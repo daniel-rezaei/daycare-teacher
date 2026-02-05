@@ -434,33 +434,40 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                             onTap: () =>
                                 _onMoodChanged(isSelected ? null : name),
                             borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 10),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.divider,
-                                  width: isSelected ? 2 : 1,
+                            child: SizedBox(
+                              width: 80,
+                              height: 100,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 4),
+                                decoration: BoxDecoration(
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: AppColors.primary,
+                                          width: 2,
+                                        )
+                                      : null,
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _moodSvgForName(name),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    name,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _moodSvgForName(name),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      name,
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
