@@ -11,13 +11,13 @@ import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_mood_api.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
-import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
 import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
+import 'package:teacher_app/gen/assets.gen.dart';
 
 class MoodActivityBottomSheet extends StatefulWidget {
   final List<ChildEntity> selectedChildren;
@@ -126,12 +126,23 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     return DateFormat('h:mm a').format(dateTime);
   }
 
-  String? get _selectedMoodName {
-    if (_selectedMoodId == null) return null;
-    for (final m in _moodOptions) {
-      if (m['id'] == _selectedMoodId) return m['name'];
-    }
-    return null;
+  /// Map API mood name to asset SVG (assets/images). API names: Excited, hugging, Neutral, Neutral2, Sleepy, quiet, Unwell, Group 27, Anxious, Frustrated (and possibly Sad, Happy).
+  Widget _moodSvgForName(String name) {
+    final n = name.trim().toLowerCase();
+    final normalized = name.trim();
+    if (n == 'Unwell') return Assets.images.unwell.svg(width: 48, height: 48);
+    if (n == 'Sleepy') return Assets.images.sleepy.svg(width: 48, height: 48);
+    if (n == 'Sad') return Assets.images.neutral2.svg(width: 48, height: 48);
+    if (n == 'Hugging') return Assets.images.hugging.svg(width: 48, height: 48);
+    if (n == 'Excited') return Assets.images.excited.svg(width: 48, height: 48);
+    if (n == 'Happy') return Assets.images.neutral.svg(width: 48, height: 48);
+    if (n == 'Neutral') return Assets.images.neutral.svg(width: 48, height: 48);
+    if (n == 'neutral2') return Assets.images.neutral2.svg(width: 48, height: 48);
+    if (n == 'Frustrated') return Assets.images.frustrated.svg(width: 48, height: 48);
+    if (n == 'Quiet') return Assets.images.quiet.svg(width: 48, height: 48);
+    if (n == 'Anxious') return Assets.images.anxious.svg(width: 48, height: 48);
+    if (normalized == 'Group 27') return Assets.images.group27.svg(width: 48, height: 48);
+    return Assets.images.neutral.svg(width: 48, height: 48);
   }
 
   void _onMoodChanged(String? moodName) {
@@ -395,7 +406,16 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Mood Selector (like Type in Play - title "Mood", no Start/End time)
+                  // Mood Selector: title "Mood", each item has asset SVG on top, no gray background
+                  const Text(
+                    'Mood',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   if (_isLoadingOptions)
                     const Center(
                       child: Padding(
@@ -404,11 +424,51 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                       ),
                     )
                   else
-                    MealTypeSelectorWidget(
-                      title: 'Mood',
-                      options: _moodOptions.map((m) => m['name']!).toList(),
-                      selectedValue: _selectedMoodName,
-                      onChanged: _onMoodChanged,
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: _moodOptions.map((mood) {
+                        final name = mood['name'] ?? '';
+                        final isSelected = _selectedMoodId == mood['id'];
+                        return Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () =>
+                                _onMoodChanged(isSelected ? null : name),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.divider,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _moodSvgForName(name),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    name,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   const SizedBox(height: 24),
 
