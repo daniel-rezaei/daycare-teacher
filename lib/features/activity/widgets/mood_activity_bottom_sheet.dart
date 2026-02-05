@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -12,6 +11,7 @@ import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_mood_api.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
+import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
@@ -39,10 +39,11 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
   
-  String? _selectedMood;
+  /// Selected mood id (from /items/mood) for API
+  String? _selectedMoodId;
   List<String> _tags = [];
-  
-  // Options loaded from backend
+
+  // Options loaded from GET /items/mood (id, name)
   List<Map<String, String>> _moodOptions = [];
   
   // Class ID for creating activities
@@ -125,10 +126,23 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     return DateFormat('h:mm a').format(dateTime);
   }
 
-  void _onMoodChanged(String? moodValue) {
-    debugPrint('[MOOD_ACTIVITY] Mood changed: $moodValue');
+  String? get _selectedMoodName {
+    if (_selectedMoodId == null) return null;
+    for (final m in _moodOptions) {
+      if (m['id'] == _selectedMoodId) return m['name'];
+    }
+    return null;
+  }
+
+  void _onMoodChanged(String? moodName) {
+    debugPrint('[MOOD_ACTIVITY] Mood changed: $moodName');
     setState(() {
-      _selectedMood = moodValue;
+      if (moodName == null) {
+        _selectedMoodId = null;
+        return;
+      }
+      final match = _moodOptions.where((m) => m['name'] == moodName);
+      _selectedMoodId = match.isEmpty ? null : match.first['id'];
     });
   }
 
@@ -183,7 +197,7 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
   Future<void> _handleAdd() async {
     debugPrint('[MOOD_ACTIVITY] ========== Add button pressed ==========');
     debugPrint('[MOOD_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[MOOD_ACTIVITY] Mood: $_selectedMood');
+    debugPrint('[MOOD_ACTIVITY] Mood id: $_selectedMoodId');
     debugPrint('[MOOD_ACTIVITY] Tags: $_tags');
     debugPrint('[MOOD_ACTIVITY] Description: ${_descriptionController.text}');
     debugPrint('[MOOD_ACTIVITY] Images: ${_images.length}');
@@ -205,7 +219,7 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
       return;
     }
 
-    if (_selectedMood == null || _selectedMood!.isEmpty) {
+    if (_selectedMoodId == null || _selectedMoodId!.isEmpty) {
       debugPrint('[MOOD_ACTIVITY] Validation failed: No mood selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a mood')),
@@ -218,10 +232,11 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     });
 
     try {
-      // Upload photo if exists
-      String? photoFileId;
-      if (_images.isNotEmpty) {
-        photoFileId = await _uploadPhoto(_images.first);
+      // Upload all photos (same process as other activities)
+      final List<String> photoIds = [];
+      for (final file in _images) {
+        final id = await _uploadPhoto(file);
+        if (id != null) photoIds.add(id);
       }
 
       // Format start_at in UTC ISO 8601 format
@@ -241,7 +256,7 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
 
         try {
           debugPrint('[MOOD_ACTIVITY] ========== Processing child: ${child.id} ==========');
-          
+
           // STEP A: Create parent activity
           debugPrint('[MOOD_ACTIVITY] STEP A: Creating activity for child ${child.id}');
           final activityId = await _api.createActivity(
@@ -255,10 +270,10 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
           debugPrint('[MOOD_ACTIVITY] STEP B: Creating mood details for activity $activityId');
           final response = await _api.createMoodDetails(
             activityId: activityId,
-            mood: _selectedMood!,
+            mood: _selectedMoodId!,
             description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-            tags: _tags.isNotEmpty ? _tags : null,
-            photo: photoFileId,
+            tag: _tags.isNotEmpty ? _tags.first : null,
+            photo: photoIds.isEmpty ? null : photoIds,
           );
 
           debugPrint('[MOOD_ACTIVITY] ✅ Mood details created for child ${child.id}: ${response.statusCode}');
@@ -334,7 +349,31 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Selected Children Preview (avatars only, no title, no names)
+                  // Header Row: Date and Time (like Play, no Start/End time)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatDate(widget.dateTime),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        _formatTime(widget.dateTime),
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Selected Children Preview (avatars only, like Play)
                   if (widget.selectedChildren.isNotEmpty) ...[
                     SizedBox(
                       height: 48,
@@ -356,6 +395,23 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                     const SizedBox(height: 24),
                   ],
 
+                  // Mood Selector (like Type in Play - title "Mood", no Start/End time)
+                  if (_isLoadingOptions)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else
+                    MealTypeSelectorWidget(
+                      title: 'Mood',
+                      options: _moodOptions.map((m) => m['name']!).toList(),
+                      selectedValue: _selectedMoodName,
+                      onChanged: _onMoodChanged,
+                    ),
+                  const SizedBox(height: 24),
+
                   // Tag Section
                   const Text(
                     'Tag',
@@ -366,7 +422,6 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Tag Input Field
                   TextField(
                     controller: _tagController,
                     textInputAction: TextInputAction.done,
@@ -407,7 +462,6 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                     onSubmitted: _onTagSubmitted,
                   ),
                   const SizedBox(height: 12),
-                  // Tag Chips Display
                   if (_tags.isNotEmpty)
                     Wrap(
                       spacing: 8,
@@ -437,132 +491,6 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                     ),
                   const SizedBox(height: 24),
 
-                  // Mood Selector - BETWEEN Tag and Date/Time
-                  const Text(
-                    'Mood',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_isLoadingOptions)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: _moodOptions.map((mood) {
-                        final isSelected = _selectedMood == mood['value'];
-                        return Material(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          child: InkWell(
-                            onTap: () => _onMoodChanged(isSelected ? null : mood['value']),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Mood Image
-                                  if (mood['icon'] != null && mood['icon']!.isNotEmpty)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: CachedNetworkImage(
-                                        imageUrl: mood['icon']!,
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => Container(
-                                          width: 60,
-                                          height: 60,
-                                          color: AppColors.backgroundGray,
-                                          child: const Center(
-                                            child: CupertinoActivityIndicator(),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Container(
-                                          width: 60,
-                                          height: 60,
-                                          color: AppColors.backgroundGray,
-                                          child: const Icon(Icons.error),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.backgroundGray,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Icon(
-                                        Icons.mood,
-                                        size: 30,
-                                        color: AppColors.textTertiary,
-                                      ),
-                                    ),
-                                  const SizedBox(height: 8),
-                                  // Mood Title
-                                  Text(
-                                    mood['text'] ?? mood['value'] ?? '',
-                                    style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  const SizedBox(height: 24),
-
-                  // Header Row: Date and Time
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatDate(widget.dateTime),
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        _formatTime(widget.dateTime),
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
                   // Description Field
                   NoteWidget(
                     title: 'Decription',
@@ -571,7 +499,7 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Attach Photo
+                  // Attach Photo (same process as other activities)
                   AttachPhotoWidget(
                     images: _images,
                     onImagesChanged: _onImagesChanged,

@@ -68,6 +68,9 @@ class $AssetsImagesGen {
   SvgGenImage get altArrowRight =>
       const SvgGenImage('assets/images/Alt Arrow Right.svg');
 
+  /// File path: assets/images/Anxious.svg
+  SvgGenImage get anxious => const SvgGenImage('assets/images/Anxious.svg');
+
   /// File path: assets/images/Arrow Right.svg
   SvgGenImage get arrowRight =>
       const SvgGenImage('assets/images/Arrow Right.svg');
@@ -127,6 +130,9 @@ class $AssetsImagesGen {
   SvgGenImage get emergencyContacts =>
       const SvgGenImage('assets/images/Emergency Contacts.svg');
 
+  /// File path: assets/images/Excited.svg
+  SvgGenImage get excited => const SvgGenImage('assets/images/Excited.svg');
+
   /// File path: assets/images/Exit Duotone.svg
   SvgGenImage get exitDuotone =>
       const SvgGenImage('assets/images/Exit Duotone.svg');
@@ -135,11 +141,18 @@ class $AssetsImagesGen {
   SvgGenImage get eyeClosed =>
       const SvgGenImage('assets/images/Eye Closed.svg');
 
+  /// File path: assets/images/Frustrated.svg
+  SvgGenImage get frustrated =>
+      const SvgGenImage('assets/images/Frustrated.svg');
+
   /// File path: assets/images/Gallery.png
   AssetGenImage get gallery => const AssetGenImage('assets/images/Gallery.png');
 
   /// File path: assets/images/Gift.svg
   SvgGenImage get gift => const SvgGenImage('assets/images/Gift.svg');
+
+  /// File path: assets/images/Group 27.svg
+  SvgGenImage get group27 => const SvgGenImage('assets/images/Group 27.svg');
 
   /// File path: assets/images/Group.png
   AssetGenImage get group => const AssetGenImage('assets/images/Group.png');
@@ -223,6 +236,12 @@ class $AssetsImagesGen {
   SvgGenImage get medication =>
       const SvgGenImage('assets/images/Medication.svg');
 
+  /// File path: assets/images/Neutral.svg
+  SvgGenImage get neutral => const SvgGenImage('assets/images/Neutral.svg');
+
+  /// File path: assets/images/Neutral2.svg
+  SvgGenImage get neutral2 => const SvgGenImage('assets/images/Neutral2.svg');
+
   /// File path: assets/images/Next.svg
   SvgGenImage get next => const SvgGenImage('assets/images/Next.svg');
 
@@ -289,6 +308,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/Sleep.png
   AssetGenImage get sleep => const AssetGenImage('assets/images/Sleep.png');
 
+  /// File path: assets/images/Sleepy.svg
+  SvgGenImage get sleepy => const SvgGenImage('assets/images/Sleepy.svg');
+
   /// File path: assets/images/Snack.svg
   SvgGenImage get snack => const SvgGenImage('assets/images/Snack.svg');
 
@@ -323,6 +345,9 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/Trash.svg
   SvgGenImage get trash => const SvgGenImage('assets/images/Trash.svg');
+
+  /// File path: assets/images/Unwell.svg
+  SvgGenImage get unwell => const SvgGenImage('assets/images/Unwell.svg');
 
   /// File path: assets/images/Vector.svg
   SvgGenImage get vector => const SvgGenImage('assets/images/Vector.svg');
@@ -386,6 +411,9 @@ class $AssetsImagesGen {
         'assets/images/e5b9da75df2419d740dc72fee03a3f789400619c.png',
       );
 
+  /// File path: assets/images/hugging.svg
+  SvgGenImage get hugging => const SvgGenImage('assets/images/hugging.svg');
+
   /// File path: assets/images/illustration.png
   AssetGenImage get illustration =>
       const AssetGenImage('assets/images/illustration.png');
@@ -403,6 +431,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/nap.svg
   SvgGenImage get nap => const SvgGenImage('assets/images/nap.svg');
 
+  /// File path: assets/images/quiet.svg
+  SvgGenImage get quiet => const SvgGenImage('assets/images/quiet.svg');
+
   /// File path: assets/images/search.svg
   SvgGenImage get search => const SvgGenImage('assets/images/search.svg');
 
@@ -418,6 +449,7 @@ class $AssetsImagesGen {
     allergy,
     altArrowLeft,
     altArrowRight,
+    anxious,
     arrowRight,
     attendance,
     bathroom,
@@ -435,10 +467,13 @@ class $AssetsImagesGen {
     drink,
     edit,
     emergencyContacts,
+    excited,
     exitDuotone,
     eyeClosed,
+    frustrated,
     gallery,
     gift,
+    group27,
     group,
     homeSmileFill,
     homeSmileOutline,
@@ -461,6 +496,8 @@ class $AssetsImagesGen {
     lunchSvg,
     mailbox,
     medication,
+    neutral,
+    neutral2,
     next,
     observation,
     phoneRounded,
@@ -480,6 +517,7 @@ class $AssetsImagesGen {
     secondary2,
     sharedMode,
     sleep,
+    sleepy,
     snack,
     sort,
     squareArrowRight,
@@ -491,6 +529,7 @@ class $AssetsImagesGen {
     timeIn,
     timeout,
     trash,
+    unwell,
     vector,
     xFill,
     aIconN1,
@@ -508,11 +547,13 @@ class $AssetsImagesGen {
     dateIconPng,
     dateIconSvg,
     e5b9da75df2419d740dc72fee03a3f789400619c,
+    hugging,
     illustration,
     immunization,
     logout,
     mood,
     nap,
+    quiet,
     search,
   ];
 }

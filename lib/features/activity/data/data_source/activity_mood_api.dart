@@ -57,27 +57,27 @@ class ActivityMoodApi {
   }
 
   /// STEP B: Create mood details (child record) linked to activity
+  /// Body: description, tag (string), mood (mood id/name), activity_id, photo (array)
   Future<Response> createMoodDetails({
     required String activityId,
-    required String mood, // mood type/name
+    required String mood,
     String? description,
-    List<String>? tags,
-    String? photo, // file ID
+    String? tag,
+    List<String>? photo,
   }) async {
     debugPrint('[MOOD_API] ========== STEP B: Creating Mood Details (Child) ==========');
     debugPrint('[MOOD_API] activityId: $activityId');
     debugPrint('[MOOD_API] mood: $mood');
-    debugPrint('[MOOD_API] tags: $tags');
+    debugPrint('[MOOD_API] tag: $tag');
     debugPrint('[MOOD_API] description: $description');
     debugPrint('[MOOD_API] photo: $photo');
 
     final data = <String, dynamic>{
       'activity_id': activityId,
       'mood': mood,
-      if (description != null && description.isNotEmpty)
-        'description': description,
-      if (tags != null && tags.isNotEmpty) 'tag': tags,
-      if (photo != null && photo.isNotEmpty) 'photo': photo,
+      'description': description ?? '',
+      'tag': tag ?? '',
+      'photo': photo ?? [],
     };
 
     debugPrint('[MOOD_API] Mood details request data: $data');
@@ -98,27 +98,23 @@ class ActivityMoodApi {
     }
   }
 
-  /// Get mood options from field metadata
-  /// Returns list of choice values from data.meta.options.choices[].value
+  /// Get mood options from GET /items/mood
+  /// Response: { "data": [ { "description": null, "name": "Unwell", "id": "..." }, ... ] }
   Future<List<Map<String, String>>> getMoodOptions() async {
-    debugPrint('[MOOD_API] Fetching mood options from /fields/activity_mood/mood');
+    debugPrint('[MOOD_API] Fetching mood options from /items/mood');
     try {
-      final response = await httpclient.get('/fields/activity_mood/mood');
+      final response = await httpclient.get('/items/mood');
       debugPrint('[MOOD_API] Mood response status: ${response.statusCode}');
       debugPrint('[MOOD_API] Mood response data: ${response.data}');
-      
-      final root = response.data as Map<String, dynamic>;
-      final data = root['data'] as Map<String, dynamic>;
-      final meta = data['meta'] as Map<String, dynamic>;
-      final options = meta['options'] as Map<String, dynamic>;
-      final choices = options['choices'] as List<dynamic>;
 
-      // Extract value and text (for display)
-      final moods = choices.map((e) {
+      final root = response.data as Map<String, dynamic>;
+      final dataList = root['data'] as List<dynamic>;
+
+      final moods = dataList.map((e) {
+        final item = e as Map<String, dynamic>;
         return {
-          'value': e['value']?.toString() ?? '',
-          'text': e['text']?.toString() ?? e['value']?.toString() ?? '',
-          'icon': e['icon']?.toString() ?? '', // If icon URL is provided
+          'id': item['id']?.toString() ?? '',
+          'name': item['name']?.toString() ?? '',
         };
       }).toList();
 

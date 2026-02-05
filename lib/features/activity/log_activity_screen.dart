@@ -419,7 +419,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                 );
                                 _navigateToMoodActivity(context);
                               },
-                              isDisabled: true,
+                              isDisabled: false,
                             ),
                           ),
                         ],
