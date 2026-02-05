@@ -80,7 +80,7 @@ class ActivityObservationApi {
     debugPrint('[OBSERVATION_API] share_with_parent: $shareWithParent');
 
     final data = <String, dynamic>{
-      'domain_id': domainId,
+      'category_id': domainId,
       'activity_id': activityId,
       'description': description ?? '',
       'follow_up': followUpRequired ?? false,
@@ -126,35 +126,31 @@ Future<List<Map<String, String>>> getDomainOptions() async {
   }).toList();
 }
 
-  /// Get category options from Assessment_Domain.Name field
-  /// Returns list of CategoryModel with value and name from choices
+  /// Get category options from observation_category collection.
+  /// Returns list of CategoryModel with value=id and name for display.
+  /// The selected category's id is sent as domain_id to Observation_Record.
   Future<List<CategoryModel>> getCategoryOptions() async {
-    debugPrint('[OBSERVATION_API] Fetching categories from Assessment_Domain/Name');
-    
+    debugPrint('[OBSERVATION_API] Fetching categories from observation_category');
+
     try {
-      final response = await httpclient.get(
-        '/fields/Assessment_Domain/Name',
-      );
+      final response = await httpclient.get('/items/observation_category');
       debugPrint(
         '[OBSERVATION_API] Category options response status: ${response.statusCode}',
       );
       debugPrint('[OBSERVATION_API] Category options response data: ${response.data}');
 
-      final root = response.data as Map<String, dynamic>;
-      final data = root['data'] as Map<String, dynamic>;
-      final meta = data['meta'] as Map<String, dynamic>;
-      final options = meta['options'] as Map<String, dynamic>;
-      final choices = options['choices'] as List<dynamic>;
+      final data = response.data['data'] as List<dynamic>;
 
-      // Extract value and text (name) from choices
-      final categories = choices.map((choice) {
+      final categories = data.map((item) {
         return CategoryModel(
-          value: choice['value']?.toString() ?? '',
-          name: choice['text']?.toString() ?? '',
+          value: item['id']?.toString() ?? '',
+          name: item['name']?.toString() ?? '',
         );
       }).toList();
 
-      debugPrint('[OBSERVATION_API] Parsed category options: ${categories.map((e) => e.name).toList()}');
+      debugPrint(
+        '[OBSERVATION_API] Parsed category options: ${categories.map((e) => e.name).toList()}',
+      );
       return categories;
     } catch (e, stackTrace) {
       debugPrint('[OBSERVATION_API] Error fetching category options: $e');
