@@ -129,20 +129,17 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
   /// Map API mood name to asset SVG (assets/images). API names: Excited, hugging, Neutral, Neutral2, Sleepy, quiet, Unwell, Group 27, Anxious, Frustrated (and possibly Sad, Happy).
   Widget _moodSvgForName(String name) {
     final n = name.trim().toLowerCase();
-    final normalized = name.trim();
     if (n == 'unwell') return Assets.images.unwell.svg(width: 48, height: 48);
     if (n == 'sleepy') return Assets.images.sleepy.svg(width: 48, height: 48);
-    if (n == 'sad') return Assets.images.neutral2.svg(width: 48, height: 48);
+    if (n == 'sad') return Assets.images.sad.svg(width: 48, height: 48);
     if (n == 'hugging') return Assets.images.hugging.svg(width: 48, height: 48);
     if (n == 'excited') return Assets.images.excited.svg(width: 48, height: 48);
     if (n == 'happy') return Assets.images.neutral.svg(width: 48, height: 48);
-    if (n == 'neutral') return Assets.images.neutral.svg(width: 48, height: 48);
-    if (n == 'neutral2') return Assets.images.neutral2.svg(width: 48, height: 48);
+    if (n == 'neutral') return Assets.images.neutral2.svg(width: 48, height: 48);
     if (n == 'frustrated') return Assets.images.frustrated.svg(width: 48, height: 48);
     if (n == 'quiet') return Assets.images.quiet.svg(width: 48, height: 48);
     if (n == 'anxious') return Assets.images.anxious.svg(width: 48, height: 48);
-    if (normalized == 'Group 27') return Assets.images.group27.svg(width: 48, height: 48);
-    return Assets.images.neutral.svg(width: 48, height: 48);
+    return SizedBox();
   }
 
   void _onMoodChanged(String? moodName) {

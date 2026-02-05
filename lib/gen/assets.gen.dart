@@ -151,9 +151,6 @@ class $AssetsImagesGen {
   /// File path: assets/images/Gift.svg
   SvgGenImage get gift => const SvgGenImage('assets/images/Gift.svg');
 
-  /// File path: assets/images/Group 27.svg
-  SvgGenImage get group27 => const SvgGenImage('assets/images/Group 27.svg');
-
   /// File path: assets/images/Group.png
   AssetGenImage get group => const AssetGenImage('assets/images/Group.png');
 
@@ -293,6 +290,9 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/Restart.svg
   SvgGenImage get restart => const SvgGenImage('assets/images/Restart.svg');
+
+  /// File path: assets/images/Sad.svg
+  SvgGenImage get sad => const SvgGenImage('assets/images/Sad.svg');
 
   /// File path: assets/images/Secondary.svg
   SvgGenImage get secondary => const SvgGenImage('assets/images/Secondary.svg');
@@ -473,7 +473,6 @@ class $AssetsImagesGen {
     frustrated,
     gallery,
     gift,
-    group27,
     group,
     homeSmileFill,
     homeSmileOutline,
@@ -513,6 +512,7 @@ class $AssetsImagesGen {
     recordActivitySvg,
     reportableDiseases,
     restart,
+    sad,
     secondary,
     secondary2,
     sharedMode,
