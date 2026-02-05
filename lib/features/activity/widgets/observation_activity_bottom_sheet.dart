@@ -316,12 +316,17 @@ void _onCategoryNameChanged(String? name) {
 
         // STEP B: Create observation details linked to activity
         debugPrint('[OBSERVATION_ACTIVITY] STEP B: Creating observation details for activity $activityId');
+        // skill_observed: [category name, ...development area tags] e.g. ["Story", "Lunch"]
+        final skillObserved = <String>[
+          if (_selectedCategoryName != null && _selectedCategoryName!.isNotEmpty) _selectedCategoryName!,
+          ..._tags,
+        ];
+
         final response = await _api.createObservationDetails(
           activityId: activityId,
           domainId: _selectedDomainId!,
-          skillObserved: _selectedCategoryModel?.value,
+          skillObserved: skillObserved.isNotEmpty ? skillObserved : null,
           description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-          tags: _tags.isNotEmpty ? _tags : null,
           photo: photoFileId,
           followUpRequired: _followUpRequired,
           shareWithParent: _shareWithParent,

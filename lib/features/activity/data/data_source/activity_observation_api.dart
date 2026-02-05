@@ -59,13 +59,13 @@ class ActivityObservationApi {
   }
 
   /// STEP B: Create observation details (child record) linked to activity
+  /// Payload: domain_id, skill_observed (array), description, follow_up, share_with_parent, activity_id
   Future<Response> createObservationDetails({
     required String activityId,
-    required String domainId, // assessment_domain.id
-    String? skillObserved,
+    required String domainId,
+    List<String>? skillObserved,
     String? description,
-    List<String>? tags, // Development Area
-    String? photo, // file ID
+    String? photo,
     bool? followUpRequired,
     bool? shareWithParent,
   }) async {
@@ -75,23 +75,18 @@ class ActivityObservationApi {
     debugPrint('[OBSERVATION_API] activityId: $activityId');
     debugPrint('[OBSERVATION_API] domain_id: $domainId');
     debugPrint('[OBSERVATION_API] skill_observed: $skillObserved');
-    debugPrint('[OBSERVATION_API] tags: $tags');
     debugPrint('[OBSERVATION_API] description: $description');
-    debugPrint('[OBSERVATION_API] photo: $photo');
     debugPrint('[OBSERVATION_API] follow_up: $followUpRequired');
     debugPrint('[OBSERVATION_API] share_with_parent: $shareWithParent');
 
     final data = <String, dynamic>{
+      'domain_id': domainId,
       'activity_id': activityId,
-      // 'domain_id': domainId,
-      // if (skillObserved != null && skillObserved.isNotEmpty)
-      //   'skill_observed': skillObserved, // skillObserved is already the value from CategoryModel
-      if (description != null && description.isNotEmpty)
-        'description': description,
-      if (tags != null && tags.isNotEmpty) 'tag': tags,
+      'description': description ?? '',
+      'follow_up': followUpRequired ?? false,
+      'share_with_parent': shareWithParent ?? true,
+      if (skillObserved != null && skillObserved.isNotEmpty) 'skill_observed': skillObserved,
       if (photo != null && photo.isNotEmpty) 'photo': photo,
-      if (followUpRequired != null) 'follow_up': followUpRequired,
-      if (shareWithParent != null) 'share_with_parent': shareWithParent,
     };
 
     debugPrint('[OBSERVATION_API] Observation details request data: $data');
