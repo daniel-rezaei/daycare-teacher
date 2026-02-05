@@ -57,7 +57,7 @@ class ActivityMoodApi {
   }
 
   /// STEP B: Create mood details (child record) linked to activity
-  /// Body: description, tag (string), mood (mood id/name), activity_id, photo (array)
+  /// Body: activity_id, mood (UUID), description, tag, photo: [{ directus_files_id }]
   Future<Response> createMoodDetails({
     required String activityId,
     required String mood,
@@ -72,12 +72,16 @@ class ActivityMoodApi {
     debugPrint('[MOOD_API] description: $description');
     debugPrint('[MOOD_API] photo: $photo');
 
+    final photoPayload = (photo ?? [])
+        .map((id) => <String, String>{'directus_files_id': id})
+        .toList();
+
     final data = <String, dynamic>{
       'activity_id': activityId,
-      'mood': mood,
+      'mood_id': mood,
       'description': description ?? '',
       'tag': tag ?? '',
-      'photo': photo ?? [],
+      'photo': photoPayload,
     };
 
     debugPrint('[MOOD_API] Mood details request data: $data');
