@@ -12,6 +12,7 @@ import 'package:teacher_app/features/activity/data/data_source/activity_mood_api
 import 'package:teacher_app/features/activity/data/data_source/activity_observation_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
+import 'package:teacher_app/features/activity/create_new_lessen_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/history_meal_screen.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
@@ -298,8 +299,19 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                             child: InfoCardLogActivity(
                               icon: Assets.images.learn.image(height: 48),
                               title: 'Learn',
-                              onTap: () {},
-                              isDisabled: true,
+                              onTap: () {
+                                debugPrint(
+                                  '[LOG_ACTIVITY] ========== Entering Log Activity Learn flow ==========',
+                                );
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  useSafeArea: true,
+                                  builder: (context) =>
+                                      const CreateNewLessenBottomSheet(),
+                                );
+                              },
                             ),
                           ),
                           SizedBox(
