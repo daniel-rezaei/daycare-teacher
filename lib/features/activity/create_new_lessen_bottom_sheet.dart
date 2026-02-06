@@ -1,9 +1,13 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/pallete.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
@@ -20,12 +24,37 @@ class CreateNewLessenBottomSheet extends StatefulWidget {
 }
 
 class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet> {
+  final LearningPlanApi _api = GetIt.instance<LearningPlanApi>();
   final Map<String, String> _selected = {};
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _videoLinkController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
   List<String> _tags = [];
+  DateTime? _startDate;
+  DateTime? _endDate;
+  bool _isSubmitting = false;
+
+  /// Map Category display name to API slug (e.g. "Art & Craft" -> "arts_crafts")
+  static const Map<String, String> _categoryToSlug = {
+    'Art & Craft': 'arts_crafts',
+    'Language Development': 'language_development',
+    'Outdoor Play': 'outdoor_play',
+    'Role Play': 'role_play',
+    'Numeracy': 'numeracy',
+    'Physical Development': 'physical_development',
+    'Music & Movement': 'music_movement',
+    'Cultural Awareness': 'cultural_awareness',
+    'Science & Discovery': 'science_discovery',
+    'Gross Motor Skills': 'gross_motor_skills',
+    'Nature & Environment': 'nature_environment',
+    'Social-Emotional Learning': 'social_emotional_learning',
+    'Sensory Play': 'sensory_play',
+    'Health & Nutrition': 'health_nutrition',
+    'Fine Motor Skills': 'fine_motor_skills',
+    'STEM Activities': 'stem_activities',
+  };
 
   static const Map<String, List<String>> _filters = {
     'Category': [
@@ -52,10 +81,97 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
 
   @override
   void dispose() {
+    _titleController.dispose();
     _videoLinkController.dispose();
     _descriptionController.dispose();
     _tagController.dispose();
     super.dispose();
+  }
+
+  String _formatDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
+
+  Future<void> _pickStartDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate ?? now,
+      firstDate: DateTime(now.year - 2),
+      lastDate: DateTime(now.year + 2),
+    );
+    if (picked != null) setState(() => _startDate = picked);
+  }
+
+  Future<void> _pickEndDate() async {
+    final now = DateTime.now();
+    final initial = _endDate ?? _startDate ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: _startDate ?? DateTime(now.year - 2),
+      lastDate: DateTime(now.year + 2),
+    );
+    if (picked != null) setState(() => _endDate = picked);
+  }
+
+  Future<void> _handleAdd() async {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a lesson title')),
+      );
+      return;
+    }
+    final categoryDisplay = _selected['Category'];
+    if (categoryDisplay == null || categoryDisplay.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a category')),
+      );
+      return;
+    }
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select start and end date')),
+      );
+      return;
+    }
+    if (_endDate!.isBefore(_startDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('End date must be after start date')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final categorySlug =
+          _categoryToSlug[categoryDisplay] ?? categoryDisplay.toLowerCase().replaceAll(' ', '_').replaceAll('&', 'and');
+      await _api.createLearningPlan(
+        title: title,
+        category: categorySlug,
+        startDate: _formatDate(_startDate!),
+        endDate: _formatDate(_endDate!),
+        ageGroupId: null,
+        classId: null,
+        videoLink: _videoLinkController.text.trim().isEmpty ? null : _videoLinkController.text.trim(),
+        tags: _tags.isEmpty ? null : _tags,
+        description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Learning plan created successfully')),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('[CREATE_LESSON] Error: $e');
+      debugPrint('[CREATE_LESSON] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   void _onImagesChanged(List<File> images) {
@@ -99,38 +215,93 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                 children: [
                   _buildLabel('Lesson Title'),
                   const SizedBox(height: 8),
-                  Text(
-                    'Storytelling',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Palette.textForeground,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF4F4F4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. Autumn Leaf Collage',
+                        hintStyle: TextStyle(color: Colors.black38, fontSize: 14),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   _buildLabel('Duration'),
                   const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4F4F4),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          SvgPicture.asset('assets/images/ic_calanders.svg'),
-                          Text(
-                            ' 13 June 2023 - 14 July 2023',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Palette.textForeground,
-                              fontWeight: FontWeight.w600,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _pickStartDate,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F4F4),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                SvgPicture.asset('assets/images/ic_calanders.svg'),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _startDate != null
+                                      ? DateFormat('MMM d, yyyy').format(_startDate!)
+                                      : 'Start date',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _startDate != null
+                                        ? Palette.textForeground
+                                        : Colors.black38,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _pickEndDate,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F4F4),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                SvgPicture.asset('assets/images/ic_calanders.svg'),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _endDate != null
+                                      ? DateFormat('MMM d, yyyy').format(_endDate!)
+                                      : 'End date',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _endDate != null
+                                        ? Palette.textForeground
+                                        : Colors.black38,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   MealTypeSelectorWidget(
@@ -276,9 +447,7 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context, _selected);
-                      },
+                      onPressed: _isSubmitting ? null : _handleAdd,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Palette.borderPrimary80,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -286,14 +455,23 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Add',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CupertinoActivityIndicator(
+                                radius: 11,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Add',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 12),
