@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/pallete.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
@@ -132,63 +133,30 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ..._filters.entries.map((entry) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            entry.key,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: Palette.textForeground,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: entry.value.map((option) {
-                              final isSelected = _selected[entry.key] == option;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selected[entry.key] = option;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Palette.txtTagForeground3
-                                            .withOpacity(0.8)
-                                        : Palette.borderPrimary20,
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Text(
-                                    option,
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Palette.textForeground,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 8),
+                  MealTypeSelectorWidget(
+                    title: 'Category',
+                    options: _filters['Category']!,
+                    selectedValue: _selected['Category'],
+                    onChanged: (value) =>
+                        setState(() => _selected['Category'] = value ?? ''),
+                  ),
+                  const SizedBox(height: 24),
+                  MealTypeSelectorWidget(
+                    title: 'Age Band',
+                    options: _filters['Age Band']!,
+                    selectedValue: _selected['Age Band'],
+                    onChanged: (value) =>
+                        setState(() => _selected['Age Band'] = value ?? ''),
+                  ),
+                  const SizedBox(height: 24),
+                  MealTypeSelectorWidget(
+                    title: 'Class',
+                    options: _filters['Class']!,
+                    selectedValue: _selected['Class'],
+                    onChanged: (value) =>
+                        setState(() => _selected['Class'] = value ?? ''),
+                  ),
+                  const SizedBox(height: 24),
                   _buildLabel('Video Link'),
                   const SizedBox(height: 8),
                   Container(
