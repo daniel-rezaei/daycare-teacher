@@ -8,9 +8,9 @@ abstract class DioModule {
     final dio = Dio(
       BaseOptions(
         baseUrl: 'http://51.79.53.56:8055',
-        connectTimeout: const Duration(seconds: 20),
-        receiveTimeout: const Duration(seconds: 20),
-        sendTimeout: const Duration(seconds: 20),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+        sendTimeout: const Duration(seconds: 30),
         headers: {'Content-Type': 'application/json'},
       ),
     );

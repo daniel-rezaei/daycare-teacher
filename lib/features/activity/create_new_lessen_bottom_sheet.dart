@@ -25,7 +25,6 @@ class CreateNewLessenBottomSheet extends StatefulWidget {
 
 class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet> {
   final LearningPlanApi _api = GetIt.instance<LearningPlanApi>();
-  final Map<String, String> _selected = {};
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _videoLinkController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -36,48 +35,53 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
   DateTime? _endDate;
   bool _isSubmitting = false;
 
-  /// Map Category display name to API slug (e.g. "Art & Craft" -> "arts_crafts")
-  static const Map<String, String> _categoryToSlug = {
-    'Art & Craft': 'arts_crafts',
-    'Language Development': 'language_development',
-    'Outdoor Play': 'outdoor_play',
-    'Role Play': 'role_play',
-    'Numeracy': 'numeracy',
-    'Physical Development': 'physical_development',
-    'Music & Movement': 'music_movement',
-    'Cultural Awareness': 'cultural_awareness',
-    'Science & Discovery': 'science_discovery',
-    'Gross Motor Skills': 'gross_motor_skills',
-    'Nature & Environment': 'nature_environment',
-    'Social-Emotional Learning': 'social_emotional_learning',
-    'Sensory Play': 'sensory_play',
-    'Health & Nutrition': 'health_nutrition',
-    'Fine Motor Skills': 'fine_motor_skills',
-    'STEM Activities': 'stem_activities',
-  };
+  List<LearningCategoryItem> _categories = [];
+  List<AgeGroupItem> _ageGroups = [];
+  List<ClassItem> _classes = [];
+  bool _isLoadingOptions = true;
+  String? _loadError;
 
-  static const Map<String, List<String>> _filters = {
-    'Category': [
-      'Art & Craft',
-      'Language Development',
-      'Outdoor Play',
-      'Role Play',
-      'Numeracy',
-      'Physical Development',
-      'Music & Movement',
-      'Cultural Awareness',
-      'Science & Discovery',
-      'Gross Motor Skills',
-      'Nature & Environment',
-      'Social-Emotional Learning',
-      'Sensory Play',
-      'Health & Nutrition',
-      'Fine Motor Skills',
-      'STEM Activities',
-    ],
-    'Age Band': ['Infant', 'Toddler', 'Preschool', 'Kindergarten'],
-    'Class': ['Room A', 'Room B', 'Room C', 'Room D'],
-  };
+  String? _selectedCategoryId;
+  String? _selectedAgeGroupId;
+  String? _selectedClassId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOptions();
+  }
+
+  Future<void> _loadOptions() async {
+    setState(() {
+      _isLoadingOptions = true;
+      _loadError = null;
+    });
+    try {
+      _categories = await _api.getLearningCategories();
+      if (!mounted) return;
+      setState(() {});
+
+      _ageGroups = await _api.getAgeGroups();
+      if (!mounted) return;
+      setState(() {});
+
+      _classes = await _api.getClasses();
+      if (!mounted) return;
+      setState(() {
+        _isLoadingOptions = false;
+        _loadError = null;
+      });
+    } catch (e, st) {
+      debugPrint('[CREATE_LESSON] Load options error: $e');
+      debugPrint('[CREATE_LESSON] $st');
+      if (mounted) {
+        setState(() {
+          _isLoadingOptions = false;
+          _loadError = e.toString();
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -121,8 +125,7 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
       );
       return;
     }
-    final categoryDisplay = _selected['Category'];
-    if (categoryDisplay == null || categoryDisplay.isEmpty) {
+    if (_selectedCategoryId == null || _selectedCategoryId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a category')),
       );
@@ -143,15 +146,13 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
 
     setState(() => _isSubmitting = true);
     try {
-      final categorySlug =
-          _categoryToSlug[categoryDisplay] ?? categoryDisplay.toLowerCase().replaceAll(' ', '_').replaceAll('&', 'and');
       await _api.createLearningPlan(
         title: title,
-        category: categorySlug,
+        category: _selectedCategoryId!,
         startDate: _formatDate(_startDate!),
         endDate: _formatDate(_endDate!),
-        ageGroupId: null,
-        classId: null,
+        ageGroupId: _selectedAgeGroupId,
+        classId: _selectedClassId,
         videoLink: _videoLinkController.text.trim().isEmpty ? null : _videoLinkController.text.trim(),
         tags: _tags.isEmpty ? null : _tags,
         description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
@@ -195,6 +196,57 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
     setState(() {
       _tags.remove(tag);
     });
+  }
+
+  LearningCategoryItem? _categoryById(String? id) {
+    if (id == null) return null;
+    try {
+      return _categories.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  LearningCategoryItem? _categoryByName(String name) {
+    try {
+      return _categories.firstWhere((c) => c.name == name);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  AgeGroupItem? _ageGroupById(String? id) {
+    if (id == null) return null;
+    try {
+      return _ageGroups.firstWhere((a) => a.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  AgeGroupItem? _ageGroupByName(String name) {
+    try {
+      return _ageGroups.firstWhere((a) => a.name == name);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  ClassItem? _classById(String? id) {
+    if (id == null) return null;
+    try {
+      return _classes.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  ClassItem? _classByRoomName(String roomName) {
+    try {
+      return _classes.firstWhere((c) => c.roomName == roomName);
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -304,29 +356,59 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                     ],
                   ),
                   const SizedBox(height: 24),
-                  MealTypeSelectorWidget(
-                    title: 'Category',
-                    options: _filters['Category']!,
-                    selectedValue: _selected['Category'],
-                    onChanged: (value) =>
-                        setState(() => _selected['Category'] = value ?? ''),
-                  ),
-                  const SizedBox(height: 24),
-                  MealTypeSelectorWidget(
-                    title: 'Age Band',
-                    options: _filters['Age Band']!,
-                    selectedValue: _selected['Age Band'],
-                    onChanged: (value) =>
-                        setState(() => _selected['Age Band'] = value ?? ''),
-                  ),
-                  const SizedBox(height: 24),
-                  MealTypeSelectorWidget(
-                    title: 'Class',
-                    options: _filters['Class']!,
-                    selectedValue: _selected['Class'],
-                    onChanged: (value) =>
-                        setState(() => _selected['Class'] = value ?? ''),
-                  ),
+                  if (_isLoadingOptions)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (_loadError != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Column(
+                        children: [
+                          Text(
+                            _loadError!,
+                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: _loadOptions,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    MealTypeSelectorWidget(
+                      title: 'Category',
+                      options: _categories.map((c) => c.name).toList(),
+                      selectedValue: _categoryById(_selectedCategoryId)?.name,
+                      onChanged: (value) => setState(() {
+                        _selectedCategoryId = value == null ? null : _categoryByName(value)?.id;
+                      }),
+                    ),
+                    const SizedBox(height: 24),
+                    MealTypeSelectorWidget(
+                      title: 'Age Band',
+                      options: _ageGroups.map((a) => a.name).toList(),
+                      selectedValue: _ageGroupById(_selectedAgeGroupId)?.name,
+                      onChanged: (value) => setState(() {
+                        _selectedAgeGroupId = value == null ? null : _ageGroupByName(value)?.id;
+                      }),
+                    ),
+                    const SizedBox(height: 24),
+                    MealTypeSelectorWidget(
+                      title: 'Class',
+                      options: _classes.map((c) => c.roomName).toList(),
+                      selectedValue: _classById(_selectedClassId)?.roomName,
+                      onChanged: (value) => setState(() {
+                        _selectedClassId = value == null ? null : _classByRoomName(value)?.id;
+                      }),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   _buildLabel('Video Link'),
                   const SizedBox(height: 8),
