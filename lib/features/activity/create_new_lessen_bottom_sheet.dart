@@ -438,10 +438,12 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                     controller: _descriptionController,
                   ),
                   const SizedBox(height: 20),
-                  // Attach Photo (same as other activities)
+                  // Add Attachment (photo/video from gallery or camera, or any file e.g. PDF)
                   AttachPhotoWidget(
                     images: _images,
                     onImagesChanged: _onImagesChanged,
+                    buttonLabel: 'Add Attachment',
+                    showAttachFileOption: true,
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
