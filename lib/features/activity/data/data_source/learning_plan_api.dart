@@ -106,7 +106,7 @@ class LearningPlanApi {
 
     final data = <String, dynamic>{
       'title': title,
-      'category': category,
+      'category_id': category,
       'start_date': startDate,
       'end_date': endDate,
       'age_group_id': ageGroupId,
