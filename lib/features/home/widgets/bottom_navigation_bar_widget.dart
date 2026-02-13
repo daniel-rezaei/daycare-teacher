@@ -49,7 +49,10 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 isActive: value == 1 ? true : false,
               ),
               TabBottomNavigationBarWidget(
-                onTap: () => HomeScreen.pageIndex.value = 2,
+                onTap: () {
+                  // اگر روی صفحه فعالیت‌ها هستیم، با کلیک روی ضربدر به Home برمی‌گردیم
+                  HomeScreen.pageIndex.value = value == 2 ? 0 : 2;
+                },
                 icon: value == 2
                     ? Padding(
                         padding: const EdgeInsets.all(12),
