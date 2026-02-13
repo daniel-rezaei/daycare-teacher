@@ -30,7 +30,8 @@ class MoodActivityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<MoodActivityBottomSheet> createState() => _MoodActivityBottomSheetState();
+  State<MoodActivityBottomSheet> createState() =>
+      _MoodActivityBottomSheetState();
 }
 
 class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
@@ -38,49 +39,38 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  
+
   /// Selected mood id (from /items/mood) for API
   String? _selectedMoodId;
-  List<String> _tags = [];
+  final List<String> _tags = [];
 
   // Options loaded from GET /items/mood (id, name)
   List<Map<String, String>> _moodOptions = [];
-  
+
   // Class ID for creating activities
   String? _classId;
-  
+
   bool _isSubmitting = false;
   bool _isLoadingOptions = true;
   final ActivityMoodApi _api = GetIt.instance<ActivityMoodApi>();
-  final FileUploadUsecase _fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[MOOD_ACTIVITY] ========== Opening MoodActivityBottomSheet ==========');
-    debugPrint('[MOOD_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
-    debugPrint('[MOOD_ACTIVITY] DateTime: ${widget.dateTime}');
-    
     // Load classId and mood options
     _loadClassId();
     _loadMoodOptions();
   }
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[MOOD_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint('[MOOD_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[MOOD_ACTIVITY] Error loading classId: $e');
-      debugPrint('[MOOD_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -97,18 +87,14 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
       _isLoadingOptions = true;
     });
     try {
-      debugPrint('[MOOD_ACTIVITY] Loading mood options from backend...');
       final options = await _api.getMoodOptions();
-      debugPrint('[MOOD_ACTIVITY] Mood options loaded: $options');
       if (mounted) {
         setState(() {
           _moodOptions = options;
           _isLoadingOptions = false;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[MOOD_ACTIVITY] Error loading mood options: $e');
-      debugPrint('[MOOD_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _moodOptions = [];
@@ -135,15 +121,18 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     if (n == 'hugging') return Assets.images.hugging.svg(width: 48, height: 48);
     if (n == 'excited') return Assets.images.excited.svg(width: 48, height: 48);
     if (n == 'happy') return Assets.images.neutral.svg(width: 48, height: 48);
-    if (n == 'neutral') return Assets.images.neutral2.svg(width: 48, height: 48);
-    if (n == 'frustrated') return Assets.images.frustrated.svg(width: 48, height: 48);
+    if (n == 'neutral') {
+      return Assets.images.neutral2.svg(width: 48, height: 48);
+    }
+    if (n == 'frustrated') {
+      return Assets.images.frustrated.svg(width: 48, height: 48);
+    }
     if (n == 'quiet') return Assets.images.quiet.svg(width: 48, height: 48);
     if (n == 'anxious') return Assets.images.anxious.svg(width: 48, height: 48);
     return SizedBox();
   }
 
   void _onMoodChanged(String? moodName) {
-    debugPrint('[MOOD_ACTIVITY] Mood changed: $moodName');
     setState(() {
       if (moodName == null) {
         _selectedMoodId = null;
@@ -157,27 +146,20 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
   void _onTagSubmitted(String value) {
     final tag = value.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
-      debugPrint('[MOOD_ACTIVITY] Adding tag: $tag');
       setState(() {
         _tags.add(tag);
       });
       _tagController.clear();
-      debugPrint('[MOOD_ACTIVITY] Tag added successfully - total tags: ${_tags.length}');
-    } else if (_tags.contains(tag)) {
-      debugPrint('[MOOD_ACTIVITY] Tag already exists: $tag');
     }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint('[MOOD_ACTIVITY] Tag removed: $tag');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint('[MOOD_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}');
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[MOOD_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -186,33 +168,22 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[MOOD_ACTIVITY] Uploading photo: ${imageFile.path}');
-      final uploadResult = await _fileUploadUsecase.uploadFile(filePath: imageFile.path);
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint('[MOOD_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}');
         return uploadResult.data;
       } else {
-        debugPrint('[MOOD_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[MOOD_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[MOOD_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[MOOD_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint('[MOOD_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[MOOD_ACTIVITY] Mood id: $_selectedMoodId');
-    debugPrint('[MOOD_ACTIVITY] Tags: $_tags');
-    debugPrint('[MOOD_ACTIVITY] Description: ${_descriptionController.text}');
-    debugPrint('[MOOD_ACTIVITY] Images: ${_images.length}');
-
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      debugPrint('[MOOD_ACTIVITY] Validation failed: No children selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one child')),
       );
@@ -220,7 +191,6 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[MOOD_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -228,10 +198,9 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     }
 
     if (_selectedMoodId == null || _selectedMoodId!.isEmpty) {
-      debugPrint('[MOOD_ACTIVITY] Validation failed: No mood selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a mood')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a mood')));
       return;
     }
 
@@ -249,7 +218,6 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
 
       // Format start_at in UTC ISO 8601 format
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[MOOD_ACTIVITY] start_at (UTC): $startAtUtc');
 
       // Two-step flow: Create activity (parent) then mood details (child) for EACH child
       int successCount = 0;
@@ -257,45 +225,32 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
 
       for (final child in widget.selectedChildren) {
         if (child.id == null || child.id!.isEmpty) {
-          debugPrint('[MOOD_ACTIVITY] Skipping child with null ID');
           failureCount++;
           continue;
         }
 
         try {
-          debugPrint('[MOOD_ACTIVITY] ========== Processing child: ${child.id} ==========');
-
           // STEP A: Create parent activity
-          debugPrint('[MOOD_ACTIVITY] STEP A: Creating activity for child ${child.id}');
           final activityId = await _api.createActivity(
             childId: child.id!,
             classId: _classId!,
             startAtUtc: startAtUtc,
           );
-          debugPrint('[MOOD_ACTIVITY] ✅ Activity created with ID: $activityId');
-
           // STEP B: Create mood details linked to activity
-          debugPrint('[MOOD_ACTIVITY] STEP B: Creating mood details for activity $activityId');
-          final response = await _api.createMoodDetails(
+          await _api.createMoodDetails(
             activityId: activityId,
             mood: _selectedMoodId!,
-            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            description: _descriptionController.text.isEmpty
+                ? null
+                : _descriptionController.text,
             tag: _tags.isNotEmpty ? _tags.first : null,
             photo: photoIds.isEmpty ? null : photoIds,
           );
-
-          debugPrint('[MOOD_ACTIVITY] ✅ Mood details created for child ${child.id}: ${response.statusCode}');
-          debugPrint('[MOOD_ACTIVITY] Response data: ${response.data}');
           successCount++;
-        } catch (e, stackTrace) {
-          debugPrint('[MOOD_ACTIVITY] ❌ Error processing child ${child.id}: $e');
-          debugPrint('[MOOD_ACTIVITY] StackTrace: $stackTrace');
+        } catch (e) {
           failureCount++;
         }
       }
-
-      debugPrint('[MOOD_ACTIVITY] ========== Submission complete ==========');
-      debugPrint('[MOOD_ACTIVITY] Success: $successCount, Failures: $failureCount');
 
       if (mounted) {
         setState(() {
@@ -308,15 +263,13 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
           // Navigate back to LogActivityScreen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LogActivityScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 failureCount > 0
-                    ? 'Created $successCount mood activities (${failureCount} failed)'
+                    ? 'Created $successCount mood activities ($failureCount failed)'
                     : 'Mood activities created successfully',
               ),
             ),
@@ -327,16 +280,14 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
           );
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('[MOOD_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[MOOD_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -439,7 +390,9 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                               height: 100,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 4),
+                                  horizontal: 4,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   border: isSelected
                                       ? Border.all(
@@ -497,15 +450,11 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -601,4 +550,3 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
     );
   }
 }
-

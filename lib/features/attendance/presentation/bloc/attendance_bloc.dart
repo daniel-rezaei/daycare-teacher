@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -33,16 +31,16 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint(
-            '[ATTENDANCE_DEBUG] GetAttendanceByClassIdSuccess: ${dataState.data.length} items');
         emit(GetAttendanceByClassIdSuccess(dataState.data));
       } else if (dataState is DataFailed) {
-        debugPrint('[ATTENDANCE_DEBUG] GetAttendanceByClassIdFailure: ${dataState.error}');
         emit(GetAttendanceByClassIdFailure(dataState.error!));
       }
     } catch (e) {
-      debugPrint('[ATTENDANCE_DEBUG] Exception getting attendance: $e');
-      emit(GetAttendanceByClassIdFailure('Error retrieving attendance information'));
+      emit(
+        GetAttendanceByClassIdFailure(
+          'Error retrieving attendance information',
+        ),
+      );
     }
   }
 
@@ -52,13 +50,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   ) async {
     // ذخیره کردن state قبلی قبل از emit کردن CreateAttendanceLoading
     final previousState = state;
-    debugPrint('[ATTENDANCE_BLOC] 📋 Previous state before loading: ${previousState.runtimeType}');
-    
-    // Timezone logging
-    final localNow = DateTime.now();
-    final utcNow = localNow.toUtc();
-    debugPrint('[ATTENDANCE_TZ] CreateAttendance - localNow=$localNow, utcNow=$utcNow, sending checkInAt="${event.checkInAt}"');
-    
+
     emit(CreateAttendanceLoading());
 
     try {
@@ -70,41 +62,24 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
-        // Timezone logging for received data
-        if (dataState.data.checkInAt != null) {
-          try {
-            final apiCheckInUtc = DateTime.parse(dataState.data.checkInAt!);
-            final apiCheckInLocal = apiCheckInUtc.toLocal();
-            debugPrint('[ATTENDANCE_TZ] CreateAttendanceSuccess - api checkInAt="${dataState.data.checkInAt}", parsedLocal=$apiCheckInLocal');
-          } catch (e) {
-            debugPrint('[ATTENDANCE_TZ] CreateAttendanceSuccess - Error parsing checkInAt: $e');
-          }
-        }
-        
-        debugPrint('[ATTENDANCE_BLOC] ✅ CreateAttendanceSuccess: ${dataState.data.id}');
-        debugPrint('[ATTENDANCE_BLOC] 📋 Previous state (saved): ${previousState.runtimeType}');
-        
         // اضافه کردن attendance جدید به لیست موجود، بدون دریافت مجدد کل لیست
         // فقط GetAttendanceByClassIdSuccess را emit می‌کنیم تا UI reset نشود
         // Listener ها می‌توانند از GetAttendanceByClassIdSuccess استفاده کنند
         if (previousState is GetAttendanceByClassIdSuccess) {
           final currentState = previousState;
-          debugPrint('[ATTENDANCE_BLOC] 📋 Previous list length: ${currentState.attendanceList.length}');
-          final updatedList = <AttendanceChildEntity>[...currentState.attendanceList, dataState.data];
-          debugPrint('[ATTENDANCE_BLOC] 📋 New list length: ${updatedList.length}');
-          debugPrint('[ATTENDANCE_BLOC] 📋 New attendance: id=${dataState.data.id}, childId=${dataState.data.childId}, checkIn=${dataState.data.checkInAt}, checkOut=${dataState.data.checkOutAt}');
+          final updatedList = <AttendanceChildEntity>[
+            ...currentState.attendanceList,
+            dataState.data,
+          ];
           emit(GetAttendanceByClassIdSuccess(updatedList));
         } else {
           // اگر state قبلی GetAttendanceByClassIdSuccess نبود، لیست جدید با یک آیتم ایجاد می‌کنیم
-          debugPrint('[ATTENDANCE_BLOC] ⚠️ Previous state was not GetAttendanceByClassIdSuccess, creating new list');
           emit(GetAttendanceByClassIdSuccess([dataState.data]));
         }
       } else if (dataState is DataFailed) {
-        debugPrint('[ATTENDANCE_DEBUG] CreateAttendanceFailure: ${dataState.error}');
         emit(CreateAttendanceFailure(dataState.error!));
       }
     } catch (e) {
-      debugPrint('[ATTENDANCE_DEBUG] Exception creating attendance: $e');
       emit(CreateAttendanceFailure('Error creating attendance'));
     }
   }
@@ -113,29 +88,10 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     UpdateAttendanceEvent event,
     Emitter<AttendanceState> emit,
   ) async {
-    debugPrint('[ATTENDANCE_BLOC] ========== _updateAttendanceEvent called ==========');
-      debugPrint('[ATTENDANCE_BLOC] event.attendanceId: ${event.attendanceId}');
-      debugPrint('[ATTENDANCE_BLOC] event.checkOutAt: "${event.checkOutAt}"');
-      debugPrint('[ATTENDANCE_BLOC] event.checkOutAt type: ${event.checkOutAt.runtimeType}');
-      debugPrint('[ATTENDANCE_BLOC] event.checkOutAt isEmpty: ${event.checkOutAt.isEmpty}');
-      debugPrint('[ATTENDANCE_BLOC] event.notes: ${event.notes}');
-      debugPrint('[ATTENDANCE_BLOC] event.photo: ${event.photo}');
-      debugPrint('[ATTENDANCE_BLOC] event.pickupAuthorizationId: ${event.pickupAuthorizationId}');
-    
     // ذخیره کردن state قبلی قبل از emit کردن UpdateAttendanceLoading
     final previousState = state;
-    debugPrint('[ATTENDANCE_BLOC] 📋 Previous state before loading: ${previousState.runtimeType}');
-    
     emit(const UpdateAttendanceLoading());
-
     try {
-      // Timezone logging
-      final localNow = DateTime.now();
-      final utcNow = localNow.toUtc();
-      debugPrint('[ATTENDANCE_TZ] UpdateAttendance - localNow=$localNow, utcNow=$utcNow, sending checkOutAt="${event.checkOutAt}"');
-      
-      debugPrint('[ATTENDANCE_BLOC] Calling attendanceUsecase.updateAttendance...');
-      debugPrint('[ATTENDANCE_BLOC] Passing checkOutAt: "${event.checkOutAt}"');
       // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
       // No contact/guardian/pickup creation allowed from checkout flow
       DataState dataState = await attendanceUsecase.updateAttendance(
@@ -148,51 +104,28 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       );
 
       if (dataState is DataSuccess) {
-        // Timezone logging for received data
-        if (dataState.data.checkOutAt != null) {
-          try {
-            final apiCheckOutUtc = DateTime.parse(dataState.data.checkOutAt!);
-            final apiCheckOutLocal = apiCheckOutUtc.toLocal();
-            debugPrint('[ATTENDANCE_TZ] UpdateAttendanceSuccess - api checkOutAt="${dataState.data.checkOutAt}", parsedLocal=$apiCheckOutLocal');
-          } catch (e) {
-            debugPrint('[ATTENDANCE_TZ] UpdateAttendanceSuccess - Error parsing checkOutAt: $e');
-          }
-        }
-        
-        debugPrint('[ATTENDANCE_BLOC] ✅ UpdateAttendanceSuccess: ${dataState.data.id}');
-        debugPrint('[ATTENDANCE_BLOC] 📋 Previous state (saved): ${previousState.runtimeType}');
-        
         // به‌روزرسانی فقط همان attendance در لیست موجود، بدون دریافت مجدد کل لیست
         // فقط GetAttendanceByClassIdSuccess را emit می‌کنیم تا UI reset نشود
         // Listener ها می‌توانند از GetAttendanceByClassIdSuccess استفاده کنند
         if (previousState is GetAttendanceByClassIdSuccess) {
           final currentState = previousState;
-          debugPrint('[ATTENDANCE_BLOC] 📋 Previous list length: ${currentState.attendanceList.length}');
-          debugPrint('[ATTENDANCE_BLOC] 📋 Updating attendanceId: ${event.attendanceId}');
-          final updatedList = currentState.attendanceList.map<AttendanceChildEntity>((attendance) {
-            if (attendance.id == event.attendanceId) {
-              debugPrint('[ATTENDANCE_BLOC] 📋 Found matching attendance: ${attendance.id}, updating...');
-              return dataState.data;
-            }
-            return attendance;
-          }).toList();
-          
-          debugPrint('[ATTENDANCE_BLOC] 📋 Updated list length: ${updatedList.length}');
-          debugPrint('[ATTENDANCE_BLOC] 📋 Updated attendance: id=${dataState.data.id}, childId=${dataState.data.childId}, checkIn=${dataState.data.checkInAt}, checkOut=${dataState.data.checkOutAt}');
+          final updatedList = currentState.attendanceList
+              .map<AttendanceChildEntity>((attendance) {
+                if (attendance.id == event.attendanceId) {
+                  return dataState.data;
+                }
+                return attendance;
+              })
+              .toList();
           emit(GetAttendanceByClassIdSuccess(updatedList));
         } else {
-          // اگر state قبلی GetAttendanceByClassIdSuccess نبود، لیست جدید با یک آیتم ایجاد می‌کنیم
-          debugPrint('[ATTENDANCE_BLOC] ⚠️ Previous state was not GetAttendanceByClassIdSuccess, creating new list');
           emit(GetAttendanceByClassIdSuccess([dataState.data]));
         }
       } else if (dataState is DataFailed) {
-        debugPrint('[ATTENDANCE_DEBUG] UpdateAttendanceFailure: ${dataState.error}');
         emit(UpdateAttendanceFailure(dataState.error!));
       }
     } catch (e) {
-      debugPrint('[ATTENDANCE_DEBUG] Exception updating attendance: $e');
       emit(const UpdateAttendanceFailure('Error updating attendance'));
     }
   }
 }
-

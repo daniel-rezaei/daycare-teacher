@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @singleton
@@ -14,9 +13,7 @@ class ChildApi {
 
   // دریافت لیست همه محدودیت‌های غذایی
   Future<Response> getAllDietaryRestrictions() async {
-    debugPrint('[PROFILE_LOAD] API: Calling getAllDietaryRestrictions()');
     final response = await httpclient.get('/items/child_dietary_restrictions');
-    debugPrint('[PROFILE_LOAD] API: getAllDietaryRestrictions() response status: ${response.statusCode}');
     return response;
   }
 
@@ -37,9 +34,7 @@ class ChildApi {
 
   // دریافت لیست همه واکسیناسیون‌ها
   Future<Response> getAllImmunizations() async {
-    debugPrint('[PROFILE_LOAD] API: Calling getAllImmunizations()');
     final response = await httpclient.get('/items/Immunization');
-    debugPrint('[PROFILE_LOAD] API: getAllImmunizations() response status: ${response.statusCode}');
     return response;
   }
 
@@ -53,7 +48,8 @@ class ChildApi {
     return await httpclient.get(
       '/items/Child/$childId',
       queryParameters: {
-        'fields': 'id,dob,language,photo,contact_id,status,date_created,date_updated',
+        'fields':
+            'id,dob,language,photo,contact_id,status,date_created,date_updated',
       },
     );
   }
@@ -64,10 +60,10 @@ class ChildApi {
       '/items/Child',
       queryParameters: {
         'filter[contact_id][_eq]': contactId,
-        'fields': 'id,dob,language,photo,contact_id,status,date_created,date_updated',
+        'fields':
+            'id,dob,language,photo,contact_id,status,date_created,date_updated',
         'limit': 1,
       },
     );
   }
 }
-

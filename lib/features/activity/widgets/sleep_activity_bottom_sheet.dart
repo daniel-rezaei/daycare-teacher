@@ -41,7 +41,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   final List<File> _images = [];
 
   String? _selectedType;
-  List<String> _tags = [];
+  final List<String> _tags = [];
 
   // Time range state
   late DateTime _startTime;
@@ -62,14 +62,6 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   @override
   void initState() {
     super.initState();
-    debugPrint(
-      '[SLEEP_ACTIVITY] ========== Opening SleepActivityBottomSheet ==========',
-    );
-    debugPrint(
-      '[SLEEP_ACTIVITY] Selected children count: ${widget.selectedChildren.length}',
-    );
-    debugPrint('[SLEEP_ACTIVITY] DateTime: ${widget.dateTime}');
-
     // Initialize time range: start = widget.dateTime, end = start + 30 minutes
     _startTime = widget.dateTime;
     _endTime = _startTime.add(const Duration(minutes: 30));
@@ -82,22 +74,12 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   bool get _isTimeValid => _endTime.isAfter(_startTime);
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[SLEEP_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint(
-          '[SLEEP_ACTIVITY] ⚠️ ClassId not found in SharedPreferences',
-        );
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_ACTIVITY] Error loading classId: $e');
-      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -111,17 +93,13 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
 
   Future<void> _loadTypes() async {
     try {
-      debugPrint('[SLEEP_ACTIVITY] Loading sleep types from backend...');
       final options = await _api.getSleepTypes();
-      debugPrint('[SLEEP_ACTIVITY] Sleep types loaded: $options');
       if (mounted) {
         setState(() {
           _typeOptions = options;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_ACTIVITY] Error loading sleep types: $e');
-      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _typeOptions = [];
@@ -167,7 +145,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
           );
           final isValid = newEndTime.isAfter(_startTime);
 
-          return Container(
+          return SizedBox(
             height: 250,
             child: Column(
               children: [
@@ -224,7 +202,6 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   }
 
   void _onTypeChanged(String? value) {
-    debugPrint('[SLEEP_ACTIVITY] Type changed: $value');
     setState(() {
       _selectedType = value;
     });
@@ -233,36 +210,20 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   void _onTagSubmitted(String value) {
     final tag = value.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
-      debugPrint('[SLEEP_ACTIVITY] Adding tag (LOCAL ONLY): $tag');
       setState(() {
         _tags.add(tag);
       });
       _tagController.clear();
-      debugPrint(
-        '[SLEEP_ACTIVITY] Tag added successfully - total tags: ${_tags.length}',
-      );
-    } else if (_tags.contains(tag)) {
-      debugPrint('[SLEEP_ACTIVITY] Tag already exists: $tag');
     }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint(
-      '[SLEEP_ACTIVITY] ========== Tag removed (LOCAL ONLY) ==========',
-    );
-    debugPrint('[SLEEP_ACTIVITY] Tag removed locally: $tag');
-    debugPrint('[SLEEP_ACTIVITY] NO API call executed for tag removal');
-    debugPrint('[SLEEP_ACTIVITY] Tags are LOCAL-ONLY - changes stay in UI');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint(
-      '[SLEEP_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}',
-    );
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[SLEEP_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -271,39 +232,22 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[SLEEP_ACTIVITY] Uploading photo: ${imageFile.path}');
       final uploadResult = await _fileUploadUsecase.uploadFile(
         filePath: imageFile.path,
       );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint(
-          '[SLEEP_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}',
-        );
         return uploadResult.data;
       } else {
-        debugPrint('[SLEEP_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[SLEEP_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint(
-      '[SLEEP_ACTIVITY] Selected children: ${widget.selectedChildren.length}',
-    );
-    debugPrint('[SLEEP_ACTIVITY] Type: $_selectedType');
-    debugPrint('[SLEEP_ACTIVITY] Tags: $_tags');
-    debugPrint('[SLEEP_ACTIVITY] Description: ${_descriptionController.text}');
-    debugPrint('[SLEEP_ACTIVITY] Images: ${_images.length}');
-
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      debugPrint('[SLEEP_ACTIVITY] Validation failed: No children selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one child')),
       );
@@ -311,7 +255,6 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[SLEEP_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -319,7 +262,6 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
     }
 
     if (_selectedType == null || _selectedType!.isEmpty) {
-      debugPrint('[SLEEP_ACTIVITY] Validation failed: No type selected');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please select a type')));
@@ -327,7 +269,6 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
     }
 
     if (!_isTimeValid) {
-      debugPrint('[SLEEP_ACTIVITY] Validation failed: Invalid time range');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('End time cannot be before start time')),
       );
@@ -348,8 +289,6 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
       // Format start_at and end_at in UTC ISO 8601 format
       final startAtUtc = _startTime.toUtc().toIso8601String();
       final endAtUtc = _endTime.toUtc().toIso8601String();
-      debugPrint('[SLEEP_ACTIVITY] start_at (UTC): $startAtUtc');
-      debugPrint('[SLEEP_ACTIVITY] end_at (UTC): $endAtUtc');
 
       // Two-step flow: Create activity (parent) then sleep details (child) for EACH child
       int successCount = 0;
@@ -357,34 +296,19 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
 
       for (final child in widget.selectedChildren) {
         if (child.id == null || child.id!.isEmpty) {
-          debugPrint('[SLEEP_ACTIVITY] Skipping child with null ID');
           failureCount++;
           continue;
         }
 
         try {
-          debugPrint(
-            '[SLEEP_ACTIVITY] ========== Processing child: ${child.id} ==========',
-          );
-
           // STEP A: Create parent activity
-          debugPrint(
-            '[SLEEP_ACTIVITY] STEP A: Creating activity for child ${child.id}',
-          );
           final activityId = await _api.createActivity(
             childId: child.id!,
             classId: _classId!,
             startAtUtc: startAtUtc,
           );
-          debugPrint(
-            '[SLEEP_ACTIVITY] ✅ Activity created with ID: $activityId',
-          );
-
           // STEP B: Create sleep details linked to activity
-          debugPrint(
-            '[SLEEP_ACTIVITY] STEP B: Creating sleep details for activity $activityId',
-          );
-          final response = await _api.createSleepDetails(
+          await _api.createSleepDetails(
             activityId: activityId,
             type: _selectedType!,
             description: _descriptionController.text.isEmpty
@@ -395,25 +319,11 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
             startAt: startAtUtc,
             endAt: endAtUtc,
           );
-
-          debugPrint(
-            '[SLEEP_ACTIVITY] ✅ Sleep details created for child ${child.id}: ${response.statusCode}',
-          );
-          debugPrint('[SLEEP_ACTIVITY] Response data: ${response.data}');
           successCount++;
-        } catch (e, stackTrace) {
-          debugPrint(
-            '[SLEEP_ACTIVITY] ❌ Error processing child ${child.id}: $e',
-          );
-          debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+        } catch (e) {
           failureCount++;
         }
       }
-
-      debugPrint('[SLEEP_ACTIVITY] ========== Submission complete ==========');
-      debugPrint(
-        '[SLEEP_ACTIVITY] Success: $successCount, Failures: $failureCount',
-      );
 
       if (mounted) {
         setState(() {
@@ -432,7 +342,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
             SnackBar(
               content: Text(
                 failureCount > 0
-                    ? 'Created $successCount sleep activities (${failureCount} failed)'
+                    ? 'Created $successCount sleep activities ($failureCount failed)'
                     : 'Sleep activities created successfully',
               ),
             ),
@@ -443,9 +353,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
           );
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[SLEEP_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;

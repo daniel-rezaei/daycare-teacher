@@ -30,58 +30,50 @@ class BathroomActivityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<BathroomActivityBottomSheet> createState() => _BathroomActivityBottomSheetState();
+  State<BathroomActivityBottomSheet> createState() =>
+      _BathroomActivityBottomSheetState();
 }
 
-class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomSheet> {
+class _BathroomActivityBottomSheetState
+    extends State<BathroomActivityBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  
+
   String? _selectedType;
   String? _selectedSubType;
-  List<String> _tags = [];
-  
+  final List<String> _tags = [];
+
   // Options loaded from backend
   List<String> _typeOptions = [];
   List<String> _subTypeOptions = [];
-  
+
   // Class ID for creating activities
   String? _classId;
-  
+
   bool _isSubmitting = false;
   bool _isLoadingOptions = true;
   final ActivityBathroomApi _api = GetIt.instance<ActivityBathroomApi>();
-  final FileUploadUsecase _fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[BATHROOM_ACTIVITY] ========== Opening BathroomActivityBottomSheet ==========');
-    debugPrint('[BATHROOM_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
-    debugPrint('[BATHROOM_ACTIVITY] DateTime: ${widget.dateTime}');
-    
+
     // Load classId and bathroom options
     _loadClassId();
     _loadAllOptions();
   }
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[BATHROOM_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint('[BATHROOM_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_ACTIVITY] Error loading classId: $e');
-      debugPrint('[BATHROOM_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -95,17 +87,13 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
 
   Future<void> _loadTypes() async {
     try {
-      debugPrint('[BATHROOM_ACTIVITY] Loading bathroom types from backend...');
       final options = await _api.getBathroomTypes();
-      debugPrint('[BATHROOM_ACTIVITY] Bathroom types loaded: $options');
       if (mounted) {
         setState(() {
           _typeOptions = options;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_ACTIVITY] Error loading bathroom types: $e');
-      debugPrint('[BATHROOM_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _typeOptions = [];
@@ -116,17 +104,13 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
 
   Future<void> _loadSubTypes() async {
     try {
-      debugPrint('[BATHROOM_ACTIVITY] Loading sub-types from backend...');
       final options = await _api.getSubTypes();
-      debugPrint('[BATHROOM_ACTIVITY] Sub-types loaded: $options');
       if (mounted) {
         setState(() {
           _subTypeOptions = options;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_ACTIVITY] Error loading sub-types: $e');
-      debugPrint('[BATHROOM_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _subTypeOptions = [];
@@ -139,10 +123,7 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
     setState(() {
       _isLoadingOptions = true;
     });
-    await Future.wait([
-      _loadTypes(),
-      _loadSubTypes(),
-    ]);
+    await Future.wait([_loadTypes(), _loadSubTypes()]);
     if (mounted) {
       setState(() {
         _isLoadingOptions = false;
@@ -159,14 +140,12 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
   }
 
   void _onTypeChanged(String? value) {
-    debugPrint('[BATHROOM_ACTIVITY] Type changed: $value');
     setState(() {
       _selectedType = value;
     });
   }
 
   void _onSubTypeChanged(String? value) {
-    debugPrint('[BATHROOM_ACTIVITY] Sub-type changed: $value');
     setState(() {
       _selectedSubType = value;
     });
@@ -175,30 +154,20 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
   void _onTagSubmitted(String value) {
     final tag = value.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
-      debugPrint('[BATHROOM_ACTIVITY] Adding tag (LOCAL ONLY): $tag');
       setState(() {
         _tags.add(tag);
       });
       _tagController.clear();
-      debugPrint('[BATHROOM_ACTIVITY] Tag added successfully - total tags: ${_tags.length}');
-    } else if (_tags.contains(tag)) {
-      debugPrint('[BATHROOM_ACTIVITY] Tag already exists: $tag');
     }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint('[BATHROOM_ACTIVITY] ========== Tag removed (LOCAL ONLY) ==========');
-    debugPrint('[BATHROOM_ACTIVITY] Tag removed locally: $tag');
-    debugPrint('[BATHROOM_ACTIVITY] NO API call executed for tag removal');
-    debugPrint('[BATHROOM_ACTIVITY] Tags are LOCAL-ONLY - changes stay in UI');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint('[BATHROOM_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}');
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[BATHROOM_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -207,34 +176,22 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[BATHROOM_ACTIVITY] Uploading photo: ${imageFile.path}');
-      final uploadResult = await _fileUploadUsecase.uploadFile(filePath: imageFile.path);
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint('[BATHROOM_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}');
         return uploadResult.data;
       } else {
-        debugPrint('[BATHROOM_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[BATHROOM_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[BATHROOM_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint('[BATHROOM_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[BATHROOM_ACTIVITY] Type: $_selectedType');
-    debugPrint('[BATHROOM_ACTIVITY] Sub-Type: $_selectedSubType');
-    debugPrint('[BATHROOM_ACTIVITY] Tags: $_tags');
-    debugPrint('[BATHROOM_ACTIVITY] Description: ${_descriptionController.text}');
-    debugPrint('[BATHROOM_ACTIVITY] Images: ${_images.length}');
-
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      debugPrint('[BATHROOM_ACTIVITY] Validation failed: No children selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one child')),
       );
@@ -242,7 +199,6 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[BATHROOM_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -250,18 +206,16 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
     }
 
     if (_selectedType == null || _selectedType!.isEmpty) {
-      debugPrint('[BATHROOM_ACTIVITY] Validation failed: No type selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a type')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a type')));
       return;
     }
 
     if (_selectedSubType == null || _selectedSubType!.isEmpty) {
-      debugPrint('[BATHROOM_ACTIVITY] Validation failed: No sub-type selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a sub-type')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a sub-type')));
       return;
     }
 
@@ -278,7 +232,6 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
 
       // Format start_at in UTC ISO 8601 format
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[BATHROOM_ACTIVITY] start_at (UTC): $startAtUtc');
 
       // Two-step flow: Create activity (parent) then bathroom details (child) for EACH child
       int successCount = 0;
@@ -286,46 +239,34 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
 
       for (final child in widget.selectedChildren) {
         if (child.id == null || child.id!.isEmpty) {
-          debugPrint('[BATHROOM_ACTIVITY] Skipping child with null ID');
           failureCount++;
           continue;
         }
 
         try {
-          debugPrint('[BATHROOM_ACTIVITY] ========== Processing child: ${child.id} ==========');
-          
           // STEP A: Create parent activity
-          debugPrint('[BATHROOM_ACTIVITY] STEP A: Creating activity for child ${child.id}');
           final activityId = await _api.createActivity(
             childId: child.id!,
             classId: _classId!,
             startAtUtc: startAtUtc,
           );
-          debugPrint('[BATHROOM_ACTIVITY] ✅ Activity created with ID: $activityId');
 
           // STEP B: Create bathroom details linked to activity
-          debugPrint('[BATHROOM_ACTIVITY] STEP B: Creating bathroom details for activity $activityId');
-          final response = await _api.createBathroomDetails(
+          await _api.createBathroomDetails(
             activityId: activityId,
             type: _selectedType!,
             subType: _selectedSubType!,
-            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            description: _descriptionController.text.isEmpty
+                ? null
+                : _descriptionController.text,
             tags: _tags.isNotEmpty ? _tags : null,
             photo: photoFileId,
           );
-
-          debugPrint('[BATHROOM_ACTIVITY] ✅ Bathroom details created for child ${child.id}: ${response.statusCode}');
-          debugPrint('[BATHROOM_ACTIVITY] Response data: ${response.data}');
           successCount++;
-        } catch (e, stackTrace) {
-          debugPrint('[BATHROOM_ACTIVITY] ❌ Error processing child ${child.id}: $e');
-          debugPrint('[BATHROOM_ACTIVITY] StackTrace: $stackTrace');
+        } catch (e) {
           failureCount++;
         }
       }
-
-      debugPrint('[BATHROOM_ACTIVITY] ========== Submission complete ==========');
-      debugPrint('[BATHROOM_ACTIVITY] Success: $successCount, Failures: $failureCount');
 
       if (mounted) {
         setState(() {
@@ -338,35 +279,33 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
           // Navigate back to LogActivityScreen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LogActivityScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 failureCount > 0
-                    ? 'Created $successCount bathroom activities (${failureCount} failed)'
+                    ? 'Created $successCount bathroom activities ($failureCount failed)'
                     : 'Bathroom activities created successfully',
               ),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to create bathroom activities')),
+            const SnackBar(
+              content: Text('Failed to create bathroom activities'),
+            ),
           );
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[BATHROOM_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -482,15 +421,11 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -587,4 +522,3 @@ class _BathroomActivityBottomSheetState extends State<BathroomActivityBottomShee
     );
   }
 }
-

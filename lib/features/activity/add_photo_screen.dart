@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -52,9 +51,7 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
     if (classId == null || classRooms == null) return null;
 
     try {
-      final classRoom = classRooms.firstWhere(
-        (room) => room.id == classId,
-      );
+      final classRoom = classRooms.firstWhere((room) => room.id == classId);
       return classRoom.roomName;
     } catch (e) {
       return null;
@@ -184,40 +181,28 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
 
 /// Save and process image completely in background (fire and forget)
 Future<void> _saveAndProcessImageInBackground(String cameraFilePath) async {
-  final bgStartTime = DateTime.now();
-  try {
-    final dir = await getApplicationDocumentsDirectory();
-    final id = const Uuid().v4();
-    final savedPath = '${dir.path}/$id.jpg';
-    final thumbPath = '${dir.path}/${id}_thumb.jpg';
+  final dir = await getApplicationDocumentsDirectory();
+  final id = const Uuid().v4();
+  final savedPath = '${dir.path}/$id.jpg';
+  final thumbPath = '${dir.path}/${id}_thumb.jpg';
 
-    // Copy file in background
-    await File(cameraFilePath).copy(savedPath);
-    final copyTime = DateTime.now().difference(bgStartTime).inMilliseconds;
-    debugPrint('[PERF] Background file copy: ${copyTime}ms');
+  // Copy file in background
+  await File(cameraFilePath).copy(savedPath);
 
-    // Refresh cache
-    PhotoCacheService.refresh();
+  // Refresh cache
+  PhotoCacheService.refresh();
 
-    // Process image in background (optimize and create thumbnail)
-    ImageProcessingService.processCameraImageAsync(
-      cameraImagePath: cameraFilePath,
-      savedImagePath: savedPath,
-      thumbnailPath: thumbPath,
-    ).then((_) {
-      final totalBgTime = DateTime.now().difference(bgStartTime).inMilliseconds;
-      debugPrint('[PERF] Background processing complete: ${totalBgTime}ms');
-    }).catchError((e) {
-      debugPrint('[ADD_PHOTO] Background processing error: $e');
-    });
-  } catch (e) {
-    debugPrint('[ADD_PHOTO] Background save error: $e');
-  }
+  // Process image in background (optimize and create thumbnail)
+  ImageProcessingService.processCameraImageAsync(
+    cameraImagePath: cameraFilePath,
+    savedImagePath: savedPath,
+    thumbnailPath: thumbPath,
+  );
 }
 
 class ButtonsInfoCardPhoto extends StatelessWidget {
   const ButtonsInfoCardPhoto({super.key});
-  
+
   BuildContext? showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -247,10 +232,7 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
                   SizedBox(height: 16),
                   Text(
                     "Processing...",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -273,30 +255,21 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
             title: 'Take Photo',
             icon: Assets.images.photo2.image(height: 68),
             onTap: () async {
-              // Performance instrumentation
-              final startTime = DateTime.now();
-              
               // Show loading IMMEDIATELY before camera opens
               if (!context.mounted) return;
-              final loadStartTime = DateTime.now();
               showLoadingDialog(context);
-              final loadDialogTime = DateTime.now().difference(loadStartTime).inMilliseconds;
-              debugPrint('[PERF] Load dialog shown: ${loadDialogTime}ms');
 
               try {
                 final picker = ImagePicker();
-                
+
                 // CRITICAL: Force camera to use lowest safe resolution BEFORE opening
-                final cameraOpenStart = DateTime.now();
                 final XFile? file = await picker.pickImage(
                   source: ImageSource.camera,
-                  maxWidth: 1024.0,  // Forces low resolution capture
+                  maxWidth: 1024.0, // Forces low resolution capture
                   maxHeight: 1024.0, // Prevents max-resolution
-                  imageQuality: 60,  // Low quality for minimal size
+                  imageQuality: 60, // Low quality for minimal size
                   preferredCameraDevice: CameraDevice.rear,
                 );
-                final cameraTime = DateTime.now().difference(cameraOpenStart).inMilliseconds;
-                debugPrint('[PERF] Camera capture time: ${cameraTime}ms');
 
                 if (file == null) {
                   // User cancelled
@@ -305,33 +278,20 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
                   return;
                 }
 
-                final onResultTime = DateTime.now().difference(startTime).inMilliseconds;
-                debugPrint('[PERF] Time to camera result: ${onResultTime}ms');
-
                 // INSTANT PATH: Navigate IMMEDIATELY without waiting for ANY file operations
                 // Pass camera file as temporary placeholder - user sees it instantly
                 if (!context.mounted) return;
                 Navigator.pop(context); // Close loading
-                
-                final navStartTime = DateTime.now();
                 // Navigate IMMEDIATELY - use camera file as placeholder
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChoosePhotoScreen(
-                      temporaryCameraFile: file.path,
-                    ),
+                    builder: (context) =>
+                        ChoosePhotoScreen(temporaryCameraFile: file.path),
                   ),
                 );
-                final navTime = DateTime.now().difference(navStartTime).inMilliseconds;
-                final totalPerceivedTime = DateTime.now().difference(startTime).inMilliseconds;
-                debugPrint('[PERF] Navigation time: ${navTime}ms');
-                debugPrint('[PERF] TOTAL PERCEIVED TIME: ${totalPerceivedTime}ms');
-
                 // ALL file operations happen in background (fire and forget)
-                _saveAndProcessImageInBackground(file.path).catchError((e) {
-                  debugPrint('[ADD_PHOTO] Background save error: $e');
-                });
+                _saveAndProcessImageInBackground(file.path);
               } catch (e) {
                 // Close loading on error
                 if (!context.mounted) return;
@@ -361,7 +321,6 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class InfoCardPhoto extends StatelessWidget {

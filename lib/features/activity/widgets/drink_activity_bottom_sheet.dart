@@ -30,7 +30,8 @@ class DrinkActivityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<DrinkActivityBottomSheet> createState() => _DrinkActivityBottomSheetState();
+  State<DrinkActivityBottomSheet> createState() =>
+      _DrinkActivityBottomSheetState();
 }
 
 class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
@@ -38,50 +39,39 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  
+
   String? _selectedDrinkType;
   String? _selectedQuantity;
-  List<String> _tags = [];
-  
+  final List<String> _tags = [];
+
   // Options loaded from backend
   List<String> _drinkTypeOptions = [];
   List<String> _quantityOptions = [];
-  
+
   // Class ID for creating activities
   String? _classId;
-  
+
   bool _isSubmitting = false;
   bool _isLoadingOptions = true;
   final ActivityDrinksApi _api = GetIt.instance<ActivityDrinksApi>();
-  final FileUploadUsecase _fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[DRINK_ACTIVITY] ========== Opening DrinkActivityBottomSheet ==========');
-    debugPrint('[DRINK_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
-    debugPrint('[DRINK_ACTIVITY] DateTime: ${widget.dateTime}');
-    
     // Load classId and drink options
     _loadClassId();
     _loadAllOptions();
   }
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[DRINK_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint('[DRINK_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[DRINK_ACTIVITY] Error loading classId: $e');
-      debugPrint('[DRINK_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -95,17 +85,13 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
 
   Future<void> _loadDrinkTypes() async {
     try {
-      debugPrint('[DRINK_ACTIVITY] Loading drink types from backend...');
       final options = await _api.getDrinkTypes();
-      debugPrint('[DRINK_ACTIVITY] Drink types loaded: $options');
       if (mounted) {
         setState(() {
           _drinkTypeOptions = options;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[DRINK_ACTIVITY] Error loading drink types: $e');
-      debugPrint('[DRINK_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _drinkTypeOptions = [];
@@ -116,17 +102,13 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
 
   Future<void> _loadQuantities() async {
     try {
-      debugPrint('[DRINK_ACTIVITY] Loading quantities from backend...');
       final options = await _api.getQuantities();
-      debugPrint('[DRINK_ACTIVITY] Quantities loaded: $options');
       if (mounted) {
         setState(() {
           _quantityOptions = options;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[DRINK_ACTIVITY] Error loading quantities: $e');
-      debugPrint('[DRINK_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _quantityOptions = [];
@@ -139,10 +121,7 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
     setState(() {
       _isLoadingOptions = true;
     });
-    await Future.wait([
-      _loadDrinkTypes(),
-      _loadQuantities(),
-    ]);
+    await Future.wait([_loadDrinkTypes(), _loadQuantities()]);
     if (mounted) {
       setState(() {
         _isLoadingOptions = false;
@@ -159,14 +138,12 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
   }
 
   void _onDrinkTypeChanged(String? value) {
-    debugPrint('[DRINK_ACTIVITY] Drink type changed: $value');
     setState(() {
       _selectedDrinkType = value;
     });
   }
 
   void _onQuantityChanged(String? value) {
-    debugPrint('[DRINK_ACTIVITY] Quantity changed: $value');
     setState(() {
       _selectedQuantity = value;
     });
@@ -175,30 +152,20 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
   void _onTagSubmitted(String value) {
     final tag = value.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
-      debugPrint('[DRINK_ACTIVITY] Adding tag (LOCAL ONLY): $tag');
       setState(() {
         _tags.add(tag);
       });
       _tagController.clear();
-      debugPrint('[DRINK_ACTIVITY] Tag added successfully - total tags: ${_tags.length}');
-    } else if (_tags.contains(tag)) {
-      debugPrint('[DRINK_ACTIVITY] Tag already exists: $tag');
     }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint('[DRINK_ACTIVITY] ========== Tag removed (LOCAL ONLY) ==========');
-    debugPrint('[DRINK_ACTIVITY] Tag removed locally: $tag');
-    debugPrint('[DRINK_ACTIVITY] NO API call executed for tag removal');
-    debugPrint('[DRINK_ACTIVITY] Tags are LOCAL-ONLY - changes stay in UI');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint('[DRINK_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}');
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[DRINK_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -207,34 +174,22 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[DRINK_ACTIVITY] Uploading photo: ${imageFile.path}');
-      final uploadResult = await _fileUploadUsecase.uploadFile(filePath: imageFile.path);
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint('[DRINK_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}');
         return uploadResult.data;
       } else {
-        debugPrint('[DRINK_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[DRINK_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[DRINK_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[DRINK_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint('[DRINK_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[DRINK_ACTIVITY] Drink type: $_selectedDrinkType');
-    debugPrint('[DRINK_ACTIVITY] Quantity: $_selectedQuantity');
-    debugPrint('[DRINK_ACTIVITY] Tags: $_tags');
-    debugPrint('[DRINK_ACTIVITY] Description: ${_descriptionController.text}');
-    debugPrint('[DRINK_ACTIVITY] Images: ${_images.length}');
-
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      debugPrint('[DRINK_ACTIVITY] Validation failed: No children selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one child')),
       );
@@ -242,7 +197,6 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[DRINK_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -250,7 +204,6 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
     }
 
     if (_selectedDrinkType == null || _selectedDrinkType!.isEmpty) {
-      debugPrint('[DRINK_ACTIVITY] Validation failed: No drink type selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a drink type')),
       );
@@ -258,10 +211,9 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
     }
 
     if (_selectedQuantity == null || _selectedQuantity!.isEmpty) {
-      debugPrint('[DRINK_ACTIVITY] Validation failed: No quantity selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a quantity')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a quantity')));
       return;
     }
 
@@ -278,7 +230,6 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
 
       // Format start_at in UTC ISO 8601 format
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[DRINK_ACTIVITY] start_at (UTC): $startAtUtc');
 
       // Two-step flow: Create activity (parent) then drink details (child) for EACH child
       int successCount = 0;
@@ -286,46 +237,34 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
 
       for (final child in widget.selectedChildren) {
         if (child.id == null || child.id!.isEmpty) {
-          debugPrint('[DRINK_ACTIVITY] Skipping child with null ID');
           failureCount++;
           continue;
         }
 
         try {
-          debugPrint('[DRINK_ACTIVITY] ========== Processing child: ${child.id} ==========');
-          
           // STEP A: Create parent activity
-          debugPrint('[DRINK_ACTIVITY] STEP A: Creating activity for child ${child.id}');
           final activityId = await _api.createActivity(
             childId: child.id!,
             classId: _classId!,
             startAtUtc: startAtUtc,
           );
-          debugPrint('[DRINK_ACTIVITY] ✅ Activity created with ID: $activityId');
 
           // STEP B: Create drink details linked to activity
-          debugPrint('[DRINK_ACTIVITY] STEP B: Creating drink details for activity $activityId');
-          final response = await _api.createDrinkDetails(
+          await _api.createDrinkDetails(
             activityId: activityId,
             drinkType: _selectedDrinkType!,
             quantity: _selectedQuantity!,
-            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            description: _descriptionController.text.isEmpty
+                ? null
+                : _descriptionController.text,
             tags: _tags.isNotEmpty ? _tags : null,
             photo: photoFileId,
           );
-
-          debugPrint('[DRINK_ACTIVITY] ✅ Drink details created for child ${child.id}: ${response.statusCode}');
-          debugPrint('[DRINK_ACTIVITY] Response data: ${response.data}');
           successCount++;
-        } catch (e, stackTrace) {
-          debugPrint('[DRINK_ACTIVITY] ❌ Error processing child ${child.id}: $e');
-          debugPrint('[DRINK_ACTIVITY] StackTrace: $stackTrace');
+        } catch (e) {
           failureCount++;
         }
       }
-
-      debugPrint('[DRINK_ACTIVITY] ========== Submission complete ==========');
-      debugPrint('[DRINK_ACTIVITY] Success: $successCount, Failures: $failureCount');
 
       if (mounted) {
         setState(() {
@@ -338,15 +277,13 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
           // Navigate back to LogActivityScreen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LogActivityScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 failureCount > 0
-                    ? 'Created $successCount drink activities (${failureCount} failed)'
+                    ? 'Created $successCount drink activities ($failureCount failed)'
                     : 'Drink activities created successfully',
               ),
             ),
@@ -357,16 +294,14 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
           );
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('[DRINK_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[DRINK_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -482,15 +417,11 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -587,4 +518,3 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
     );
   }
 }
-

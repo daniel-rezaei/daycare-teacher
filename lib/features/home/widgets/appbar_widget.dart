@@ -24,9 +24,7 @@ class _AppbarWidgetState extends State<AppbarWidget> {
   Future<void> _loadClassId() async {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString('class_id');
-    
-    debugPrint('[APPBAR_DEBUG] Loading classId: $savedClassId');
-    
+
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
         classId = savedClassId;
@@ -34,23 +32,16 @@ class _AppbarWidgetState extends State<AppbarWidget> {
       // فقط در صورتی که state قبلاً success نبوده باشد
       final currentState = context.read<HomeBloc>().state;
       if (currentState.classRooms == null || currentState.classRooms!.isEmpty) {
-        debugPrint('[APPBAR_DEBUG] Requesting LoadClassRoomsEvent');
         context.read<HomeBloc>().add(const LoadClassRoomsEvent());
-      } else {
-        debugPrint('[APPBAR_DEBUG] ClassRooms already loaded');
       }
-    } else {
-      debugPrint('[APPBAR_DEBUG] classId is null or empty');
     }
   }
 
   String? _getRoomName(List<ClassRoomEntity>? classRooms) {
     if (classId == null || classRooms == null) return null;
-    
+
     try {
-      final classRoom = classRooms.firstWhere(
-        (room) => room.id == classId,
-      );
+      final classRoom = classRooms.firstWhere((room) => room.id == classId);
       return classRoom.roomName;
     } catch (e) {
       return null;
@@ -63,61 +54,60 @@ class _AppbarWidgetState extends State<AppbarWidget> {
       builder: (context, state) {
         String? roomName = _getRoomName(state.classRooms);
 
-        debugPrint('[APPBAR_DEBUG] HomeState classRooms: ${state.classRooms?.length ?? 0}');
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+            children: [
               const Text(
-            'Home',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Color(0xff444349),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-                  color: const Color(0xffFFFFFF).withValues(alpha: .4),
-              borderRadius: BorderRadius.circular(16),
-                  border: Border.all(width: 2, color: const Color(0xffFAFAFA)),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 8,
-                      color: const Color(0xffE4D3FF).withValues(alpha: .5),
+                'Home',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xff444349),
                 ),
-              ],
-            ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xffFFFFFF).withValues(alpha: .4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(width: 2, color: const Color(0xffFAFAFA)),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 8,
+                      color: const Color(0xffE4D3FF).withValues(alpha: .5),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Assets.images.leftSlotItems.svg(),
+                  children: [
+                    Assets.images.leftSlotItems.svg(),
                     const SizedBox(width: 8),
                     if (state.isLoadingClassRooms)
                       const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CupertinoActivityIndicator(
-                          radius: 8,
-                        ),
+                        child: CupertinoActivityIndicator(radius: 8),
                       )
                     else
-                Text(
+                      Text(
                         roomName ?? '',
                         style: const TextStyle(
-                    color: Color(0xff681AD6),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                          color: Color(0xff681AD6),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
         );
       },
     );

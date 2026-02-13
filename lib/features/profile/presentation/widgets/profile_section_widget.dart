@@ -34,9 +34,6 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     final savedAuthMode = prefs.getString('auth_mode');
     final savedStaffId = prefs.getString('staff_id');
     final savedClassId = prefs.getString('class_id');
-    
-    debugPrint('[PROFILE_DEBUG] Loading contactId: $savedContactId, authMode: $savedAuthMode, staffId: $savedStaffId, classId: $savedClassId');
-    
     if (mounted && savedContactId != null && savedContactId.isNotEmpty) {
       setState(() {
         contactId = savedContactId;
@@ -45,8 +42,6 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
         classId = savedClassId;
       });
       context.read<HomeBloc>().add(LoadContactEvent(savedContactId));
-    } else {
-      debugPrint('[PROFILE_DEBUG] contactId is null or empty');
     }
   }
 
@@ -54,7 +49,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     if (classId == null) return null;
     final homeState = context.read<HomeBloc>().state;
     if (homeState.classRooms == null) return null;
-    
+
     try {
       final classRoom = homeState.classRooms!.firstWhere(
         (room) => room.id == classId,
@@ -76,9 +71,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
               children: [
                 _buildLoadingAvatar(),
                 const SizedBox(width: 12),
-                const Expanded(
-                  child: CupertinoActivityIndicator(),
-                ),
+                const Expanded(child: CupertinoActivityIndicator()),
                 _buildSwitchAccountIcon(),
               ],
             ),
@@ -87,7 +80,8 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
 
         if (state.contact != null) {
           final contact = state.contact!;
-          final fullName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          final fullName =
+              '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
           final displayName = fullName.isNotEmpty ? fullName : 'User';
 
           return Padding(
@@ -143,15 +137,16 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
         String? teacherName;
         String? teacherPhoto;
         String? className;
-        
+
         if (state.contact != null) {
           final contact = state.contact!;
-          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'
+              .trim();
           teacherPhoto = contact.photo;
         }
-        
+
         className = _getClassName();
-        
+
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -203,7 +198,8 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
 
         if (state.contact != null) {
           final contact = state.contact!;
-          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'
+              .trim();
           teacherPhoto = contact.photo;
         }
 
@@ -248,7 +244,8 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
 
         if (state.contact != null) {
           final contact = state.contact!;
-          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'.trim();
+          teacherName = '${contact.firstName ?? ''} ${contact.lastName ?? ''}'
+              .trim();
           teacherPhoto = contact.photo;
         }
 
@@ -313,31 +310,29 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   }
 
   void _navigateToSelectClass() async {
-    debugPrint('[SHARED_MODE_SWITCH] 🔒 Starting Shared Mode logout flow');
-    
     // CRITICAL: Clear session context immediately
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('class_id');
     await prefs.remove('contact_id');
     await prefs.remove('staff_id');
     await prefs.remove('selected_class');
-    debugPrint('[SHARED_MODE_SWITCH] ✅ Cleared session context (class_id, contact_id, staff_id, selected_class)');
-    
+
     // Clear HomeBloc state by resetting to initial
     final homeBloc = context.read<HomeBloc>();
     // Note: HomeBloc state will be naturally cleared when navigating away
-    
+
     final currentState = homeBloc.state;
-    
+
     // CRITICAL: Use pushAndRemoveUntil to reset entire navigation stack
     // This makes returning to Home technically impossible
-    if (currentState.classRooms != null && currentState.classRooms!.isNotEmpty) {
-      debugPrint('[SHARED_MODE_SWITCH] 🚪 Navigating with hard reset (pushAndRemoveUntil)');
+    if (currentState.classRooms != null &&
+        currentState.classRooms!.isNotEmpty) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => SelectClassScreen(
             classRooms: currentState.classRooms!,
-            fromSharedModeSwitch: true, // CRITICAL: Flag for back button interception
+            fromSharedModeSwitch:
+                true, // CRITICAL: Flag for back button interception
           ),
         ),
         (_) => false, // Remove all previous routes
@@ -345,7 +340,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
     } else {
       // در غیر این صورت، ابتدا کلاس‌ها را دریافت کن
       homeBloc.add(const LoadClassRoomsEvent());
-      
+
       // استفاده از BlocListener برای گوش دادن به state
       showDialog(
         context: context,
@@ -354,29 +349,27 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
           listener: (context, state) {
             if (state.classRooms != null && state.classRooms!.isNotEmpty) {
               Navigator.pop(dialogContext); // بستن dialog
-              debugPrint('[SHARED_MODE_SWITCH] 🚪 Navigating with hard reset (pushAndRemoveUntil)');
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (context) => SelectClassScreen(
                     classRooms: state.classRooms!,
-                    fromSharedModeSwitch: true, // CRITICAL: Flag for back button interception
+                    fromSharedModeSwitch:
+                        true, // CRITICAL: Flag for back button interception
                   ),
                 ),
                 (_) => false, // Remove all previous routes
               );
             } else if (state.classRoomsError != null) {
               Navigator.pop(dialogContext); // بستن dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.classRoomsError!)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.classRoomsError!)));
             }
           },
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
               if (state.isLoadingClassRooms) {
-                return const Center(
-                  child: CupertinoActivityIndicator(),
-                );
+                return const Center(child: CupertinoActivityIndicator());
               }
               return const SizedBox.shrink();
             },

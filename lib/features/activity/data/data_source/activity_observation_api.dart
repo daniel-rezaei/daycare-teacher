@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @singleton
@@ -9,14 +8,12 @@ class ActivityObservationApi {
 
   /// Get activity type ID from backend based on type
   Future<String> _getActivityTypeId(String type) async {
-    debugPrint('[OBSERVATION_API] Fetching activity type ID for type: $type');
     final response = await httpclient.get('/items/activity_types');
     final data = response.data['data'] as List<dynamic>;
 
     for (final item in data) {
       if (item['type'] == type) {
         final id = item['id'] as String;
-        debugPrint('[OBSERVATION_API] Found activity type ID for $type: $id');
         return id;
       }
     }
@@ -31,10 +28,6 @@ class ActivityObservationApi {
     required String classId,
     required String startAtUtc,
   }) async {
-    debugPrint(
-      '[OBSERVATION_API] ========== STEP A: Creating Activity (Parent) ==========',
-    );
-
     // Get activity type ID from backend
     final activityTypeId = await _getActivityTypeId('observation');
 
@@ -47,14 +40,8 @@ class ActivityObservationApi {
       'class_id': classId,
       'child_id': childId,
     };
-
-    debugPrint('[OBSERVATION_API] Activity request data: $data');
-
     final response = await httpclient.post('/items/activities', data: data);
-
     final activityId = response.data['data']['id'] as String;
-    debugPrint('[OBSERVATION_API] ✅ Activity created with ID: $activityId');
-
     return activityId;
   }
 
@@ -69,75 +56,48 @@ class ActivityObservationApi {
     bool? followUpRequired,
     bool? shareWithParent,
   }) async {
-    debugPrint(
-      '[OBSERVATION_API] ========== STEP B: Creating Observation Details (Child) ==========',
-    );
-    debugPrint('[OBSERVATION_API] activityId: $activityId');
-    debugPrint('[OBSERVATION_API] domain_id: $domainId');
-    debugPrint('[OBSERVATION_API] skill_observed: $skillObserved');
-    debugPrint('[OBSERVATION_API] description: $description');
-    debugPrint('[OBSERVATION_API] follow_up: $followUpRequired');
-    debugPrint('[OBSERVATION_API] share_with_parent: $shareWithParent');
-
     final data = <String, dynamic>{
       'category_id': domainId,
       'activity_id': activityId,
       'description': description ?? '',
       'follow_up': followUpRequired ?? false,
       'share_with_parent': shareWithParent ?? true,
-      if (skillObserved != null && skillObserved.isNotEmpty) 'skill_observed': skillObserved,
+      if (skillObserved != null && skillObserved.isNotEmpty)
+        'skill_observed': skillObserved,
       if (photo != null && photo.isNotEmpty) 'photo': photo,
     };
-
-    debugPrint('[OBSERVATION_API] Observation details request data: $data');
-    debugPrint('=====================================================');
-
     try {
       final response = await httpclient.post(
         '/items/Observation_Record',
         data: data,
       );
-      debugPrint(
-        '[OBSERVATION_API] Observation details response status: ${response.statusCode}',
-      );
-      debugPrint(
-        '[OBSERVATION_API] Observation details response data: ${response.data}',
-      );
       return response;
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_API] Error creating observation details: $e');
-      debugPrint('[OBSERVATION_API] StackTrace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
 
   /// Get domain options (assessment_domain.id and name)
   /// Returns list of maps with 'id' and 'name' keys
-Future<List<Map<String, String>>> getDomainOptions() async {
-  final response = await httpclient.get('/items/assessment_domain');
+  Future<List<Map<String, String>>> getDomainOptions() async {
+    final response = await httpclient.get('/items/assessment_domain');
 
-  final data = response.data['data'] as List<dynamic>;
+    final data = response.data['data'] as List<dynamic>;
 
-  return data.map((item) {
-    return {
-      'id': item['id'].toString(),
-      'name': item['name']?.toString() ?? '',
-    };
-  }).toList();
-}
+    return data.map((item) {
+      return {
+        'id': item['id'].toString(),
+        'name': item['name']?.toString() ?? '',
+      };
+    }).toList();
+  }
 
   /// Get category options from observation_category collection.
   /// Returns list of CategoryModel with value=id and name for display.
   /// The selected category's id is sent as domain_id to Observation_Record.
   Future<List<CategoryModel>> getCategoryOptions() async {
-    debugPrint('[OBSERVATION_API] Fetching categories from observation_category');
-
     try {
       final response = await httpclient.get('/items/observation_category');
-      debugPrint(
-        '[OBSERVATION_API] Category options response status: ${response.statusCode}',
-      );
-      debugPrint('[OBSERVATION_API] Category options response data: ${response.data}');
 
       final data = response.data['data'] as List<dynamic>;
 
@@ -147,23 +107,15 @@ Future<List<Map<String, String>>> getDomainOptions() async {
           name: item['name']?.toString() ?? '',
         );
       }).toList();
-
-      debugPrint(
-        '[OBSERVATION_API] Parsed category options: ${categories.map((e) => e.name).toList()}',
-      );
       return categories;
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_API] Error fetching category options: $e');
-      debugPrint('[OBSERVATION_API] StackTrace: $stackTrace');
+    } catch (e) {
       return [];
     }
   }
 
-
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
   Future<bool> hasHistory(String classId) async {
-    debugPrint('[OBSERVATION_API] Checking history for classId: $classId');
     try {
       final activityTypeId = await _getActivityTypeId('observation');
 
@@ -178,18 +130,13 @@ Future<List<Map<String, String>>> getDomainOptions() async {
 
       final data = response.data['data'] as List<dynamic>;
       final hasHistory = data.isNotEmpty;
-
-      debugPrint(
-        '[OBSERVATION_API] History check result: $hasHistory (found ${data.length} items)',
-      );
       return hasHistory;
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_API] Error checking history: $e');
-      debugPrint('[OBSERVATION_API] StackTrace: $stackTrace');
+    } catch (e) {
       return false;
     }
   }
 }
+
 class CategoryModel {
   final String value;
   final String name;

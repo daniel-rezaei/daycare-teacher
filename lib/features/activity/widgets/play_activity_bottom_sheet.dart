@@ -30,7 +30,8 @@ class PlayActivityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<PlayActivityBottomSheet> createState() => _PlayActivityBottomSheetState();
+  State<PlayActivityBottomSheet> createState() =>
+      _PlayActivityBottomSheetState();
 }
 
 class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
@@ -38,58 +39,47 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  
+
   String? _selectedType;
-  List<String> _tags = [];
-  
+  final List<String> _tags = [];
+
   // Time range state
   late DateTime _startTime;
   late DateTime _endTime;
-  
+
   // Options loaded from backend
   List<String> _typeOptions = [];
-  
+
   // Class ID for creating activities
   String? _classId;
-  
+
   bool _isSubmitting = false;
   bool _isLoadingOptions = true;
   final ActivityPlayApi _api = GetIt.instance<ActivityPlayApi>();
-  final FileUploadUsecase _fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[PLAY_ACTIVITY] ========== Opening PlayActivityBottomSheet ==========');
-    debugPrint('[PLAY_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
-    debugPrint('[PLAY_ACTIVITY] DateTime: ${widget.dateTime}');
-    
     // Initialize time range: start = widget.dateTime, end = start + 30 minutes
     _startTime = widget.dateTime;
     _endTime = _startTime.add(const Duration(minutes: 30));
-    
+
     // Load classId and play options
     _loadClassId();
     _loadAllOptions();
   }
-  
+
   bool get _isTimeValid => _endTime.isAfter(_startTime);
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[PLAY_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint('[PLAY_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[PLAY_ACTIVITY] Error loading classId: $e');
-      debugPrint('[PLAY_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -103,17 +93,13 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
 
   Future<void> _loadTypes() async {
     try {
-      debugPrint('[PLAY_ACTIVITY] Loading play types from backend...');
       final options = await _api.getPlayTypes();
-      debugPrint('[PLAY_ACTIVITY] Play types loaded: $options');
       if (mounted) {
         setState(() {
           _typeOptions = options;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[PLAY_ACTIVITY] Error loading play types: $e');
-      debugPrint('[PLAY_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _typeOptions = [];
@@ -141,10 +127,10 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   String _formatTime(DateTime dateTime) {
     return DateFormat('h:mm a').format(dateTime);
   }
-  
+
   Future<void> _selectEndTime() async {
     DateTime selectedTime = _endTime;
-    
+
     await showModalBottomSheet(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -158,8 +144,8 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
             selectedTime.minute,
           );
           final isValid = newEndTime.isAfter(_startTime);
-          
-          return Container(
+
+          return SizedBox(
             height: 250,
             child: Column(
               children: [
@@ -171,12 +157,14 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                       child: const Text('Cancel'),
                     ),
                     TextButton(
-                      onPressed: isValid ? () {
-                        Navigator.pop(context);
-                        setState(() {
-                          _endTime = newEndTime;
-                        });
-                      } : null,
+                      onPressed: isValid
+                          ? () {
+                              Navigator.pop(context);
+                              setState(() {
+                                _endTime = newEndTime;
+                              });
+                            }
+                          : null,
                       child: const Text('Done'),
                     ),
                   ],
@@ -187,7 +175,9 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                     initialDateTime: _endTime,
                     onDateTimeChanged: (DateTime newTime) {
                       selectedTime = newTime;
-                      setModalState(() {}); // Trigger rebuild to update Done button state
+                      setModalState(
+                        () {},
+                      ); // Trigger rebuild to update Done button state
                     },
                   ),
                 ),
@@ -198,7 +188,7 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
       ),
     );
   }
-  
+
   void _toggleEndAmPm() {
     setState(() {
       if (_endTime.hour < 12) {
@@ -212,7 +202,6 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   }
 
   void _onTypeChanged(String? value) {
-    debugPrint('[PLAY_ACTIVITY] Type changed: $value');
     setState(() {
       _selectedType = value;
     });
@@ -221,30 +210,20 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   void _onTagSubmitted(String value) {
     final tag = value.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
-      debugPrint('[PLAY_ACTIVITY] Adding tag (LOCAL ONLY): $tag');
       setState(() {
         _tags.add(tag);
       });
       _tagController.clear();
-      debugPrint('[PLAY_ACTIVITY] Tag added successfully - total tags: ${_tags.length}');
-    } else if (_tags.contains(tag)) {
-      debugPrint('[PLAY_ACTIVITY] Tag already exists: $tag');
     }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint('[PLAY_ACTIVITY] ========== Tag removed (LOCAL ONLY) ==========');
-    debugPrint('[PLAY_ACTIVITY] Tag removed locally: $tag');
-    debugPrint('[PLAY_ACTIVITY] NO API call executed for tag removal');
-    debugPrint('[PLAY_ACTIVITY] Tags are LOCAL-ONLY - changes stay in UI');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint('[PLAY_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}');
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[PLAY_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -253,33 +232,22 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[PLAY_ACTIVITY] Uploading photo: ${imageFile.path}');
-      final uploadResult = await _fileUploadUsecase.uploadFile(filePath: imageFile.path);
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint('[PLAY_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}');
         return uploadResult.data;
       } else {
-        debugPrint('[PLAY_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[PLAY_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[PLAY_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[PLAY_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint('[PLAY_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[PLAY_ACTIVITY] Type: $_selectedType');
-    debugPrint('[PLAY_ACTIVITY] Tags: $_tags');
-    debugPrint('[PLAY_ACTIVITY] Description: ${_descriptionController.text}');
-    debugPrint('[PLAY_ACTIVITY] Images: ${_images.length}');
-
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      debugPrint('[PLAY_ACTIVITY] Validation failed: No children selected');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one child')),
       );
@@ -287,7 +255,6 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[PLAY_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -295,15 +262,13 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
     }
 
     if (_selectedType == null || _selectedType!.isEmpty) {
-      debugPrint('[PLAY_ACTIVITY] Validation failed: No type selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a type')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a type')));
       return;
     }
 
     if (!_isTimeValid) {
-      debugPrint('[PLAY_ACTIVITY] Validation failed: Invalid time range');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('End time cannot be before start time')),
       );
@@ -324,8 +289,6 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
       // Format start_at and end_at in UTC ISO 8601 format
       final startAtUtc = _startTime.toUtc().toIso8601String();
       final endAtUtc = _endTime.toUtc().toIso8601String();
-      debugPrint('[PLAY_ACTIVITY] start_at (UTC): $startAtUtc');
-      debugPrint('[PLAY_ACTIVITY] end_at (UTC): $endAtUtc');
 
       // Two-step flow: Create activity (parent) then play details (child) for EACH child
       int successCount = 0;
@@ -333,47 +296,34 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
 
       for (final child in widget.selectedChildren) {
         if (child.id == null || child.id!.isEmpty) {
-          debugPrint('[PLAY_ACTIVITY] Skipping child with null ID');
           failureCount++;
           continue;
         }
 
         try {
-          debugPrint('[PLAY_ACTIVITY] ========== Processing child: ${child.id} ==========');
-          
           // STEP A: Create parent activity
-          debugPrint('[PLAY_ACTIVITY] STEP A: Creating activity for child ${child.id}');
           final activityId = await _api.createActivity(
             childId: child.id!,
             classId: _classId!,
             startAtUtc: startAtUtc,
           );
-          debugPrint('[PLAY_ACTIVITY] ✅ Activity created with ID: $activityId');
-
           // STEP B: Create play details linked to activity
-          debugPrint('[PLAY_ACTIVITY] STEP B: Creating play details for activity $activityId');
-          final response = await _api.createPlayDetails(
+          await _api.createPlayDetails(
             activityId: activityId,
             type: _selectedType!,
-            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            description: _descriptionController.text.isEmpty
+                ? null
+                : _descriptionController.text,
             tags: _tags.isNotEmpty ? _tags : null,
             photo: photoFileId,
             startAt: startAtUtc,
             endAt: endAtUtc,
           );
-
-          debugPrint('[PLAY_ACTIVITY] ✅ Play details created for child ${child.id}: ${response.statusCode}');
-          debugPrint('[PLAY_ACTIVITY] Response data: ${response.data}');
           successCount++;
-        } catch (e, stackTrace) {
-          debugPrint('[PLAY_ACTIVITY] ❌ Error processing child ${child.id}: $e');
-          debugPrint('[PLAY_ACTIVITY] StackTrace: $stackTrace');
+        } catch (e) {
           failureCount++;
         }
       }
-
-      debugPrint('[PLAY_ACTIVITY] ========== Submission complete ==========');
-      debugPrint('[PLAY_ACTIVITY] Success: $successCount, Failures: $failureCount');
 
       if (mounted) {
         setState(() {
@@ -386,15 +336,13 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
           // Navigate back to LogActivityScreen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LogActivityScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 failureCount > 0
-                    ? 'Created $successCount play activities (${failureCount} failed)'
+                    ? 'Created $successCount play activities ($failureCount failed)'
                     : 'Play activities created successfully',
               ),
             ),
@@ -405,16 +353,14 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
           );
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('[PLAY_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[PLAY_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -552,15 +498,11 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -704,7 +646,9 @@ class _TimeColumn extends StatelessWidget {
                 child: Text(
                   _formatTimeForDisplay(time),
                   style: TextStyle(
-                    color: enabled ? AppColors.textPrimary : AppColors.textTertiary,
+                    color: enabled
+                        ? AppColors.textPrimary
+                        : AppColors.textTertiary,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
@@ -714,7 +658,10 @@ class _TimeColumn extends StatelessWidget {
               GestureDetector(
                 onTap: enabled ? onAmPmTap : null,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: enabled ? AppColors.primaryLight : AppColors.divider,
                     borderRadius: BorderRadius.circular(16),
@@ -722,7 +669,9 @@ class _TimeColumn extends StatelessWidget {
                   child: Text(
                     _getAmPm(time),
                     style: TextStyle(
-                      color: enabled ? AppColors.primary : AppColors.textTertiary,
+                      color: enabled
+                          ? AppColors.primary
+                          : AppColors.textTertiary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -736,4 +685,3 @@ class _TimeColumn extends StatelessWidget {
     );
   }
 }
-

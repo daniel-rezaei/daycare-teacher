@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/core/locator/di.dart';
@@ -15,17 +14,18 @@ class PickupAuthorizationRepositoryImpl extends PickupAuthorizationRepository {
   PickupAuthorizationRepositoryImpl(this.pickupAuthorizationApi);
 
   @override
-  Future<DataState<List<PickupAuthorizationEntity>>> getPickupAuthorizationByChildId({
-    required String childId,
-  }) async {
+  Future<DataState<List<PickupAuthorizationEntity>>>
+  getPickupAuthorizationByChildId({required String childId}) async {
     try {
-      final Response response = await pickupAuthorizationApi.getPickupAuthorizationByChildId(
-        childId: childId,
-      );
+      final Response response = await pickupAuthorizationApi
+          .getPickupAuthorizationByChildId(childId: childId);
 
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
       final List<PickupAuthorizationEntity> pickupAuthorizationList = dataList
-          .map((data) => PickupAuthorizationModel.fromJson(data as Map<String, dynamic>))
+          .map(
+            (data) =>
+                PickupAuthorizationModel.fromJson(data as Map<String, dynamic>),
+          )
           .toList();
 
       return DataSuccess(pickupAuthorizationList);
@@ -41,7 +41,8 @@ class PickupAuthorizationRepositoryImpl extends PickupAuthorizationRepository {
     String errorMessage = 'Error retrieving information';
 
     if (e.response != null) {
-      errorMessage = e.response?.data['message'] ??
+      errorMessage =
+          e.response?.data['message'] ??
           e.response?.statusMessage ??
           'Error connecting to server';
     } else if (e.type == DioExceptionType.connectionTimeout ||
@@ -54,4 +55,3 @@ class PickupAuthorizationRepositoryImpl extends PickupAuthorizationRepository {
     return DataFailed(errorMessage);
   }
 }
-

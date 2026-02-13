@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
@@ -14,7 +13,8 @@ class AttendanceApi {
   }) async {
     final queryParams = <String, dynamic>{
       'filter[class_id][_eq]': classId,
-      'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
+      'fields':
+          'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
       'sort': '-date_created',
     };
 
@@ -49,13 +49,12 @@ class AttendanceApi {
   }
 
   // دریافت attendance بر اساس ID
-  Future<Response> getAttendanceById({
-    required String attendanceId,
-  }) async {
+  Future<Response> getAttendanceById({required String attendanceId}) async {
     return await httpclient.get(
       '/items/Attendance_Child/$attendanceId',
       queryParameters: {
-        'fields': 'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
+        'fields':
+            'id,check_in_at,check_out_at,child_id,class_id,staff_id,check_in_method,check_out_method,Notes',
       },
     );
   }
@@ -68,20 +67,13 @@ class AttendanceApi {
     required String checkOutAt,
     String? notes,
     String? photo, // String of file ID (first file ID if multiple)
-    String? pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
+    String?
+    pickupAuthorizationId, // ONLY accepts existing PickupAuthorization ID
     String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
-    debugPrint('[ATTENDANCE_API] ========== updateAttendance called ==========');
-    debugPrint('[ATTENDANCE_API] attendanceId: $attendanceId');
-    debugPrint('[ATTENDANCE_API] checkOutAt: "$checkOutAt"');
-    debugPrint('[ATTENDANCE_API] notes: $notes');
-    debugPrint('[ATTENDANCE_API] photo: $photo');
-    debugPrint('[ATTENDANCE_API] pickupAuthorizationId: $pickupAuthorizationId');
-    debugPrint('[ATTENDANCE_API] checkoutPickupContactId: $checkoutPickupContactId');
-    
     // فقط فیلدهای لازم - اگر checkOutAt خالی است، فقط note/photo را به‌روز می‌کنیم
     final data = <String, dynamic>{};
-    
+
     // فقط اگر checkOutAt خالی نباشد، آن را اضافه می‌کنیم
     if (checkOutAt.isNotEmpty) {
       data['check_out_at'] = checkOutAt;
@@ -107,23 +99,11 @@ class AttendanceApi {
     if (checkoutPickupContactId != null && checkoutPickupContactId.isNotEmpty) {
       data['checkout_pickup_contact_id'] = checkoutPickupContactId;
     }
-
-    debugPrint('[ATTENDANCE_API] ========== Final Request Body ==========');
-    debugPrint('[ATTENDANCE_API] Request URL: /items/Attendance_Child/$attendanceId');
-    debugPrint('[ATTENDANCE_API] Request Method: PATCH');
-    debugPrint('[ATTENDANCE_API] Request Body (direct, no wrapper): $data');
-    
     // PATCH مستقیم بدون wrapper - مشابه createAttendance
     final response = await httpclient.patch(
       '/items/Attendance_Child/$attendanceId',
       data: data,
     );
-    
-    debugPrint('[ATTENDANCE_API] ========== Response Received ==========');
-    debugPrint('[ATTENDANCE_API] Response status: ${response.statusCode}');
-    debugPrint('[ATTENDANCE_API] Response data: ${response.data}');
-    
     return response;
   }
 }
-

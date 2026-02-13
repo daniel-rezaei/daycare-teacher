@@ -187,7 +187,7 @@ class _LessenScreenState extends State<LessenScreen> {
                                 horizontal: 12,
                               ),
                               itemCount: images.length,
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (_, _) =>
                                   const SizedBox(width: 12),
                               itemBuilder: (context, index) {
                                 return Stack(

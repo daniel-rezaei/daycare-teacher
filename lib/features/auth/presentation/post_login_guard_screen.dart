@@ -30,7 +30,6 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
       if (staffId == null || staffId.isEmpty) {
         // No staff_id means we need to go to Time-In screen
         // This could happen if staff_id wasn't saved properly
-        debugPrint('[POST_LOGIN_GUARD] No staff_id found, redirecting to TimeInScreen');
         if (mounted) {
           _redirectToTimeIn();
         }
@@ -40,11 +39,10 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
       // Request latest attendance to check for active Time-In
       if (mounted) {
         context.read<StaffAttendanceBloc>().add(
-              GetLatestStaffAttendanceEvent(staffId: staffId),
-            );
+          GetLatestStaffAttendanceEvent(staffId: staffId),
+        );
       }
     } catch (e) {
-      debugPrint('[POST_LOGIN_GUARD] Error checking Time-In status: $e');
       if (mounted) {
         _redirectToTimeIn();
       }
@@ -53,16 +51,16 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
 
   void _redirectToTimeIn() {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const TimeInScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const TimeInScreen()));
   }
 
   void _redirectToHome() {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MyHomePage()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const MyHomePage()));
   }
 
   @override
@@ -71,18 +69,14 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
       listener: (context, state) {
         if (state is GetLatestStaffAttendanceSuccess) {
           final latestAttendance = state.latestAttendance;
-          
+
           // Check if there's an active Time-In
           // Active Time-In means:
           // 1. Latest attendance exists
           // 2. Latest attendance is 'time_in' (not 'time_out')
-          final hasActiveTimeIn = latestAttendance != null &&
+          final hasActiveTimeIn =
+              latestAttendance != null &&
               latestAttendance.eventType == 'time_in';
-
-          debugPrint(
-            '[POST_LOGIN_GUARD] Latest attendance: ${latestAttendance?.eventType}, '
-            'Has active Time-In: $hasActiveTimeIn',
-          );
 
           if (hasActiveTimeIn) {
             _redirectToHome();
@@ -90,8 +84,6 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
             _redirectToTimeIn();
           }
         } else if (state is GetLatestStaffAttendanceFailure) {
-          // On error, assume no active Time-In and redirect to Time-In screen
-          debugPrint('[POST_LOGIN_GUARD] Failed to get latest attendance, redirecting to TimeInScreen');
           _redirectToTimeIn();
         }
       },
@@ -104,10 +96,7 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
               const SizedBox(height: 16),
               Text(
                 'Checking attendance status...',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
             ],
           ),
@@ -116,4 +105,3 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
     );
   }
 }
-

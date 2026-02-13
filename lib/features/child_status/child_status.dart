@@ -35,11 +35,16 @@ class _ChildStatusState extends State<ChildStatus> {
   bool _hasRequestedData = false;
   bool _hasRequestedAttendance = false;
   Set<String> _locallyAbsentChildIds = {};
-  List<AttendanceChildEntity> _lastAttendanceList = []; // حفظ آخرین لیست attendance
-  Map<String, ClassTransferRequestEntity> _transferRequestsByStudentId = {}; // Map of studentId -> transfer request
-  
+  List<AttendanceChildEntity> _lastAttendanceList =
+      []; // حفظ آخرین لیست attendance
+  Map<String, ClassTransferRequestEntity> _transferRequestsByStudentId =
+      {}; // Map of studentId -> transfer request
+
   // Helper method برای مقایسه دو لیست attendance
-  bool _listsAreEqual(List<AttendanceChildEntity> list1, List<AttendanceChildEntity> list2) {
+  bool _listsAreEqual(
+    List<AttendanceChildEntity> list1,
+    List<AttendanceChildEntity> list2,
+  ) {
     if (list1.length != list2.length) return false;
     for (int i = 0; i < list1.length; i++) {
       if (list1[i].id != list2[i].id) return false;
@@ -63,13 +68,13 @@ class _ChildStatusState extends State<ChildStatus> {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString(AppConstants.classIdKey);
     final savedStaffId = prefs.getString(AppConstants.staffIdKey);
-    
+
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
         classId = savedClassId;
         staffId = savedStaffId;
       });
-      
+
       // بررسی اینکه آیا داده‌ها قبلاً لود شده‌اند
       final currentState = context.read<ChildBloc>().state;
       if (!_hasRequestedData) {
@@ -108,8 +113,6 @@ class _ChildStatusState extends State<ChildStatus> {
       });
     }
   }
-
-
 
   void _handlePresentClick(String childId) {
     if (classId == null || staffId == null) {
@@ -217,83 +220,56 @@ class _ChildStatusState extends State<ChildStatus> {
 
   void _handleAcceptTransfer(String requestId) {
     context.read<ClassTransferRequestBloc>().add(
-          UpdateTransferRequestStatusEvent(
-            requestId: requestId,
-            status: 'accepted',
-          ),
-        );
+      UpdateTransferRequestStatusEvent(
+        requestId: requestId,
+        status: 'accepted',
+      ),
+    );
   }
 
   void _handleDeclineTransfer(String requestId) {
     context.read<ClassTransferRequestBloc>().add(
-          UpdateTransferRequestStatusEvent(
-            requestId: requestId,
-            status: 'declined',
-          ),
-        );
+      UpdateTransferRequestStatusEvent(
+        requestId: requestId,
+        status: 'declined',
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<ClassTransferRequestBloc, ClassTransferRequestState>(
       listener: (context, state) {
-        debugPrint('[CHILD_STATUS] ========== ClassTransferRequestBloc State Changed ==========');
-        debugPrint('[CHILD_STATUS] 📊 New State Type: ${state.runtimeType}');
-        
         if (state is GetTransferRequestsByClassIdSuccess) {
-          debugPrint('[CHILD_STATUS] ✅ GetTransferRequestsByClassIdSuccess received');
-          debugPrint('[CHILD_STATUS] 📊 Requests Count: ${state.requests.length}');
-          
           // Update transfer requests map
           setState(() {
             _transferRequestsByStudentId = {
               for (var request in state.requests)
-                if (request.studentId != null) request.studentId!: request
+                if (request.studentId != null) request.studentId!: request,
             };
           });
-          
-          debugPrint('[CHILD_STATUS] 📋 Updated _transferRequestsByStudentId map:');
-          _transferRequestsByStudentId.forEach((studentId, request) {
-            debugPrint('[CHILD_STATUS]   studentId: $studentId -> requestId: ${request.id}, fromClassId: ${request.fromClassId}, toClassId: ${request.toClassId}, status: ${request.status}');
-          });
-          debugPrint('[CHILD_STATUS] ✅ Transfer requests map updated');
         } else if (state is CreateTransferRequestSuccess) {
-          debugPrint('[CHILD_STATUS] ✅ CreateTransferRequestSuccess received');
-          debugPrint('[CHILD_STATUS] 📋 Created Request: id=${state.request.id}, studentId=${state.request.studentId}, fromClassId=${state.request.fromClassId}, toClassId=${state.request.toClassId}');
           // Refresh transfer requests after creating a new request
           if (classId != null) {
-            debugPrint('[CHILD_STATUS] 🔄 Refreshing transfer requests for classId: $classId');
             context.read<ClassTransferRequestBloc>().add(
-                  GetTransferRequestsByClassIdEvent(classId: classId!),
-                );
-          } else {
-            debugPrint('[CHILD_STATUS] ⚠️ classId is null, cannot refresh transfer requests');
+              GetTransferRequestsByClassIdEvent(classId: classId!),
+            );
           }
         } else if (state is UpdateTransferRequestStatusSuccess) {
-          debugPrint('[CHILD_STATUS] ✅ UpdateTransferRequestStatusSuccess received');
-          debugPrint('[CHILD_STATUS] 📋 Updated Request: id=${state.request.id}, status=${state.request.status}');
           // Refresh transfer requests after accept/decline
           if (classId != null) {
-            debugPrint('[CHILD_STATUS] 🔄 Refreshing transfer requests for classId: $classId');
             context.read<ClassTransferRequestBloc>().add(
-                  GetTransferRequestsByClassIdEvent(classId: classId!),
-                );
+              GetTransferRequestsByClassIdEvent(classId: classId!),
+            );
           }
           // Refresh children and attendance to reflect changes
           if (classId != null) {
-            debugPrint('[CHILD_STATUS] 🔄 Refreshing children and attendance');
             context.read<ChildBloc>().add(const GetAllChildrenEvent());
             context.read<AttendanceBloc>().add(
-                  GetAttendanceByClassIdEvent(classId: classId!),
-                );
+              GetAttendanceByClassIdEvent(classId: classId!),
+            );
           }
-        } else if (state is GetTransferRequestsByClassIdFailure) {
-          debugPrint('[CHILD_STATUS] ❌ GetTransferRequestsByClassIdFailure received');
-          debugPrint('[CHILD_STATUS] 🐛 Error: ${state.message}');
-        } else if (state is GetTransferRequestsByClassIdLoading) {
-          debugPrint('[CHILD_STATUS] ⏳ GetTransferRequestsByClassIdLoading received');
         }
-        debugPrint('[CHILD_STATUS] ========== ClassTransferRequestBloc State Change End ==========');
       },
       child: Scaffold(
         body: Stack(
@@ -305,261 +281,281 @@ class _ChildStatusState extends State<ChildStatus> {
                   AppBarChild(),
                   Expanded(
                     child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.backgroundWhite,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                        topLeft: Radius.circular(20),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          offset: const Offset(0, -4),
-                          blurRadius: 16,
-                          color: AppColors.shadowLight.withValues(alpha: .10),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundWhite,
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(20),
+                          topLeft: Radius.circular(20),
                         ),
-                      ],
-                    ),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: BlocBuilder<AttendanceBloc, AttendanceState>(
-                        buildWhen: (previous, current) {
-                          // فقط rebuild کن اگر state واقعاً تغییر کرده باشد
-                          return true;
-                        },
-                        builder: (context, attendanceState) {
-                          // حفظ آخرین لیست موفق attendance
-                          // همیشه سعی می‌کنیم آخرین GetAttendanceByClassIdSuccess را از bloc بگیریم
-                          final bloc = context.read<AttendanceBloc>();
-                          
-                          // اگر state فعلی GetAttendanceByClassIdSuccess است، لیست را به‌روز می‌کنیم
-                          if (bloc.state is GetAttendanceByClassIdSuccess) {
-                            final currentState = bloc.state as GetAttendanceByClassIdSuccess;
-                            final newListLength = currentState.attendanceList.length;
-                            final oldListLength = _lastAttendanceList.length;
-                            
-                            // فقط اگر لیست تغییر کرده باشد، به‌روز می‌کنیم
-                            if (newListLength != oldListLength || 
-                                !_listsAreEqual(_lastAttendanceList, currentState.attendanceList)) {
-                              debugPrint('[CHILD_STATUS] 📋 Updating _lastAttendanceList: $oldListLength -> $newListLength items');
-                              _lastAttendanceList = List.from(currentState.attendanceList); // کپی کردن لیست
-                              debugPrint('[CHILD_STATUS] 📋 _lastAttendanceList updated. First 3 IDs: ${_lastAttendanceList.take(3).map((a) => '${a.id}(${a.childId})').join(', ')}');
-                            } else {
-                              debugPrint('[CHILD_STATUS] 📋 _lastAttendanceList unchanged: $newListLength items');
+                        boxShadow: [
+                          BoxShadow(
+                            offset: const Offset(0, -4),
+                            blurRadius: 16,
+                            color: AppColors.shadowLight.withValues(alpha: .10),
+                          ),
+                        ],
+                      ),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: BlocBuilder<AttendanceBloc, AttendanceState>(
+                          buildWhen: (previous, current) {
+                            // فقط rebuild کن اگر state واقعاً تغییر کرده باشد
+                            return true;
+                          },
+                          builder: (context, attendanceState) {
+                            // حفظ آخرین لیست موفق attendance
+                            // همیشه سعی می‌کنیم آخرین GetAttendanceByClassIdSuccess را از bloc بگیریم
+                            final bloc = context.read<AttendanceBloc>();
+
+                            // اگر state فعلی GetAttendanceByClassIdSuccess است، لیست را به‌روز می‌کنیم
+                            if (bloc.state is GetAttendanceByClassIdSuccess) {
+                              final currentState =
+                                  bloc.state as GetAttendanceByClassIdSuccess;
+                              final newListLength =
+                                  currentState.attendanceList.length;
+                              final oldListLength = _lastAttendanceList.length;
+
+                              // فقط اگر لیست تغییر کرده باشد، به‌روز می‌کنیم
+                              if (newListLength != oldListLength ||
+                                  !_listsAreEqual(
+                                    _lastAttendanceList,
+                                    currentState.attendanceList,
+                                  )) {
+                                _lastAttendanceList = List.from(
+                                  currentState.attendanceList,
+                                ); // کپی کردن لیست
+                              }
                             }
-                          } else {
-                            debugPrint('[CHILD_STATUS] 📋 Current bloc state is not GetAttendanceByClassIdSuccess: ${bloc.state.runtimeType}');
-                            debugPrint('[CHILD_STATUS] 📋 Keeping _lastAttendanceList: ${_lastAttendanceList.length} items');
-                          }
-                          
-                          debugPrint('[CHILD_STATUS] 🔄 BlocBuilder rebuild - attendanceState: ${attendanceState.runtimeType}, _lastAttendanceList.length: ${_lastAttendanceList.length}');
-                          
-                          return BlocBuilder<ChildBloc, ChildState>(
-                            builder: (context, state) {
-                              // بررسی لودینگ برای children و contacts
-                              if (state.isLoadingChildren || state.isLoadingContacts) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: CupertinoActivityIndicator(),
-                                  ),
-                                );
-                              }
 
-                              // بررسی لودینگ برای attendance - فقط برای بارگذاری اولیه
-                              // اگر در حال loading هستیم و لیست قبلی خالی است، loading نشان می‌دهیم
-                              if (attendanceState is GetAttendanceByClassIdLoading && _lastAttendanceList.isEmpty) {
-                                debugPrint('[CHILD_STATUS] ⏳ Showing loading (initial load)');
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: CupertinoActivityIndicator(),
-                                  ),
-                                );
-                              }
-                              
-                              // اگر در حالت initial هستیم و لیست خالی است، loading نشان می‌دهیم
-                              if (attendanceState is AttendanceInitial && _lastAttendanceList.isEmpty) {
-                                debugPrint('[CHILD_STATUS] ⏳ Showing loading (initial state)');
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(32.0),
-                                    child: CupertinoActivityIndicator(),
-                                  ),
-                                );
-                              }
-                              
-                              // اگر در حال loading هستیم اما لیست قبلی وجود دارد، از لیست قبلی استفاده می‌کنیم
-                              if (attendanceState is GetAttendanceByClassIdLoading && _lastAttendanceList.isNotEmpty) {
-                                debugPrint('[CHILD_STATUS] ⚠️ Loading but using previous list: ${_lastAttendanceList.length} items');
-                              }
+                            return BlocBuilder<ChildBloc, ChildState>(
+                              builder: (context, state) {
+                                // بررسی لودینگ برای children و contacts
+                                if (state.isLoadingChildren ||
+                                    state.isLoadingContacts) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(32.0),
+                                      child: CupertinoActivityIndicator(),
+                                    ),
+                                  );
+                                }
 
-                              final children = state.children;
-                              final contacts = state.contacts;
-                              List<AttendanceChildEntity> attendanceList = [];
+                                // بررسی لودینگ برای attendance - فقط برای بارگذاری اولیه
+                                // اگر در حال loading هستیم و لیست قبلی خالی است، loading نشان می‌دهیم
+                                if (attendanceState
+                                        is GetAttendanceByClassIdLoading &&
+                                    _lastAttendanceList.isEmpty) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(32.0),
+                                      child: CupertinoActivityIndicator(),
+                                    ),
+                                  );
+                                }
 
-                              // استفاده از آخرین لیست موفق یا لیست فعلی
-                              if (attendanceState is GetAttendanceByClassIdSuccess) {
-                                attendanceList = attendanceState.attendanceList;
-                                debugPrint('[CHILD_STATUS] ✅ Using GetAttendanceByClassIdSuccess list: ${attendanceList.length} items');
-                              } else if (_lastAttendanceList.isNotEmpty) {
-                                // اگر در حالت loading هستیم، از آخرین لیست موفق استفاده می‌کنیم
-                                attendanceList = _lastAttendanceList;
-                                debugPrint('[CHILD_STATUS] ⚠️ Using _lastAttendanceList (state: ${attendanceState.runtimeType}): ${attendanceList.length} items');
-                              } else {
-                                debugPrint('[CHILD_STATUS] ❌ No attendance list available! State: ${attendanceState.runtimeType}, _lastAttendanceList: ${_lastAttendanceList.length}');
-                              }
+                                // اگر در حالت initial هستیم و لیست خالی است، loading نشان می‌دهیم
+                                if (attendanceState is AttendanceInitial &&
+                                    _lastAttendanceList.isEmpty) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(32.0),
+                                      child: CupertinoActivityIndicator(),
+                                    ),
+                                  );
+                                }
 
-                            if (children != null && contacts != null && classId != null) {
-                              final childrenInClass = ChildStatusHelper.getChildrenInClass(
-                                children,
-                                contacts,
-                                classId: classId,
-                              );
-                              
-                              final totalCount = childrenInClass.length;
-                              final presentCount = childrenInClass
-                                  .where((child) {
-                                    final status = ChildStatusHelper.getChildStatusToday(
-                                      childId: child.id ?? '',
-                                      classId: classId!,
-                                      attendanceList: attendanceList,
-                                      locallyAbsentChildIds: _locallyAbsentChildIds,
-                                    );
-                                    return status == ChildAttendanceStatus.present;
-                                  })
-                                  .length;
+                                final children = state.children;
+                                final contacts = state.contacts;
+                                List<AttendanceChildEntity> attendanceList = [];
 
-                              return Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Total Children',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      Text(
-                                        '$presentCount/$totalCount',
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  ListView.builder(
-                                    itemCount: childrenInClass.length,
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    itemBuilder: (context, index) {
-                                      final child = childrenInClass[index];
-                                      final contact = ContactUtils.getContactById(
-                                        child.contactId,
+                                // استفاده از آخرین لیست موفق یا لیست فعلی
+                                if (attendanceState
+                                    is GetAttendanceByClassIdSuccess) {
+                                  attendanceList =
+                                      attendanceState.attendanceList;
+                                } else if (_lastAttendanceList.isNotEmpty) {
+                                  // اگر در حالت loading هستیم، از آخرین لیست موفق استفاده می‌کنیم
+                                  attendanceList = _lastAttendanceList;
+                                }
+
+                                if (children != null &&
+                                    contacts != null &&
+                                    classId != null) {
+                                  final childrenInClass =
+                                      ChildStatusHelper.getChildrenInClass(
+                                        children,
                                         contacts,
-                                      );
-                                      
-                                      debugPrint('[CHILD_STATUS] 👶 Building item for child: ${child.id}, attendanceList.length: ${attendanceList.length}');
-                                      
-                                      final status = ChildStatusHelper.getChildStatusToday(
-                                        childId: child.id ?? '',
-                                        classId: classId!,
-                                        attendanceList: attendanceList,
-                                        locallyAbsentChildIds: _locallyAbsentChildIds,
-                                      );
-                                      
-                                      debugPrint('[CHILD_STATUS] 👶 Child ${child.id} status: $status');
-
-                                      // پیدا کردن attendance مربوط به این کودک برای امروز
-                                      final attendance = ChildStatusHelper.getChildAttendance(
-                                        child.id ?? '',
-                                        attendanceList,
                                         classId: classId,
                                       );
-                                      
-                                      if (attendance != null) {
-                                        debugPrint('[CHILD_STATUS] 👶 Child ${child.id} attendance: id=${attendance.id}, checkIn=${attendance.checkInAt}, checkOut=${attendance.checkOutAt}');
-                                      } else {
-                                        debugPrint('[CHILD_STATUS] 👶 Child ${child.id} attendance: null');
-                                      }
 
-                                      final transferRequest = child.id != null
-                                          ? _transferRequestsByStudentId[child.id]
-                                          : null;
-                                      
-                                      debugPrint('[CHILD_STATUS] 👶 Child ${child.id} transferRequest: ${transferRequest != null ? "id=${transferRequest.id}, fromClassId=${transferRequest.fromClassId}, toClassId=${transferRequest.toClassId}, status=${transferRequest.status}" : "null"}');
+                                  final totalCount = childrenInClass.length;
+                                  final presentCount = childrenInClass.where((
+                                    child,
+                                  ) {
+                                    final status =
+                                        ChildStatusHelper.getChildStatusToday(
+                                          childId: child.id ?? '',
+                                          classId: classId!,
+                                          attendanceList: attendanceList,
+                                          locallyAbsentChildIds:
+                                              _locallyAbsentChildIds,
+                                        );
+                                    return status ==
+                                        ChildAttendanceStatus.present;
+                                  }).length;
 
-                                      return ChildStatusListItem(
-                                        child: child,
-                                        contact: contact,
-                                        status: status,
-                                        attendance: attendance,
-                                        currentClassId: classId!,
-                                        transferRequest: transferRequest,
-                                        onPresentTap: () => _handlePresentClick(child.id ?? ''),
-                                        onAbsentTap: () => _handleAbsentClick(child.id ?? ''),
-                                        onCheckOutTap: () => _handleCheckOutClick(
-                                          child.id ?? '',
-                                          ContactUtils.getContactName(contact),
-                                          attendanceList,
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Total Children',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                          Text(
+                                            '$presentCount/$totalCount',
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+                                      ListView.builder(
+                                        itemCount: childrenInClass.length,
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemBuilder: (context, index) {
+                                          final child = childrenInClass[index];
+                                          final contact =
+                                              ContactUtils.getContactById(
+                                                child.contactId,
+                                                contacts,
+                                              );
+
+                                          final status =
+                                              ChildStatusHelper.getChildStatusToday(
+                                                childId: child.id ?? '',
+                                                classId: classId!,
+                                                attendanceList: attendanceList,
+                                                locallyAbsentChildIds:
+                                                    _locallyAbsentChildIds,
+                                              );
+
+                                          // پیدا کردن attendance مربوط به این کودک برای امروز
+                                          final attendance =
+                                              ChildStatusHelper.getChildAttendance(
+                                                child.id ?? '',
+                                                attendanceList,
+                                                classId: classId,
+                                              );
+
+                                          final transferRequest =
+                                              child.id != null
+                                              ? _transferRequestsByStudentId[child
+                                                    .id]
+                                              : null;
+
+                                          return ChildStatusListItem(
+                                            child: child,
+                                            contact: contact,
+                                            status: status,
+                                            attendance: attendance,
+                                            currentClassId: classId!,
+                                            transferRequest: transferRequest,
+                                            onPresentTap: () =>
+                                                _handlePresentClick(
+                                                  child.id ?? '',
+                                                ),
+                                            onAbsentTap: () =>
+                                                _handleAbsentClick(
+                                                  child.id ?? '',
+                                                ),
+                                            onCheckOutTap: () =>
+                                                _handleCheckOutClick(
+                                                  child.id ?? '',
+                                                  ContactUtils.getContactName(
+                                                    contact,
+                                                  ),
+                                                  attendanceList,
+                                                ),
+                                            onMoreTap:
+                                                (
+                                                  childId,
+                                                  childName,
+                                                  childPhoto,
+                                                ) => _handleMoreClick(
+                                                  child.id ?? '',
+                                                  ContactUtils.getContactName(
+                                                    contact,
+                                                  ),
+                                                  child.photo,
+                                                  classId!,
+                                                  status,
+                                                  attendance,
+                                                  contact,
+                                                  child,
+                                                ),
+                                            onAcceptTransfer:
+                                                transferRequest?.id != null
+                                                ? () => _handleAcceptTransfer(
+                                                    transferRequest!.id!,
+                                                  )
+                                                : null,
+                                            onDeclineTransfer:
+                                                transferRequest?.id != null
+                                                ? () => _handleDeclineTransfer(
+                                                    transferRequest!.id!,
+                                                  )
+                                                : null,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                if (state.childrenError != null ||
+                                    state.contactsError != null) {
+                                  return Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(32.0),
+                                      child: Text(
+                                        state.childrenError ??
+                                            state.contactsError ??
+                                            'Error retrieving information',
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 16,
                                         ),
-                                        onMoreTap: (childId, childName, childPhoto) => _handleMoreClick(
-                                          child.id ?? '',
-                                          ContactUtils.getContactName(contact),
-                                          child.photo,
-                                          classId!,
-                                          status,
-                                          attendance,
-                                          contact,
-                                          child,
-                                        ),
-                                        onAcceptTransfer: transferRequest?.id != null
-                                            ? () => _handleAcceptTransfer(transferRequest!.id!)
-                                            : null,
-                                        onDeclineTransfer: transferRequest?.id != null
-                                            ? () => _handleDeclineTransfer(transferRequest!.id!)
-                                            : null,
-                                      );
-                                    },
-                                  ),
-                                ],
-                              );
-                            }
-
-                            if (state.childrenError != null || 
-                                state.contactsError != null) {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(32.0),
-                                  child: Text(
-                                    state.childrenError ?? state.contactsError ?? 'Error retrieving information',
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 16,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              );
-                            }
+                                  );
+                                }
 
-                            return const SizedBox.shrink();
+                                return const SizedBox.shrink();
+                              },
+                            );
                           },
-                        );
-                      },
-                    ),
-                    ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ]),
+          ],
+        ),
         bottomNavigationBar: BottomNavigationBarChild(),
       ),
     );

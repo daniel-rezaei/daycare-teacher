@@ -23,7 +23,8 @@ class TotalNotificationWidget extends StatefulWidget {
   const TotalNotificationWidget({super.key});
 
   @override
-  State<TotalNotificationWidget> createState() => _TotalNotificationWidgetState();
+  State<TotalNotificationWidget> createState() =>
+      _TotalNotificationWidgetState();
 }
 
 class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
@@ -48,51 +49,44 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
   Future<void> _loadClassId() async {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString(AppConstants.classIdKey);
-    
-    debugPrint('[TOTAL_NOTIFICATION_DEBUG] Loading classId: $savedClassId');
-    
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
         classId = savedClassId;
       });
       // بررسی اینکه آیا داده‌ها قبلاً لود شده‌اند
       final currentState = context.read<HomeBloc>().state;
-      
-      if (!_hasRequestedChildren && (currentState.children == null || currentState.isLoadingChildren)) {
+
+      if (!_hasRequestedChildren &&
+          (currentState.children == null || currentState.isLoadingChildren)) {
         _hasRequestedChildren = true;
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadChildrenEvent');
         context.read<HomeBloc>().add(const LoadChildrenEvent());
       }
-      if (!_hasRequestedContacts && (currentState.contacts == null || currentState.isLoadingContacts)) {
+      if (!_hasRequestedContacts &&
+          (currentState.contacts == null || currentState.isLoadingContacts)) {
         _hasRequestedContacts = true;
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadContactsEvent');
         context.read<HomeBloc>().add(const LoadContactsEvent());
       }
-      if (!_hasRequestedAttendance && (currentState.attendanceList == null || currentState.isLoadingAttendance)) {
+      if (!_hasRequestedAttendance &&
+          (currentState.attendanceList == null ||
+              currentState.isLoadingAttendance)) {
         _hasRequestedAttendance = true;
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadAttendanceEvent (HomeBloc)');
         context.read<HomeBloc>().add(LoadAttendanceEvent(savedClassId));
       }
-      
+
       // SINGLE SOURCE OF TRUTH: Ensure AttendanceBloc has attendance data for immediate updates
       // Check if AttendanceBloc needs to load data
-      final attendanceBlocState = context.read<AttendanceBloc>().state;
-      if (attendanceBlocState is GetAttendanceByClassIdSuccess) {
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] AttendanceBloc already has data: ${attendanceBlocState.attendanceList.length} items');
-      } else {
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting GetAttendanceByClassIdEvent (AttendanceBloc)');
-        context.read<AttendanceBloc>().add(
-          GetAttendanceByClassIdEvent(classId: savedClassId),
-        );
-      }
+      context.read<AttendanceBloc>().add(
+        GetAttendanceByClassIdEvent(classId: savedClassId),
+      );
 
       // بارگذاری لیست غایبین محلی
       _loadLocallyAbsentChildren(savedClassId);
 
       // دریافت notifications
-      if (!_hasRequestedNotifications && (currentState.notifications == null || currentState.isLoadingNotifications)) {
+      if (!_hasRequestedNotifications &&
+          (currentState.notifications == null ||
+              currentState.isLoadingNotifications)) {
         _hasRequestedNotifications = true;
-        debugPrint('[TOTAL_NOTIFICATION_DEBUG] Requesting LoadNotificationsEvent');
         context.read<HomeBloc>().add(const LoadNotificationsEvent());
       }
 
@@ -100,8 +94,6 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
       if (currentState.session == null && !currentState.isLoadingSession) {
         context.read<HomeBloc>().add(LoadSessionEvent(savedClassId));
       }
-    } else {
-      debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId is null or empty');
     }
   }
 
@@ -119,11 +111,7 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     List<ContactEntity>? contacts,
   ) {
     if (children == null || contacts == null) return 0;
-    
-    debugPrint('[TOTAL_NOTIFICATION_DEBUG] classId: $classId');
-    debugPrint('[TOTAL_NOTIFICATION_DEBUG] Total children from API: ${children.length}');
-    debugPrint('[TOTAL_NOTIFICATION_DEBUG] Total contacts with role=child: ${contacts.where((c) => c.role == 'child').length}');
-    
+
     // فیلتر Contacts با Role="child" و استخراج contact_id های آن‌ها
     final validChildContactIds = contacts
         .where((contact) => contact.role == 'child')
@@ -131,30 +119,23 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         .where((id) => id != null && id.isNotEmpty)
         .toSet();
 
-    debugPrint('[TOTAL_NOTIFICATION_DEBUG] Valid child contact IDs: $validChildContactIds');
-
-    // Debug: بررسی همه بچه‌ها
-    for (var child in children) {
-      debugPrint('[TOTAL_NOTIFICATION_DEBUG] Child: id=${child.id}, primaryRoomId=${child.primaryRoomId}, status=${child.status}, contactId=${child.contactId}');
-    }
-
     // فیلتر بچه‌هایی که contact_id آن‌ها در validChildContactIds موجود است
     // و primary_room_id آن‌ها برابر با class_id است
     final validChildren = children.where((child) {
       final isActive = child.status == 'active';
-      final hasValidContactId = child.contactId != null && child.contactId!.isNotEmpty;
-      final contactExists = hasValidContactId && validChildContactIds.contains(child.contactId);
-      final isInClass = classId != null && 
-          child.primaryRoomId != null && 
+      final hasValidContactId =
+          child.contactId != null && child.contactId!.isNotEmpty;
+      final contactExists =
+          hasValidContactId && validChildContactIds.contains(child.contactId);
+      final isInClass =
+          classId != null &&
+          child.primaryRoomId != null &&
           child.primaryRoomId == classId;
-      final shouldInclude = isActive && hasValidContactId && contactExists && isInClass;
-      
-      debugPrint('[TOTAL_NOTIFICATION_DEBUG] Child ${child.id}: primaryRoomId=${child.primaryRoomId}, classId=$classId, isActive=$isActive, hasValidContactId=$hasValidContactId, contactExists=$contactExists, isInClass=$isInClass, shouldInclude=$shouldInclude');
-      
+      final shouldInclude =
+          isActive && hasValidContactId && contactExists && isInClass;
+
       return shouldInclude;
     }).toList();
-
-    debugPrint('[TOTAL_NOTIFICATION_DEBUG] Valid children count: ${validChildren.length}');
 
     return validChildren.length;
   }
@@ -175,17 +156,15 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
     );
 
     // شمارش بچه‌هایی که وضعیت آن‌ها present است
-    final presentCount = childrenInClass
-        .where((child) {
-          final status = ChildStatusHelper.getChildStatusToday(
-            childId: child.id ?? '',
-            classId: classId!,
-            attendanceList: attendanceList ?? [],
-            locallyAbsentChildIds: _locallyAbsentChildIds,
-          );
-          return status == ChildAttendanceStatus.present;
-        })
-        .length;
+    final presentCount = childrenInClass.where((child) {
+      final status = ChildStatusHelper.getChildStatusToday(
+        childId: child.id ?? '',
+        classId: classId!,
+        attendanceList: attendanceList ?? [],
+        locallyAbsentChildIds: _locallyAbsentChildIds,
+      );
+      return status == ChildAttendanceStatus.present;
+    }).length;
 
     return presentCount;
   }
@@ -193,14 +172,12 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
   int _getTodayNotificationsCount(List<NotificationEntity>? notifications) {
     if (notifications == null) return 0;
     final now = DateTime.now();
-    return notifications
-        .where((notification) {
-          if (notification.createdAt == null || notification.createdAt!.isEmpty) {
-            return false;
-          }
-          return DateUtils.isSameDate(notification.createdAt!, now);
-        })
-        .length;
+    return notifications.where((notification) {
+      if (notification.createdAt == null || notification.createdAt!.isEmpty) {
+        return false;
+      }
+      return DateUtils.isSameDate(notification.createdAt!, now);
+    }).length;
   }
 
   /// Check if class session is checked in (started but not ended)
@@ -213,13 +190,13 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
         (session.endAt == null || session.endAt!.isEmpty);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<AttendanceBloc, AttendanceState>(
       listener: (context, attendanceState) {
         // به‌روزرسانی لیست غایبین محلی وقتی attendance به‌روزرسانی می‌شود
-        if (attendanceState is GetAttendanceByClassIdSuccess && classId != null) {
+        if (attendanceState is GetAttendanceByClassIdSuccess &&
+            classId != null) {
           _loadLocallyAbsentChildren(classId!);
         }
       },
@@ -234,10 +211,16 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
 
                   final children = homeState.children ?? childState.children;
                   final contacts = homeState.contacts ?? childState.contacts;
-                  final isLoadingChildren = homeState.isLoadingChildren || childState.isLoadingChildren;
-                  final isLoadingContacts = homeState.isLoadingContacts || childState.isLoadingContacts;
-                  final childrenError = homeState.childrenError ?? childState.childrenError;
-                  final contactsError = homeState.contactsError ?? childState.contactsError;
+                  final isLoadingChildren =
+                      homeState.isLoadingChildren ||
+                      childState.isLoadingChildren;
+                  final isLoadingContacts =
+                      homeState.isLoadingContacts ||
+                      childState.isLoadingContacts;
+                  final childrenError =
+                      homeState.childrenError ?? childState.childrenError;
+                  final contactsError =
+                      homeState.contactsError ?? childState.contactsError;
 
                   // SINGLE SOURCE OF TRUTH: Use AttendanceBloc state directly (same as Children List screen)
                   // This ensures immediate updates when attendance is created/updated
@@ -248,51 +231,70 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                     // Fallback to HomeBloc for initial load, but prefer AttendanceBloc
                     attendanceList = homeState.attendanceList ?? [];
                   }
-                  
+
                   final notifications = homeState.notifications ?? [];
                   final session = homeState.session;
 
                   // Loading state: check both AttendanceBloc and HomeBloc
-                  final isLoadingAttendance = attendanceState is GetAttendanceByClassIdLoading || 
+                  final isLoadingAttendance =
+                      attendanceState is GetAttendanceByClassIdLoading ||
                       homeState.isLoadingAttendance;
-                  final isLoadingNotifications = homeState.isLoadingNotifications;
+                  final isLoadingNotifications =
+                      homeState.isLoadingNotifications;
 
-              debugPrint('[TOTAL_NOTIFICATION_DEBUG] State: children=${children?.length ?? 'null'}, contacts=${contacts?.length ?? 'null'}, attendance=${attendanceList.length} (from ${attendanceState.runtimeType}), isLoadingChildren=$isLoadingChildren, isLoadingContacts=$isLoadingContacts, isLoadingAttendance=$isLoadingAttendance, childrenError=$childrenError, contactsError=$contactsError');
+                  // بررسی اینکه آیا هر دو داده موجود است
+                  final hasBothData = children != null && contacts != null;
+                  final hasError =
+                      childrenError != null || contactsError != null;
+                  final isCurrentlyLoading =
+                      isLoadingChildren ||
+                      isLoadingContacts ||
+                      isLoadingAttendance ||
+                      isLoadingNotifications;
 
-              // بررسی اینکه آیا هر دو داده موجود است
-              final hasBothData = children != null && contacts != null;
-              final hasError = childrenError != null || contactsError != null;
-              final isCurrentlyLoading = isLoadingChildren || isLoadingContacts || isLoadingAttendance || isLoadingNotifications;
-              
-              // اگر در حال loading است
-              if (isCurrentlyLoading) {
-                isLoading = true;
-              } 
-              // اگر هر دو داده موجود است
-              else if (hasBothData) {
-                final totalCount = _getTotalChildrenCount(children, contacts);
-                final presentCount = _getPresentChildrenCount(children, contacts, attendanceList);
-                title = '$presentCount/$totalCount';
-                isLoading = false;
-              } 
-              // اگر خطا رخ داده است
-              else if (hasError) {
-                // اگر داده‌های قبلی موجود است، از همان استفاده کن
-                if (hasBothData) {
-                  final totalCount = _getTotalChildrenCount(children, contacts);
-                  final presentCount = _getPresentChildrenCount(children, contacts, attendanceList);
-                  title = '$presentCount/$totalCount';
-                  isLoading = false;
-                } else {
-                  // اگر داده‌ای موجود نیست، loading را false کن و 0/0 نمایش بده
-                  isLoading = false;
-                  title = '0/0';
-                }
-              }
-              // در غیر این صورت (هنوز درخواست داده نشده یا در حال loading است)
-              else {
-                isLoading = true;
-              }
+                  // اگر در حال loading است
+                  if (isCurrentlyLoading) {
+                    isLoading = true;
+                  }
+                  // اگر هر دو داده موجود است
+                  else if (hasBothData) {
+                    final totalCount = _getTotalChildrenCount(
+                      children,
+                      contacts,
+                    );
+                    final presentCount = _getPresentChildrenCount(
+                      children,
+                      contacts,
+                      attendanceList,
+                    );
+                    title = '$presentCount/$totalCount';
+                    isLoading = false;
+                  }
+                  // اگر خطا رخ داده است
+                  else if (hasError) {
+                    // اگر داده‌های قبلی موجود است، از همان استفاده کن
+                    if (hasBothData) {
+                      final totalCount = _getTotalChildrenCount(
+                        children,
+                        contacts,
+                      );
+                      final presentCount = _getPresentChildrenCount(
+                        children,
+                        contacts,
+                        attendanceList,
+                      );
+                      title = '$presentCount/$totalCount';
+                      isLoading = false;
+                    } else {
+                      // اگر داده‌ای موجود نیست، loading را false کن و 0/0 نمایش بده
+                      isLoading = false;
+                      title = '0/0';
+                    }
+                  }
+                  // در غیر این صورت (هنوز درخواست داده نشده یا در حال loading است)
+                  else {
+                    isLoading = true;
+                  }
 
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -320,9 +322,12 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                         dec: 'Total Children',
                         onTap: () {
                           // Get current states
-                          final hasTimeIn = TimeInAccessGuard.checkActiveTimeInFromContext(context);
+                          final hasTimeIn =
+                              TimeInAccessGuard.checkActiveTimeInFromContext(
+                                context,
+                              );
                           final isClassCheckedIn = _isClassCheckedIn(session);
-                          
+
                           // Validation priority for Student List access:
                           // 1) First check: If Time In is NOT done → Block and show "You must Time In first."
                           if (!hasTimeIn) {
@@ -334,33 +339,43 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                             );
                             return;
                           }
-                          
-                          // 2) Second check (only if Time In IS done): 
+
+                          // 2) Second check (only if Time In IS done):
                           //    If Class Check-In is NOT done → Block and show "You must Check-In the class before opening the Student List."
                           if (!isClassCheckedIn) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('You must Check-In the class before opening the Student List.'),
+                                content: Text(
+                                  'You must Check-In the class before opening the Student List.',
+                                ),
                                 duration: Duration(seconds: 2),
                               ),
                             );
                             return;
                           }
-                          
+
                           // 3) If both Time In AND Class Check-In are done → Allow access (continue to navigation)
 
                           // فقط در صورتی که داده‌ها لود شده باشند، اجازه رفتن به صفحه بعد را بده
-                          final currentHomeState = context.read<HomeBloc>().state;
-                          final currentChildState = context.read<ChildBloc>().state;
-                          if ((currentHomeState.children != null || currentChildState.children != null) && 
-                              (currentHomeState.contacts != null || currentChildState.contacts != null) &&
+                          final currentHomeState = context
+                              .read<HomeBloc>()
+                              .state;
+                          final currentChildState = context
+                              .read<ChildBloc>()
+                              .state;
+                          if ((currentHomeState.children != null ||
+                                  currentChildState.children != null) &&
+                              (currentHomeState.contacts != null ||
+                                  currentChildState.contacts != null) &&
                               !currentHomeState.isLoadingChildren &&
                               !currentHomeState.isLoadingContacts &&
                               !currentChildState.isLoadingChildren &&
                               !currentChildState.isLoadingContacts) {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const ChildStatus()),
+                              MaterialPageRoute(
+                                builder: (context) => const ChildStatus(),
+                              ),
                             );
                           }
                         },

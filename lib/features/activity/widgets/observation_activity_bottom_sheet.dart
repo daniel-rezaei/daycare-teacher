@@ -29,60 +29,51 @@ class ObservationActivityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<ObservationActivityBottomSheet> createState() => _ObservationActivityBottomSheetState();
+  State<ObservationActivityBottomSheet> createState() =>
+      _ObservationActivityBottomSheetState();
 }
 
-class _ObservationActivityBottomSheetState extends State<ObservationActivityBottomSheet> {
+class _ObservationActivityBottomSheetState
+    extends State<ObservationActivityBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  
+
   CategoryModel? _selectedCategoryModel;
   String? _selectedCategoryName;
   String? _selectedDomainId;
-  List<String> _tags = [];
+  final List<String> _tags = [];
   bool _followUpRequired = false;
   bool _shareWithParent = false;
-  
+
   // Options loaded from backend
- List<CategoryModel> _categoryOptions = [];
-  
+  List<CategoryModel> _categoryOptions = [];
+
   // Class ID for creating activities
   String? _classId;
-  
+
   bool _isSubmitting = false;
   bool _isLoadingOptions = true;
   final ActivityObservationApi _api = GetIt.instance<ActivityObservationApi>();
-  final FileUploadUsecase _fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
 
   @override
   void initState() {
     super.initState();
-    debugPrint('[OBSERVATION_ACTIVITY] ========== Opening ObservationActivityBottomSheet ==========');
-    debugPrint('[OBSERVATION_ACTIVITY] Selected children count: ${widget.selectedChildren.length}');
-    debugPrint('[OBSERVATION_ACTIVITY] DateTime: ${widget.dateTime}');
-    
     // Load classId and options
     _loadClassId();
     _loadAllOptions();
   }
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[OBSERVATION_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint('[OBSERVATION_ACTIVITY] ⚠️ ClassId not found in SharedPreferences');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_ACTIVITY] Error loading classId: $e');
-      debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -94,32 +85,21 @@ class _ObservationActivityBottomSheetState extends State<ObservationActivityBott
     super.dispose();
   }
 
-Future<void> _loadCategoryOptions() async {
-  try {
-    debugPrint('[OBSERVATION_ACTIVITY] Loading categories from backend...');
-    final categories = await _api.getCategoryOptions();
+  Future<void> _loadCategoryOptions() async {
+    try {
+      final categories = await _api.getCategoryOptions();
+      if (!mounted) return;
+      setState(() {
+        _categoryOptions = categories;
+      });
+    } catch (e) {
+      if (!mounted) return;
 
-    debugPrint(
-      '[OBSERVATION_ACTIVITY] Categories loaded: ${categories.map((e) => e.name).toList()}',
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _categoryOptions = categories;
-    });
-  } catch (e, stackTrace) {
-    debugPrint('[OBSERVATION_ACTIVITY] Error loading categories: $e');
-    debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
-
-    if (!mounted) return;
-
-    setState(() {
-      _categoryOptions = [];
-    });
+      setState(() {
+        _categoryOptions = [];
+      });
+    }
   }
-}
-
 
   Future<void> _loadAllOptions() async {
     setState(() {
@@ -141,67 +121,50 @@ Future<void> _loadCategoryOptions() async {
     return DateFormat('h:mm a').format(dateTime);
   }
 
-void _onCategoryNameChanged(String? name) {
-  debugPrint('[OBSERVATION_ACTIVITY] Category changed: $name');
+  void _onCategoryNameChanged(String? name) {
+    if (name == null) {
+      setState(() {
+        _selectedCategoryName = null;
+        _selectedCategoryModel = null;
+        _selectedDomainId = null; // Clear domain when category is cleared
+      });
+      return;
+    }
 
-  if (name == null) {
-    setState(() {
-      _selectedCategoryName = null;
-      _selectedCategoryModel = null;
-      _selectedDomainId = null; // Clear domain when category is cleared
-    });
-    return;
+    try {
+      final model = _categoryOptions.firstWhere((c) => c.name == name);
+
+      setState(() {
+        _selectedCategoryName = name; // برای UI
+        _selectedCategoryModel = model; // برای backend
+        _selectedDomainId = model.value; // Set Domain ID to Category value
+      });
+    } catch (e) {
+      setState(() {
+        _selectedCategoryName = null;
+        _selectedCategoryModel = null;
+        _selectedDomainId = null;
+      });
+    }
   }
-
-  try {
-    final model = _categoryOptions.firstWhere(
-      (c) => c.name == name,
-    );
-
-    setState(() {
-      _selectedCategoryName = name;     // برای UI
-      _selectedCategoryModel = model;   // برای backend
-      _selectedDomainId = model.value;   // Set Domain ID to Category value
-    });
-    debugPrint('[OBSERVATION_ACTIVITY] Category selected: ${model.name} (value: ${model.value})');
-    debugPrint('[OBSERVATION_ACTIVITY] Domain ID set to: ${model.value}');
-  } catch (e) {
-    debugPrint('[OBSERVATION_ACTIVITY] Error finding category: $e');
-    setState(() {
-      _selectedCategoryName = null;
-      _selectedCategoryModel = null;
-      _selectedDomainId = null;
-    });
-  }
-}
-
-
-
 
   void _onTagSubmitted(String value) {
     final tag = value.trim();
     if (tag.isNotEmpty && !_tags.contains(tag)) {
-      debugPrint('[OBSERVATION_ACTIVITY] Adding tag: $tag');
       setState(() {
         _tags.add(tag);
       });
       _tagController.clear();
-      debugPrint('[OBSERVATION_ACTIVITY] Tag added successfully - total tags: ${_tags.length}');
-    } else if (_tags.contains(tag)) {
-      debugPrint('[OBSERVATION_ACTIVITY] Tag already exists: $tag');
     }
   }
 
   void _onTagRemoved(String tag) {
-    debugPrint('[OBSERVATION_ACTIVITY] Tag removed: $tag');
     setState(() {
       _tags.remove(tag);
     });
-    debugPrint('[OBSERVATION_ACTIVITY] Tag removed successfully - remaining tags: ${_tags.length}');
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[OBSERVATION_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -210,51 +173,38 @@ void _onCategoryNameChanged(String? name) {
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[OBSERVATION_ACTIVITY] Uploading photo: ${imageFile.path}');
-      final uploadResult = await _fileUploadUsecase.uploadFile(filePath: imageFile.path);
+      final uploadResult = await _fileUploadUsecase.uploadFile(
+        filePath: imageFile.path,
+      );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint('[OBSERVATION_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}');
         return uploadResult.data;
       } else {
-        debugPrint('[OBSERVATION_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[OBSERVATION_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint('[OBSERVATION_ACTIVITY] Selected children: ${widget.selectedChildren.length}');
-    debugPrint('[OBSERVATION_ACTIVITY] Domain ID: $_selectedDomainId');
-    debugPrint('[OBSERVATION_ACTIVITY] Tags (Development Area): $_tags');
-    debugPrint('[OBSERVATION_ACTIVITY] Description: ${_descriptionController.text}');
-    debugPrint('[OBSERVATION_ACTIVITY] Images: ${_images.length}');
-    debugPrint('[OBSERVATION_ACTIVITY] Follow-up required: $_followUpRequired');
-    debugPrint('[OBSERVATION_ACTIVITY] Share with parent: $_shareWithParent');
-
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: No children selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a child')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a child')));
       return;
     }
 
     if (widget.selectedChildren.length > 1) {
-      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: Multiple children selected (only one allowed)');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select only one child for observation')),
+        const SnackBar(
+          content: Text('Please select only one child for observation'),
+        ),
       );
       return;
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -262,19 +212,17 @@ void _onCategoryNameChanged(String? name) {
     }
 
     if (_selectedCategoryModel == null) {
-      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: No category selected');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
 
     // Domain ID is automatically set from selected category value
     if (_selectedDomainId == null || _selectedDomainId!.isEmpty) {
-      debugPrint('[OBSERVATION_ACTIVITY] Validation failed: Domain ID not set from category');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
 
@@ -291,50 +239,42 @@ void _onCategoryNameChanged(String? name) {
 
       // Format start_at in UTC ISO 8601 format
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[OBSERVATION_ACTIVITY] start_at (UTC): $startAtUtc');
-
       final child = widget.selectedChildren.first;
       if (child.id == null || child.id!.isEmpty) {
-        debugPrint('[OBSERVATION_ACTIVITY] Skipping child with null ID');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid child selected')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Invalid child selected')));
         return;
       }
 
       try {
-        debugPrint('[OBSERVATION_ACTIVITY] ========== Processing child: ${child.id} ==========');
-        
         // STEP A: Create parent activity
-        debugPrint('[OBSERVATION_ACTIVITY] STEP A: Creating activity for child ${child.id}');
         final activityId = await _api.createActivity(
           childId: child.id!,
           classId: _classId!,
           startAtUtc: startAtUtc,
         );
-        debugPrint('[OBSERVATION_ACTIVITY] ✅ Activity created with ID: $activityId');
 
         // STEP B: Create observation details linked to activity
-        debugPrint('[OBSERVATION_ACTIVITY] STEP B: Creating observation details for activity $activityId');
         // skill_observed: [category name, ...development area tags] e.g. ["Story", "Lunch"]
         final skillObserved = <String>[
-          if (_selectedCategoryName != null && _selectedCategoryName!.isNotEmpty) _selectedCategoryName!,
+          if (_selectedCategoryName != null &&
+              _selectedCategoryName!.isNotEmpty)
+            _selectedCategoryName!,
           ..._tags,
         ];
 
-        final response = await _api.createObservationDetails(
+        await _api.createObservationDetails(
           activityId: activityId,
           domainId: _selectedDomainId!,
           skillObserved: skillObserved.isNotEmpty ? skillObserved : null,
-          description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+          description: _descriptionController.text.isEmpty
+              ? null
+              : _descriptionController.text,
           photo: photoFileId,
           followUpRequired: _followUpRequired,
           shareWithParent: _shareWithParent,
         );
-
-        debugPrint('[OBSERVATION_ACTIVITY] ✅ Observation details created for child ${child.id}: ${response.statusCode}');
-        debugPrint('[OBSERVATION_ACTIVITY] Response data: ${response.data}');
-
         if (mounted) {
           setState(() {
             _isSubmitting = false;
@@ -345,9 +285,7 @@ void _onCategoryNameChanged(String? name) {
           // Navigate back to LogActivityScreen
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LogActivityScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -355,28 +293,24 @@ void _onCategoryNameChanged(String? name) {
             ),
           );
         }
-      } catch (e, stackTrace) {
-        debugPrint('[OBSERVATION_ACTIVITY] ❌ Error processing child ${child.id}: $e');
-        debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
+      } catch (e) {
         if (mounted) {
           setState(() {
             _isSubmitting = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('[OBSERVATION_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[OBSERVATION_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -392,13 +326,13 @@ void _onCategoryNameChanged(String? name) {
           children: [
             const HeaderCheckOut(isIcon: false, title: 'Observation Activity'),
             const Divider(color: AppColors.divider),
-            
+
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                    // Header Row: Date and Time
+                  // Header Row: Date and Time
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -422,7 +356,7 @@ void _onCategoryNameChanged(String? name) {
                   ),
                   const SizedBox(height: 24),
 
-                         // Category Selector - BETWEEN Development Area and Date/Time
+                  // Category Selector - BETWEEN Development Area and Date/Time
                   if (_isLoadingOptions)
                     const Center(
                       child: Padding(
@@ -460,15 +394,11 @@ void _onCategoryNameChanged(String? name) {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -617,4 +547,3 @@ void _onCategoryNameChanged(String? name) {
     );
   }
 }
-

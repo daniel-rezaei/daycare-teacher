@@ -18,7 +18,7 @@ class StaffCircleItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 100,
       height: 130,
       child: Column(

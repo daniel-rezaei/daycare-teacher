@@ -53,7 +53,8 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
   final List<File> _images = [];
   bool _isSubmitting = false;
   String? _staffId;
-  String? _currentAttendanceId; // attendanceId فعلی (ممکن است بعد از Check In تغییر کند)
+  String?
+  _currentAttendanceId; // attendanceId فعلی (ممکن است بعد از Check In تغییر کند)
 
   // برای مدیریت مراحل submit
   bool _needsCheckIn = false;
@@ -63,20 +64,11 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
   @override
   void initState() {
     super.initState();
-    debugPrint('[NOTE_INIT] ========== AddNoteWidget INIT ==========');
-    debugPrint('[NOTE_INIT] childId: ${widget.childId}');
-    debugPrint('[NOTE_INIT] classId: ${widget.classId}');
-    debugPrint('[NOTE_INIT] childName: ${widget.childName}');
-    debugPrint('[NOTE_INIT] childAttendanceStatus: ${widget.childAttendanceStatus}');
-    debugPrint('[NOTE_INIT] attendanceId: ${widget.attendanceId}');
 
     _currentAttendanceId = widget.attendanceId;
-    _needsCheckIn = widget.childAttendanceStatus == ChildAttendanceStatus.notArrived ||
+    _needsCheckIn =
+        widget.childAttendanceStatus == ChildAttendanceStatus.notArrived ||
         widget.attendanceId == null;
-
-    debugPrint('[NOTE_INIT] _needsCheckIn: $_needsCheckIn');
-    debugPrint('[NOTE_INIT] _currentAttendanceId: $_currentAttendanceId');
-
     _loadStaffId();
 
     // وقتی کیبورد باز/بسته شود، اسکرول اتوماتیک انجام می شود
@@ -100,15 +92,12 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
   }
 
   Future<void> _loadStaffId() async {
-    debugPrint('[NOTE_LOAD] _loadStaffId called');
     final prefs = await SharedPreferences.getInstance();
     final staffId = prefs.getString(AppConstants.staffIdKey);
-    debugPrint('[NOTE_LOAD] staffId from prefs: $staffId');
     if (mounted) {
       setState(() {
         _staffId = staffId;
       });
-      debugPrint('[NOTE_LOAD] _staffId set to: $_staffId');
     }
   }
 
@@ -121,18 +110,16 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
   /// Step 1: Check In خودکار (در صورت نیاز)
   Future<bool> _performCheckIn() async {
-    debugPrint('[NOTE_CHECKIN] ========== Step 1: Check In ==========');
-    
     if (!_needsCheckIn) {
-      debugPrint('[NOTE_CHECKIN] Check In not needed, skipping');
       return true;
     }
 
     if (widget.classId.isEmpty || _staffId == null) {
-      debugPrint('[NOTE_CHECKIN] Missing classId or staffId');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: Required information for Check In not found')),
+          const SnackBar(
+            content: Text('Error: Required information for Check In not found'),
+          ),
         );
       }
       return false;
@@ -145,40 +132,36 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
     try {
       // استفاده از همان منطق Check In که در صفحه لیست کودکان استفاده می‌شود
       // حذف از لیست غایبین محلی (اگر وجود داشته باشد)
-      await LocalAbsentStorageService.removeAbsent(widget.classId, widget.childId);
+      await LocalAbsentStorageService.removeAbsent(
+        widget.classId,
+        widget.childId,
+      );
 
       final checkInAt = DateUtils.getCurrentDateTime();
-      debugPrint('[NOTE_CHECKIN] Dispatching CreateAttendanceEvent');
-      debugPrint('[NOTE_CHECKIN] - childId: ${widget.childId}');
-      debugPrint('[NOTE_CHECKIN] - classId: ${widget.classId}');
-      debugPrint('[NOTE_CHECKIN] - checkInAt: $checkInAt');
-      debugPrint('[NOTE_CHECKIN] - staffId: $_staffId');
 
       // منتظر می‌مانیم تا CreateAttendanceSuccess بیاید
       // این در listener مدیریت می‌شود
       context.read<AttendanceBloc>().add(
-            CreateAttendanceEvent(
-              childId: widget.childId,
-              classId: widget.classId,
-              checkInAt: checkInAt,
-              staffId: _staffId,
-            ),
-          );
+        CreateAttendanceEvent(
+          childId: widget.childId,
+          classId: widget.classId,
+          checkInAt: checkInAt,
+          staffId: _staffId,
+        ),
+      );
 
       // منتظر می‌مانیم تا state به‌روزرسانی شود
       // این در listener مدیریت می‌شود و _currentAttendanceId تنظیم می‌شود
       return true;
-    } catch (e, stackTrace) {
-      debugPrint('[NOTE_CHECKIN] Exception: $e');
-      debugPrint('[NOTE_CHECKIN] StackTrace: $stackTrace');
+    } catch (e) {
       setState(() {
         _isCheckingIn = false;
         _isSubmitting = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error in Check In: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error in Check In: $e')));
       }
       return false;
     }
@@ -186,15 +169,11 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
   /// Step 2: آپلود تصاویر
   Future<List<String>> _uploadImages() async {
-    debugPrint('[NOTE_UPLOAD] ========== Step 2: Upload Images ==========');
-    debugPrint('[NOTE_UPLOAD] Images count: ${_images.length}');
-
     if (_images.isEmpty) {
       return [];
     }
 
-    setState(() {
-    });
+    setState(() {});
 
     List<String> uploadedFileIds = [];
     final fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
@@ -202,7 +181,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
     try {
       for (int i = 0; i < _images.length; i++) {
         final imageFile = _images[i];
-        debugPrint('[NOTE_UPLOAD] Uploading image ${i + 1}/${_images.length}: ${imageFile.path}');
 
         final uploadResult = await fileUploadUsecase.uploadFile(
           filePath: imageFile.path,
@@ -210,18 +188,10 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
         if (uploadResult is DataSuccess && uploadResult.data != null) {
           uploadedFileIds.add(uploadResult.data!);
-          debugPrint('[NOTE_UPLOAD] Image ${i + 1} uploaded successfully, fileId: ${uploadResult.data}');
-          
+
           // ذخیره تصویر در گالری داخلی بعد از آپلود موفق
-          try {
-            await GalleryService.saveImageToGallery(imageFile);
-            debugPrint('[NOTE_UPLOAD] Image ${i + 1} saved to internal gallery');
-          } catch (e) {
-            debugPrint('[NOTE_UPLOAD] Failed to save image ${i + 1} to gallery: $e');
-            // ادامه می‌دهیم حتی اگر ذخیره در گالری با خطا مواجه شود
-          }
+          await GalleryService.saveImageToGallery(imageFile);
         } else {
-          debugPrint('[NOTE_UPLOAD] Failed to upload image ${i + 1}');
           setState(() {
             _isSubmitting = false;
           });
@@ -233,10 +203,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           throw Exception('Failed to upload image ${i + 1}');
         }
       }
-
-      debugPrint('[NOTE_UPLOAD] All images uploaded successfully, total: ${uploadedFileIds.length}');
-      setState(() {
-      });
+      setState(() {});
       return uploadedFileIds;
     } catch (e) {
       setState(() {
@@ -248,13 +215,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
   /// Step 3: ارسال Note به API
   Future<void> _submitNote(List<String> imageCodes) async {
-    debugPrint('[NOTE_SUBMIT] ========== Step 3: Submit Note ==========');
-    debugPrint('[NOTE_SUBMIT] attendanceId: $_currentAttendanceId');
-    debugPrint('[NOTE_SUBMIT] note: ${_noteController.text}');
-    debugPrint('[NOTE_SUBMIT] imageCodes count: ${imageCodes.length}');
-
     if (_currentAttendanceId == null) {
-      debugPrint('[NOTE_SUBMIT] attendanceId is null, cannot submit');
       setState(() {
         _isSubmitting = false;
       });
@@ -266,11 +227,12 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       return;
     }
 
-    setState(() {
-    });
+    setState(() {});
 
     try {
-      final note = _noteController.text.isNotEmpty ? _noteController.text : null;
+      final note = _noteController.text.isNotEmpty
+          ? _noteController.text
+          : null;
       // فقط اولین file_id را به صورت string ارسال می‌کنیم
       final photoFileId = imageCodes.isNotEmpty ? imageCodes.first : null;
 
@@ -280,12 +242,11 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       String? checkOutAt;
       if (attendanceState is GetAttendanceByClassIdSuccess) {
         // پیدا کردن attendance مربوط به این attendanceId
-        final matchingAttendances = attendanceState.attendanceList.where(
-          (att) => att.id == _currentAttendanceId,
-        ).toList();
-        
+        final matchingAttendances = attendanceState.attendanceList
+            .where((att) => att.id == _currentAttendanceId)
+            .toList();
+
         if (matchingAttendances.isEmpty) {
-          debugPrint('❌ Child not found for attendanceId: $_currentAttendanceId');
           setState(() {
             _isSubmitting = false;
             _noteSubmitted = false;
@@ -297,57 +258,44 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           }
           return;
         }
-        
+
         final attendance = matchingAttendances.first;
         // فقط اگر checkOutAt از قبل وجود داشته باشد، آن را ارسال می‌کنیم
         // اگر null است یا خالی است، یعنی بچه هنوز check-out نشده و نباید checkOutAt را ارسال کنیم
-        if (attendance.checkOutAt != null && attendance.checkOutAt!.isNotEmpty) {
+        if (attendance.checkOutAt != null &&
+            attendance.checkOutAt!.isNotEmpty) {
           checkOutAt = attendance.checkOutAt;
         }
       }
-
-      debugPrint('[NOTE_SUBMIT] Dispatching UpdateAttendanceEvent');
-      debugPrint('[NOTE_SUBMIT] - attendanceId: $_currentAttendanceId');
-      debugPrint('[NOTE_SUBMIT] - checkOutAt: $checkOutAt (null if not checked out)');
-      debugPrint('[NOTE_SUBMIT] - notes: $note');
-      debugPrint('[NOTE_SUBMIT] - photo: $photoFileId');
 
       // علامت‌گذاری که note در حال ارسال است
       setState(() {
         _noteSubmitted = true;
       });
-      
+
       context.read<AttendanceBloc>().add(
-            UpdateAttendanceEvent(
-              attendanceId: _currentAttendanceId!,
-              checkOutAt: checkOutAt ?? '', // اگر null باشد، string خالی می‌فرستیم
-              notes: note,
-              photo: photoFileId,
-            ),
-          );
-    } catch (e, stackTrace) {
-      debugPrint('[NOTE_SUBMIT] Exception: $e');
-      debugPrint('[NOTE_SUBMIT] StackTrace: $stackTrace');
+        UpdateAttendanceEvent(
+          attendanceId: _currentAttendanceId!,
+          checkOutAt: checkOutAt ?? '', // اگر null باشد، string خالی می‌فرستیم
+          notes: note,
+          photo: photoFileId,
+        ),
+      );
+    } catch (e) {
       setState(() {
         _isSubmitting = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error submitting Note: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error submitting Note: $e')));
       }
     }
   }
 
   /// منطق کلی Submit
   Future<void> _handleSubmit() async {
-    debugPrint('[NOTE_HANDLE] ========== _handleSubmit START ==========');
-    debugPrint('[NOTE_HANDLE] _isSubmitting: $_isSubmitting');
-    debugPrint('[NOTE_HANDLE] _needsCheckIn: $_needsCheckIn');
-    debugPrint('[NOTE_HANDLE] _currentAttendanceId: $_currentAttendanceId');
-
     if (_isSubmitting) {
-      debugPrint('[NOTE_HANDLE] Already submitting, returning');
       return;
     }
 
@@ -360,7 +308,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       if (_needsCheckIn) {
         final checkInSuccess = await _performCheckIn();
         if (!checkInSuccess) {
-          debugPrint('[NOTE_HANDLE] Check In failed, stopping');
           return;
         }
         // منتظر می‌مانیم تا CreateAttendanceSuccess بیاید
@@ -370,28 +317,22 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
       // اگر Check In نیاز نبود، مستقیماً ادامه می‌دهیم
       await _continueAfterCheckIn();
-    } catch (e, stackTrace) {
-      debugPrint('[NOTE_HANDLE] Exception: $e');
-      debugPrint('[NOTE_HANDLE] StackTrace: $stackTrace');
+    } catch (e) {
       setState(() {
         _isSubmitting = false;
         _isCheckingIn = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
   /// ادامه فرآیند بعد از Check In
   Future<void> _continueAfterCheckIn() async {
-    debugPrint('[NOTE_CONTINUE] ========== Continuing after Check In ==========');
-    debugPrint('[NOTE_CONTINUE] _currentAttendanceId: $_currentAttendanceId');
-
     if (_currentAttendanceId == null) {
-      debugPrint('[NOTE_CONTINUE] attendanceId is still null, cannot continue');
       setState(() {
         _isSubmitting = false;
       });
@@ -410,7 +351,6 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
       // Step 3: Submit Note
       await _submitNote(imageCodes);
     } catch (e) {
-      debugPrint('[NOTE_CONTINUE] Exception: $e');
       setState(() {
         _isSubmitting = false;
       });
@@ -430,25 +370,23 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
   Widget build(BuildContext context) {
     return BlocListener<AttendanceBloc, AttendanceState>(
       listener: (context, state) {
-        debugPrint('[NOTE_LISTENER] State changed: ${state.runtimeType}');
-
         // Handle GetAttendanceByClassIdSuccess - بعد از Check In یا Update
         if (state is GetAttendanceByClassIdSuccess) {
           // اگر در حال Check In هستیم، پیدا کردن attendance جدید
           if (_isCheckingIn) {
             // پیدا کردن attendance جدید برای این child (که checkOutAt ندارد)
             final newAttendance = state.attendanceList.firstWhere(
-              (att) => att.childId == widget.childId && 
-                       att.checkOutAt == null,
-              orElse: () => state.attendanceList.isNotEmpty ? state.attendanceList.last : state.attendanceList.firstWhere(
-                (att) => att.childId == widget.childId,
-                orElse: () => state.attendanceList.first,
-              ),
+              (att) => att.childId == widget.childId && att.checkOutAt == null,
+              orElse: () => state.attendanceList.isNotEmpty
+                  ? state.attendanceList.last
+                  : state.attendanceList.firstWhere(
+                      (att) => att.childId == widget.childId,
+                      orElse: () => state.attendanceList.first,
+                    ),
             );
-            
-            if (newAttendance.id != null && newAttendance.id != _currentAttendanceId) {
-              debugPrint('[NOTE_LISTENER] Check In successful, setting _currentAttendanceId');
-              debugPrint('[NOTE_LISTENER] New attendance ID: ${newAttendance.id}');
+
+            if (newAttendance.id != null &&
+                newAttendance.id != _currentAttendanceId) {
               setState(() {
                 _currentAttendanceId = newAttendance.id;
                 _isCheckingIn = false;
@@ -456,24 +394,25 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
               });
 
               // حالا که Check In انجام شد، ادامه می‌دهیم
-              debugPrint('[NOTE_LISTENER] Continuing with upload and submit...');
               Future.delayed(const Duration(milliseconds: 100), () {
                 if (mounted && _currentAttendanceId != null) {
                   _continueAfterCheckIn();
                 }
               });
             }
-          } 
+          }
           // اگر در حال Update هستیم (نه Check In) و attendance به‌روز شده، به صفحه قبلی برگرد
-          else if (!_isCheckingIn && _currentAttendanceId != null && _isSubmitting && _noteSubmitted) {
+          else if (!_isCheckingIn &&
+              _currentAttendanceId != null &&
+              _isSubmitting &&
+              _noteSubmitted) {
             final updatedAttendance = state.attendanceList.firstWhere(
               (att) => att.id == _currentAttendanceId,
               orElse: () => state.attendanceList.first,
             );
-            
+
             // اگر attendance به‌روز شده (مثلاً note اضافه شده)، به صفحه قبلی برگرد
             if (updatedAttendance.id == _currentAttendanceId) {
-              debugPrint('[NOTE_LISTENER] Attendance updated - Popping back to previous page');
               setState(() {
                 _isSubmitting = false;
                 _noteSubmitted = false; // reset flag
@@ -485,27 +424,25 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
             }
           }
         } else if (state is CreateAttendanceFailure) {
-          debugPrint('[NOTE_LISTENER] CreateAttendanceFailure: ${state.message}');
           setState(() {
             _isSubmitting = false;
             _isCheckingIn = false;
             _noteSubmitted = false;
           });
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         } else if (state is UpdateAttendanceFailure) {
-          debugPrint('[NOTE_LISTENER] UpdateAttendanceFailure: ${state.message}');
           setState(() {
             _isSubmitting = false;
             _noteSubmitted = false;
           });
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         }
       },
@@ -524,10 +461,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
                     // نمایش اطلاعات کودک
                     Row(
                       children: [
-                        ChildAvatarWidget(
-                          photoId: widget.childImage,
-                          size: 48,
-                        ),
+                        ChildAvatarWidget(photoId: widget.childImage, size: 48),
                         const SizedBox(width: 8),
                         Text(
                           widget.childName,

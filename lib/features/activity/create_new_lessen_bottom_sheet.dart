@@ -23,14 +23,15 @@ class CreateNewLessenBottomSheet extends StatefulWidget {
       _CreateNewLessenBottomSheetState();
 }
 
-class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet> {
+class _CreateNewLessenBottomSheetState
+    extends State<CreateNewLessenBottomSheet> {
   final LearningPlanApi _api = GetIt.instance<LearningPlanApi>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _videoLinkController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<File> _images = [];
-  List<String> _tags = [];
+  final List<String> _tags = [];
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isSubmitting = false;
@@ -71,9 +72,7 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
         _isLoadingOptions = false;
         _loadError = null;
       });
-    } catch (e, st) {
-      debugPrint('[CREATE_LESSON] Load options error: $e');
-      debugPrint('[CREATE_LESSON] $st');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingOptions = false;
@@ -126,9 +125,9 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
       return;
     }
     if (_selectedCategoryId == null || _selectedCategoryId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
     if (_startDate == null || _endDate == null) {
@@ -153,9 +152,13 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
         endDate: _formatDate(_endDate!),
         ageGroupId: _selectedAgeGroupId,
         classId: _selectedClassId,
-        videoLink: _videoLinkController.text.trim().isEmpty ? null : _videoLinkController.text.trim(),
+        videoLink: _videoLinkController.text.trim().isEmpty
+            ? null
+            : _videoLinkController.text.trim(),
         tags: _tags.isEmpty ? null : _tags,
-        description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
       );
       if (!mounted) return;
       setState(() => _isSubmitting = false);
@@ -163,14 +166,12 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Learning plan created successfully')),
       );
-    } catch (e, stackTrace) {
-      debugPrint('[CREATE_LESSON] Error: $e');
-      debugPrint('[CREATE_LESSON] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -276,9 +277,15 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                       controller: _titleController,
                       decoration: const InputDecoration(
                         hintText: 'e.g. Autumn Leaf Collage',
-                        hintStyle: TextStyle(color: Colors.black38, fontSize: 14),
+                        hintStyle: TextStyle(
+                          color: Colors.black38,
+                          fontSize: 14,
+                        ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
                       style: const TextStyle(
                         fontSize: 14,
@@ -296,18 +303,25 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                         child: GestureDetector(
                           onTap: _pickStartDate,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF4F4F4),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               children: [
-                                SvgPicture.asset('assets/images/ic_calanders.svg'),
+                                SvgPicture.asset(
+                                  'assets/images/ic_calanders.svg',
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   _startDate != null
-                                      ? DateFormat('MMM d, yyyy').format(_startDate!)
+                                      ? DateFormat(
+                                          'MMM d, yyyy',
+                                        ).format(_startDate!)
                                       : 'Start date',
                                   style: TextStyle(
                                     fontSize: 14,
@@ -327,18 +341,25 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                         child: GestureDetector(
                           onTap: _pickEndDate,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF4F4F4),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               children: [
-                                SvgPicture.asset('assets/images/ic_calanders.svg'),
+                                SvgPicture.asset(
+                                  'assets/images/ic_calanders.svg',
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   _endDate != null
-                                      ? DateFormat('MMM d, yyyy').format(_endDate!)
+                                      ? DateFormat(
+                                          'MMM d, yyyy',
+                                        ).format(_endDate!)
                                       : 'End date',
                                   style: TextStyle(
                                     fontSize: 14,
@@ -370,7 +391,10 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                         children: [
                           Text(
                             _loadError!,
-                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
@@ -387,7 +411,9 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                       options: _categories.map((c) => c.name).toList(),
                       selectedValue: _categoryById(_selectedCategoryId)?.name,
                       onChanged: (value) => setState(() {
-                        _selectedCategoryId = value == null ? null : _categoryByName(value)?.id;
+                        _selectedCategoryId = value == null
+                            ? null
+                            : _categoryByName(value)?.id;
                       }),
                     ),
                     const SizedBox(height: 24),
@@ -396,7 +422,9 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                       options: _ageGroups.map((a) => a.name).toList(),
                       selectedValue: _ageGroupById(_selectedAgeGroupId)?.name,
                       onChanged: (value) => setState(() {
-                        _selectedAgeGroupId = value == null ? null : _ageGroupByName(value)?.id;
+                        _selectedAgeGroupId = value == null
+                            ? null
+                            : _ageGroupByName(value)?.id;
                       }),
                     ),
                     const SizedBox(height: 24),
@@ -405,7 +433,9 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                       options: _classes.map((c) => c.roomName).toList(),
                       selectedValue: _classById(_selectedClassId)?.roomName,
                       onChanged: (value) => setState(() {
-                        _selectedClassId = value == null ? null : _classByRoomName(value)?.id;
+                        _selectedClassId = value == null
+                            ? null
+                            : _classByRoomName(value)?.id;
                       }),
                     ),
                   ],
@@ -456,15 +486,11 @@ class _CreateNewLessenBottomSheetState extends State<CreateNewLessenBottomSheet>
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColors.divider,
-                        ),
+                        borderSide: const BorderSide(color: AppColors.divider),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),

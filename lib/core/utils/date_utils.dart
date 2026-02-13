@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 
@@ -11,7 +10,6 @@ class DateUtils {
     final localNow = DateTime.now();
     final utcNow = localNow.toUtc();
     final utcIso = utcNow.toIso8601String();
-    debugPrint('[ATTENDANCE_TZ] getCurrentDateTime - localNow=$localNow, utcNow=$utcNow, sending=$utcIso');
     return utcIso;
   }
 
@@ -21,7 +19,6 @@ class DateUtils {
     final localNow = DateTime.now();
     final utcNow = localNow.toUtc();
     final utcIso = utcNow.toIso8601String();
-    debugPrint('[ATTENDANCE_TZ] getCurrentDateTimeForCheckOut - localNow=$localNow, utcNow=$utcNow, sending=$utcIso');
     return utcIso;
   }
 
@@ -120,4 +117,3 @@ class DateUtils {
     return weekStart.add(const Duration(days: 6));
   }
 }
-

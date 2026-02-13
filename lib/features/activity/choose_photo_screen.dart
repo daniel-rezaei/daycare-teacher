@@ -7,8 +7,9 @@ import 'package:teacher_app/gen/assets.gen.dart';
 class ChoosePhotoScreen extends StatefulWidget {
   final bool allowMultipleSelection;
   final int? maxSelection;
-  final String? temporaryCameraFile; // Temporary file from camera (shown immediately)
-  
+  final String?
+  temporaryCameraFile; // Temporary file from camera (shown immediately)
+
   const ChoosePhotoScreen({
     super.key,
     this.allowMultipleSelection = true,
@@ -38,51 +39,44 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
   }
 
   Future<void> loadImages() async {
-    final loadStartTime = DateTime.now();
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final files = await dir
-          .list()
-          .where((f) => f is File && f.path.endsWith("_thumb.jpg"))
-          .map((f) => File(f.path))
-          .toList();
-      
-      final listTime = DateTime.now().difference(loadStartTime).inMilliseconds;
-      debugPrint('[PERF] ChoosePhotoScreen file listing: ${listTime}ms');
-      
-      // Sort by modification time (newest first)
-      files.sort((a, b) {
-        final aTime = a.lastModifiedSync();
-        final bTime = b.lastModifiedSync();
-        return bTime.compareTo(aTime);
-      });
-      
-      // Update UI without blocking - precache happens in background
-      if (mounted) {
-        setState(() {
-          // Keep temporary file at the top if it exists
-          if (_temporaryFile != null && !files.contains(_temporaryFile)) {
-            photos = [_temporaryFile!, ...files];
-          } else {
-            photos = files;
-          }
-        });
-      }
+    final dir = await getApplicationDocumentsDirectory();
+    final files = await dir
+        .list()
+        .where((f) => f is File && f.path.endsWith("_thumb.jpg"))
+        .map((f) => File(f.path))
+        .toList();
 
-      // Precache images in background (non-blocking)
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        for (var f in files.take(10)) { // Only precache first 10
-          try {
-            await precacheImage(FileImage(f), context);
-          } catch (e) {
-            // Ignore precache errors
-          }
+    // Sort by modification time (newest first)
+    files.sort((a, b) {
+      final aTime = a.lastModifiedSync();
+      final bTime = b.lastModifiedSync();
+      return bTime.compareTo(aTime);
+    });
+
+    // Update UI without blocking - precache happens in background
+    if (mounted) {
+      setState(() {
+        // Keep temporary file at the top if it exists
+        if (_temporaryFile != null && !files.contains(_temporaryFile)) {
+          photos = [_temporaryFile!, ...files];
+        } else {
+          photos = files;
         }
       });
-    } catch (e) {
-      debugPrint('[ChoosePhotoScreen] Error loading images: $e');
     }
+
+    // Precache images in background (non-blocking)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      for (var f in files.take(10)) {
+        // Only precache first 10
+        try {
+          await precacheImage(FileImage(f), context);
+        } catch (e) {
+          // Ignore precache errors
+        }
+      }
+    });
   }
 
   Set<File> selectedPhotos = {};
@@ -179,12 +173,15 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
                                             selectedPhotos.remove(file);
                                           } else {
                                             // اگر maxSelection مشخص شده و به حد رسیده، اجازه انتخاب بیشتر نده
-                                            if (widget.maxSelection != null && 
-                                                selectedPhotos.length >= widget.maxSelection!) {
+                                            if (widget.maxSelection != null &&
+                                                selectedPhotos.length >=
+                                                    widget.maxSelection!) {
                                               return;
                                             }
                                             // اگر allowMultipleSelection false است و قبلاً یکی انتخاب شده، آن را حذف کن
-                                            if (!widget.allowMultipleSelection && selectedPhotos.isNotEmpty) {
+                                            if (!widget
+                                                    .allowMultipleSelection &&
+                                                selectedPhotos.isNotEmpty) {
                                               selectedPhotos.clear();
                                             }
                                             selectedPhotos.add(file);
@@ -261,13 +258,19 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
               onTap: selectedPhotos.isNotEmpty
                   ? () {
                       // تبدیل thumbnail به فایل اصلی
-                      final selectedOriginalFiles = selectedPhotos.map((thumbFile) {
-                        // تبدیل _thumb.jpg به .jpg
-                        final thumbPath = thumbFile.path;
-                        final originalPath = thumbPath.replaceAll('_thumb.jpg', '.jpg');
-                        return File(originalPath);
-                      }).where((file) => file.existsSync()).toList();
-                      
+                      final selectedOriginalFiles = selectedPhotos
+                          .map((thumbFile) {
+                            // تبدیل _thumb.jpg به .jpg
+                            final thumbPath = thumbFile.path;
+                            final originalPath = thumbPath.replaceAll(
+                              '_thumb.jpg',
+                              '.jpg',
+                            );
+                            return File(originalPath);
+                          })
+                          .where((file) => file.existsSync())
+                          .toList();
+
                       Navigator.pop(context, selectedOriginalFiles);
                     }
                   : null,
@@ -286,9 +289,7 @@ class _ChoosePhotoScreenState extends State<ChoosePhotoScreen> {
                 ),
                 padding: EdgeInsets.all(8),
                 child: Assets.images.squareArrowRight.svg(
-                  color: selectedPhotos.isNotEmpty
-                      ? Color(0xff7B2AF3)
-                      : null,
+                  color: selectedPhotos.isNotEmpty ? Color(0xff7B2AF3) : null,
                 ),
               ),
             ),

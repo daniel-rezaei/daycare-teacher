@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 /// GET {{base_url}}/items/learning_category response item
@@ -99,11 +98,6 @@ class LearningPlanApi {
     List<String>? tags,
     String? description,
   }) async {
-    debugPrint('[LEARNING_PLAN_API] ========== Creating Learning Plan ==========');
-    debugPrint('[LEARNING_PLAN_API] title: $title');
-    debugPrint('[LEARNING_PLAN_API] category: $category');
-    debugPrint('[LEARNING_PLAN_API] start_date: $startDate, end_date: $endDate');
-
     final data = <String, dynamic>{
       'title': title,
       'category_id': category,
@@ -115,16 +109,7 @@ class LearningPlanApi {
       'tags': tags ?? [],
       'description': description ?? '',
     };
-
-    debugPrint('[LEARNING_PLAN_API] Request data: $data');
-
-    final response = await httpclient.post(
-      '/items/Learning_Plan',
-      data: data,
-    );
-
-    debugPrint('[LEARNING_PLAN_API] Response status: ${response.statusCode}');
-    debugPrint('[LEARNING_PLAN_API] Response data: ${response.data}');
+    final response = await httpclient.post('/items/Learning_Plan', data: data);
     return response;
   }
 }

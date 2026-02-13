@@ -28,7 +28,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   DateTime? _lastBackPressTime;
   bool _hasLoadedData = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -37,24 +37,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _loadHomeData() async {
     if (_hasLoadedData) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     final classId = prefs.getString(AppConstants.classIdKey);
     final contactId = prefs.getString('contact_id');
     final staffId = prefs.getString(AppConstants.staffIdKey);
-    
+
     if (mounted && (classId != null || contactId != null)) {
       // Load Time-In status first to sync with session state
       if (staffId != null && staffId.isNotEmpty) {
         context.read<StaffAttendanceBloc>().add(
-              GetLatestStaffAttendanceEvent(staffId: staffId),
-            );
+          GetLatestStaffAttendanceEvent(staffId: staffId),
+        );
       }
-      
-      context.read<HomeBloc>().add(LoadHomeDataEvent(
-        classId: classId,
-        contactId: contactId,
-      ));
+
+      context.read<HomeBloc>().add(
+        LoadHomeDataEvent(classId: classId, contactId: contactId),
+      );
       _hasLoadedData = true;
     }
   }
@@ -64,35 +63,33 @@ class _MyHomePageState extends State<MyHomePage> {
   void _syncTimeInWithSession() {
     final attendanceState = context.read<StaffAttendanceBloc>().state;
     final homeState = context.read<HomeBloc>().state;
-    
+
     // Check if teacher is Time-Out
     bool isTimeOut = false;
     if (attendanceState is GetLatestStaffAttendanceSuccess) {
       final latestAttendance = attendanceState.latestAttendance;
-      isTimeOut = latestAttendance == null ||
-          latestAttendance.eventType != 'time_in';
+      isTimeOut =
+          latestAttendance == null || latestAttendance.eventType != 'time_in';
     } else if (attendanceState is CreateStaffAttendanceSuccess) {
       isTimeOut = attendanceState.attendance.eventType == 'time_out';
     }
-    
+
     // If Time-Out and active session exists, end it
     if (isTimeOut) {
       final session = homeState.session;
       if (_isClassSessionActive(session)) {
         final classId = homeState.session?.classId;
         if (session?.id != null && classId != null) {
-          final endAt = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
-          debugPrint(
-            '[MY_HOME_PAGE] Syncing: Ending active session on Time-Out: '
-            'sessionId=${session!.id}, endAt=$endAt',
-          );
+          final endAt = DateFormat(
+            'yyyy-MM-ddTHH:mm:ss',
+          ).format(DateTime.now());
           context.read<HomeBloc>().add(
-                UpdateSessionEvent(
-                  sessionId: session.id!,
-                  endAt: endAt,
-                  classId: classId,
-                ),
-              );
+            UpdateSessionEvent(
+              sessionId: session!.id!,
+              endAt: endAt,
+              classId: classId,
+            ),
+          );
         }
       }
     }
@@ -105,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
         session.startAt!.isNotEmpty &&
         (session.endAt == null || session.endAt!.isEmpty);
   }
-  
+
   // نگه داشتن صفحات برای جلوگیری از rebuild و درخواست مجدد API
   // استفاده از late final و ساخت در build برای دسترسی به context
   late final List<Widget> _pages = [
@@ -115,11 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
         SafeArea(
           child: SingleChildScrollView(
             child: Column(
-              children: [
-                AppbarWidget(),
-                ProfileSectionWidget(),
-                CardWidget(),
-              ],
+              children: [AppbarWidget(), ProfileSectionWidget(), CardWidget()],
             ),
           ),
         ),
@@ -132,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
-    
+
     // اگر اولین بار است یا زمان زیادی از آخرین کلیک گذشته (بیش از 2 ثانیه)
     if (_lastBackPressTime == null ||
         now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
@@ -157,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        
+
         final shouldPop = await _onWillPop();
         if (shouldPop && mounted) {
           SystemNavigator.pop(); // خروج از اپ
@@ -195,31 +188,28 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(
           body: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
-            // بررسی اینکه آیا باید shimmer نمایش داده شود
-            // از ابتدا shimmer نمایش داده می‌شود تا زمانی که داده‌های ضروری لود شوند
-            final shouldShowShimmer = !state.hasLoadedInitialDataOnce;
+              // بررسی اینکه آیا باید shimmer نمایش داده شود
+              // از ابتدا shimmer نمایش داده می‌شود تا زمانی که داده‌های ضروری لود شوند
+              final shouldShowShimmer = !state.hasLoadedInitialDataOnce;
 
-            // اگر داده‌های ضروری هنوز لود نشده‌اند، shimmer نمایش بده
-            if (shouldShowShimmer) {
-              return const HomeShimmerWidget();
-            }
+              // اگر داده‌های ضروری هنوز لود نشده‌اند، shimmer نمایش بده
+              if (shouldShowShimmer) {
+                return const HomeShimmerWidget();
+              }
 
-            // در غیر این صورت، محتوای عادی را نمایش بده
-            return ValueListenableBuilder(
-              valueListenable: MyHomePage.pageIndex,
-              builder: (context, value, child) {
-                // استفاده از IndexedStack برای نگه داشتن تمام صفحات
-                // این باعث می‌شود که initState فقط یک بار صدا زده شود
-                final index = value.clamp(0, _pages.length - 1);
-                return IndexedStack(
-                  index: index,
-                  children: _pages,
-                );
-              },
-            );
-          },
-        ),
-        bottomNavigationBar: BottomNavigationBarWidget(),
+              // در غیر این صورت، محتوای عادی را نمایش بده
+              return ValueListenableBuilder(
+                valueListenable: MyHomePage.pageIndex,
+                builder: (context, value, child) {
+                  // استفاده از IndexedStack برای نگه داشتن تمام صفحات
+                  // این باعث می‌شود که initState فقط یک بار صدا زده شود
+                  final index = value.clamp(0, _pages.length - 1);
+                  return IndexedStack(index: index, children: _pages);
+                },
+              );
+            },
+          ),
+          bottomNavigationBar: BottomNavigationBarWidget(),
         ),
       ),
     );

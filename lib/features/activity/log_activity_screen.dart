@@ -39,7 +39,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
   Future<void> _loadClassId() async {
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString(AppConstants.classIdKey);
-    debugPrint('[LOG_ACTIVITY] Loading class_id: $savedClassId');
 
     if (mounted && savedClassId != null && savedClassId.isNotEmpty) {
       setState(() {
@@ -52,13 +51,8 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
   /// Calls the appropriate API based on activity type
   Future<bool> _hasActivityHistory(String activityType, String? classId) async {
     if (classId == null || classId.isEmpty) {
-      debugPrint('[LOG_ACTIVITY] No classId provided, assuming no history');
       return false;
     }
-
-    debugPrint(
-      '[LOG_ACTIVITY] ========== Checking history for activity type: $activityType, classId: $classId ==========',
-    );
 
     try {
       bool hasHistory = false;
@@ -101,20 +95,10 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
           hasHistory = await api.hasHistory(classId);
           break;
         default:
-          debugPrint(
-            '[LOG_ACTIVITY] Unknown activity type: $activityType, assuming no history',
-          );
           return false;
       }
-
-      debugPrint(
-        '[LOG_ACTIVITY] ========== History check completed for $activityType: $hasHistory ==========',
-      );
       return hasHistory;
-    } catch (e, stackTrace) {
-      debugPrint('[LOG_ACTIVITY] Error checking history for $activityType: $e');
-      debugPrint('[LOG_ACTIVITY] StackTrace: $stackTrace');
-      // On error, assume no history to show children list
+    } catch (e) {
       return false;
     }
   }
@@ -132,9 +116,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
       final hasHistory = await _hasActivityHistory(activityType, _classId);
 
       if (hasHistory) {
-        debugPrint(
-          '[LOG_ACTIVITY] History exists, navigating to HistoryMealScreen for $activityType',
-        );
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -145,9 +126,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
           ),
         );
       } else {
-        debugPrint(
-          '[LOG_ACTIVITY] No history, navigating to SelectChildsScreen for $activityType',
-        );
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -273,9 +251,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Meal',
                               isLoading: _loadingStates['meal'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Meal flow ==========',
-                                );
                                 _navigateToMealActivity(context);
                               },
                             ),
@@ -287,9 +262,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Drink',
                               isLoading: _loadingStates['drink'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Drink flow ==========',
-                                );
                                 _navigateToDrinkActivity(context);
                               },
                             ),
@@ -300,9 +272,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.learn.image(height: 48),
                               title: 'Learn',
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Learn flow ==========',
-                                );
                                 showModalBottomSheet(
                                   context: context,
                                   isScrollControlled: true,
@@ -321,9 +290,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Bathroom',
                               isLoading: _loadingStates['bathroom'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Bathroom flow ==========',
-                                );
                                 _navigateToBathroomActivity(context);
                               },
                             ),
@@ -335,9 +301,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Play',
                               isLoading: _loadingStates['play'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Play flow ==========',
-                                );
                                 _navigateToPlayActivity(context);
                               },
                             ),
@@ -349,9 +312,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Sleep',
                               isLoading: _loadingStates['sleep'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Sleep flow ==========',
-                                );
                                 _navigateToSleepActivity(context);
                               },
                             ),
@@ -363,9 +323,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Observation',
                               isLoading: _loadingStates['observation'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Observation flow ==========',
-                                );
                                 _navigateToObservationActivity(context);
                               },
                               isDisabled: false,
@@ -378,9 +335,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Incident',
                               isLoading: _loadingStates['incident'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Incident flow ==========',
-                                );
                                 _navigateToIncidentActivity(context);
                               },
                               isDisabled: false,
@@ -393,9 +347,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Accident',
                               isLoading: _loadingStates['accident'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Accident flow ==========',
-                                );
                                 _navigateToAccidentActivity(context);
                               },
                               isDisabled: false,
@@ -426,9 +377,6 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               title: 'Mood',
                               isLoading: _loadingStates['mood'] ?? false,
                               onTap: () {
-                                debugPrint(
-                                  '[LOG_ACTIVITY] ========== Entering Log Activity Mood flow ==========',
-                                );
                                 _navigateToMoodActivity(context);
                               },
                               isDisabled: false,

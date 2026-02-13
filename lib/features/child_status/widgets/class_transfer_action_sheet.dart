@@ -20,16 +20,17 @@ import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 
 /// ISOLATED MODULE: Atomic Class Transfer Action Sheet
-/// 
+///
 /// This is a completely separate module from TransferClassWidget (LEGACY).
 /// All atomic transaction logic, switches, and navigation rules live here exclusively.
-/// 
+///
 /// ATOMIC TRANSACTION RULES:
 /// - NO side effects on switch toggle or class selection
 /// - All actions execute ONLY when Save is explicitly tapped
 /// - Execution order: Check Out → Time Out → Transfer Request (if studentId provided) → Logout → Navigate
 class ClassTransferActionSheet extends StatefulWidget {
-  final String? studentId; // Optional: only needed for student transfer requests
+  final String?
+  studentId; // Optional: only needed for student transfer requests
   final String currentClassId;
 
   const ClassTransferActionSheet({
@@ -39,7 +40,8 @@ class ClassTransferActionSheet extends StatefulWidget {
   });
 
   @override
-  State<ClassTransferActionSheet> createState() => _ClassTransferActionSheetState();
+  State<ClassTransferActionSheet> createState() =>
+      _ClassTransferActionSheetState();
 }
 
 class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
@@ -47,7 +49,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
   bool _isSubmitting = false;
   ClassTransferRequestEntity? _existingRequest;
   String? _staffId;
-  
+
   // ATOMIC TRANSACTION: These switches only store state - NO side effects until Save
   bool _checkOutEnabled = false; // For CLASS CHECK-OUT (ending class session)
   bool _timeOutEnabled = false; // For SCHOOL TIME-OUT (staff attendance)
@@ -65,8 +67,8 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
     // Check for existing pending transfer request (only if studentId is provided)
     if (widget.studentId != null && widget.studentId!.isNotEmpty) {
       context.read<ClassTransferRequestBloc>().add(
-            GetTransferRequestByStudentIdEvent(studentId: widget.studentId!),
-          );
+        GetTransferRequestByStudentIdEvent(studentId: widget.studentId!),
+      );
     }
   }
 
@@ -82,29 +84,28 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
 
   bool get _canSave {
     if (_isSubmitting) return false;
-    
+
     // Check for pending transfer request (only for student transfers)
-    if (widget.studentId != null && 
-        widget.studentId!.isNotEmpty && 
-        _existingRequest != null && 
+    if (widget.studentId != null &&
+        widget.studentId!.isNotEmpty &&
+        _existingRequest != null &&
         _existingRequest!.status == 'pending') {
       return false;
     }
-    
+
     // SCENARIO A & B: Allow save if check out or time out is enabled (even if no class change)
     final hasCheckOutOrTimeOut = _checkOutEnabled || _timeOutEnabled;
-    
+
     // SCENARIO C: Allow save if class is changed (with or without check out/time out)
-    final isClassChanged = selectedClassId != null && 
-        selectedClassId != widget.currentClassId;
-    
+    final isClassChanged =
+        selectedClassId != null && selectedClassId != widget.currentClassId;
+
     return hasCheckOutOrTimeOut || isClassChanged;
   }
-  
+
   /// Check if class is actually being changed
   bool get _isClassChanged {
-    return selectedClassId != null && 
-        selectedClassId != widget.currentClassId;
+    return selectedClassId != null && selectedClassId != widget.currentClassId;
   }
 
   /// ATOMIC TRANSACTION: Execute all actions in exact order on Save only
@@ -113,21 +114,19 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
     if (!_canSave) return;
 
     // Check if staffId is available (needed for time out and transfer requests)
-    if ((_timeOutEnabled || _isClassChanged) && 
+    if ((_timeOutEnabled || _isClassChanged) &&
         (_staffId == null || _staffId!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error: Staff ID not found'),
-        ),
+        const SnackBar(content: Text('Error: Staff ID not found')),
       );
       return;
     }
 
     // Prevent duplicate transfer requests (only for student transfers with class change)
-    if (_isClassChanged && 
-        widget.studentId != null && 
+    if (_isClassChanged &&
+        widget.studentId != null &&
         widget.studentId!.isNotEmpty &&
-        _existingRequest != null && 
+        _existingRequest != null &&
         _existingRequest!.status == 'pending') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -143,36 +142,33 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
 
     try {
       final isClassChanged = _isClassChanged;
-      debugPrint('[TRANSFER_ATOMIC] 🔄 Starting atomic transaction');
-      debugPrint('[TRANSFER_ATOMIC] Class changed: $isClassChanged, Check out: $_checkOutEnabled, Time out: $_timeOutEnabled');
-      
       // Step 1: If Check out is ON → register CLASS CHECK-OUT for current class
       if (_checkOutEnabled) {
-        debugPrint('[TRANSFER_ATOMIC] Step 1: Registering CLASS CHECK-OUT');
         final homeState = context.read<HomeBloc>().state;
         final session = homeState.session;
-        
+
         // Check if class session is active (started but not ended)
-        final isSessionActive = session != null &&
+        final isSessionActive =
+            session != null &&
             session.startAt != null &&
             session.startAt!.isNotEmpty &&
             (session.endAt == null || session.endAt!.isEmpty);
-        
+
         if (isSessionActive && session.id != null) {
-          final endAt = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
-          debugPrint('[TRANSFER_ATOMIC] Ending class session: sessionId=${session.id}, endAt=$endAt');
-          
+          final endAt = DateFormat(
+            'yyyy-MM-ddTHH:mm:ss',
+          ).format(DateTime.now());
           // Wait for session update to complete
-          await _waitForSessionUpdate(session.id!, endAt, widget.currentClassId);
-        } else {
-          debugPrint('[TRANSFER_ATOMIC] No active class session to end');
+          await _waitForSessionUpdate(
+            session.id!,
+            endAt,
+            widget.currentClassId,
+          );
         }
       }
-      
+
       // Step 2: If Time out is ON → register SCHOOL TIME-OUT for the teacher
       if (_timeOutEnabled) {
-        debugPrint('[TRANSFER_ATOMIC] Step 2: Registering SCHOOL TIME-OUT');
-        
         context.read<StaffAttendanceBloc>().add(
           CreateStaffAttendanceEvent(
             staffId: _staffId!,
@@ -180,14 +176,13 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
             classId: widget.currentClassId,
           ),
         );
-        
+
         // Wait for time out to complete
         await _waitForTimeOut();
       }
-      
+
       // SCENARIO A & B: NO CLASS CHANGE - Close sheet, no logout/navigation
       if (!isClassChanged) {
-        debugPrint('[TRANSFER_ATOMIC] ✅ No class change - closing sheet, staying logged in');
         if (mounted) {
           setState(() {
             _isSubmitting = false;
@@ -196,7 +191,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                _timeOutEnabled 
+                _timeOutEnabled
                     ? 'Time out and check out completed successfully'
                     : 'Check out completed successfully',
               ),
@@ -205,13 +200,11 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
         }
         return; // Exit early - no logout, no navigation
       }
-      
+
       // SCENARIO C: CLASS CHANGED - Proceed with full transfer flow
-      debugPrint('[TRANSFER_ATOMIC] Class changed - proceeding with full transfer flow');
-      
+
       // Step 3: Create transfer request (only if studentId is provided)
       if (widget.studentId != null && widget.studentId!.isNotEmpty) {
-        debugPrint('[TRANSFER_ATOMIC] Step 3: Creating transfer request');
         context.read<ClassTransferRequestBloc>().add(
           CreateTransferRequestEvent(
             childId: widget.studentId!,
@@ -220,62 +213,56 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
             requestedByStaffId: _staffId!,
           ),
         );
-        
+
         // Wait for transfer request to complete
         await _waitForTransferRequest();
-      } else {
-        debugPrint('[TRANSFER_ATOMIC] Step 3: Skipping transfer request (class-level transfer, no studentId)');
       }
-      
+
       // Step 4: Perform LOGOUT (only when class is changed)
-      debugPrint('[TRANSFER_ATOMIC] Step 4: Performing LOGOUT');
       final auth = ClerkAuth.of(context);
       await auth.signOut();
-      
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('is_logged_in');
       await prefs.remove('class_id');
       await prefs.remove('contact_id');
       await prefs.remove('staff_id');
       await prefs.remove('selected_class');
-      debugPrint('[TRANSFER_ATOMIC] ✅ Logout complete');
-      
+
       // Step 5: Navigate to Select Your Profile of the selected class
       // Step 6: Load staff list for that class (happens automatically via GetStaffClassEvent)
-      debugPrint('[TRANSFER_ATOMIC] Step 5-6: Navigating to Select Your Profile');
       if (mounted) {
         // Request staff classes for the selected class
         context.read<AuthBloc>().add(
           GetStaffClassEvent(classId: selectedClassId!),
         );
-        
+
         // Navigation will happen via BlocListener when GetStaffClassSuccess is emitted
       }
-      
-    } catch (e, stackTrace) {
-      debugPrint('[TRANSFER_ATOMIC] ❌ Error in atomic transaction: $e');
-      debugPrint('[TRANSFER_ATOMIC] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error during transfer: $e'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error during transfer: $e')));
       }
     }
   }
-  
+
   /// Wait for session update to complete
-  Future<void> _waitForSessionUpdate(String sessionId, String endAt, String classId) async {
+  Future<void> _waitForSessionUpdate(
+    String sessionId,
+    String endAt,
+    String classId,
+  ) async {
     final completer = Completer<void>();
     late StreamSubscription subscription;
-    
+
     subscription = context.read<HomeBloc>().stream.listen((state) {
-      if (state.session?.id == sessionId && 
-          state.session?.endAt != null && 
+      if (state.session?.id == sessionId &&
+          state.session?.endAt != null &&
           state.session!.endAt!.isNotEmpty) {
         if (!completer.isCompleted) {
           completer.complete();
@@ -283,32 +270,27 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
         }
       }
     });
-    
+
     context.read<HomeBloc>().add(
-      UpdateSessionEvent(
-        sessionId: sessionId,
-        endAt: endAt,
-        classId: classId,
-      ),
+      UpdateSessionEvent(sessionId: sessionId, endAt: endAt, classId: classId),
     );
-    
+
     // Wait with timeout
     await completer.future.timeout(
       const Duration(seconds: 10),
       onTimeout: () {
         subscription.cancel();
-        debugPrint('[TRANSFER_ATOMIC] ⚠️ Session update timeout');
       },
     );
   }
-  
+
   /// Wait for time out to complete
   Future<void> _waitForTimeOut() async {
     final completer = Completer<void>();
     late StreamSubscription subscription;
-    
+
     subscription = context.read<StaffAttendanceBloc>().stream.listen((state) {
-      if (state is CreateStaffAttendanceSuccess && 
+      if (state is CreateStaffAttendanceSuccess &&
           state.attendance.eventType == 'time_out') {
         if (!completer.isCompleted) {
           completer.complete();
@@ -321,23 +303,24 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
         }
       }
     });
-    
+
     // Wait with timeout
     await completer.future.timeout(
       const Duration(seconds: 10),
       onTimeout: () {
         subscription.cancel();
-        debugPrint('[TRANSFER_ATOMIC] ⚠️ Time out timeout');
       },
     );
   }
-  
+
   /// Wait for transfer request to complete
   Future<void> _waitForTransferRequest() async {
     final completer = Completer<void>();
     late StreamSubscription subscription;
-    
-    subscription = context.read<ClassTransferRequestBloc>().stream.listen((state) {
+
+    subscription = context.read<ClassTransferRequestBloc>().stream.listen((
+      state,
+    ) {
       if (state is CreateTransferRequestSuccess) {
         if (!completer.isCompleted) {
           completer.complete();
@@ -350,13 +333,12 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
         }
       }
     });
-    
+
     // Wait with timeout
     await completer.future.timeout(
       const Duration(seconds: 10),
       onTimeout: () {
         subscription.cancel();
-        debugPrint('[TRANSFER_ATOMIC] ⚠️ Transfer request timeout');
       },
     );
   }
@@ -375,7 +357,9 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
               if (state.request != null && state.request!.status == 'pending') {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('A transfer request is currently under review'),
+                    content: Text(
+                      'A transfer request is currently under review',
+                    ),
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -388,28 +372,30 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
               // Refresh transfer requests list in the parent screen (only if studentId was provided)
               if (widget.studentId != null && widget.studentId!.isNotEmpty) {
                 context.read<ClassTransferRequestBloc>().add(
-                      GetTransferRequestsByClassIdEvent(classId: widget.currentClassId),
-                    );
+                  GetTransferRequestsByClassIdEvent(
+                    classId: widget.currentClassId,
+                  ),
+                );
               }
             } else if (state is CreateTransferRequestFailure) {
               setState(() {
                 _isSubmitting = false;
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                ),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
         ),
         // Listen for GetStaffClassSuccess to navigate to Select Your Profile
         BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
-            if (state is GetStaffClassSuccess && _isSubmitting && selectedClassId != null) {
+            if (state is GetStaffClassSuccess &&
+                _isSubmitting &&
+                selectedClassId != null) {
               // Close the action sheet
               Navigator.pop(context);
-              
+
               // Navigate to Select Your Profile
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
@@ -420,11 +406,11 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
                 ),
                 (_) => false, // Remove all previous routes
               );
-              
+
               setState(() {
                 _isSubmitting = false;
               });
-              
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Transfer completed successfully'),
@@ -478,7 +464,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
                           ),
                         )
                       else ...[
-                        if (widget.studentId != null && 
+                        if (widget.studentId != null &&
                             widget.studentId!.isNotEmpty &&
                             _existingRequest != null &&
                             _existingRequest!.status == 'pending')
@@ -588,7 +574,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
       ),
     );
   }
-  
+
   /// Build switch row for check out/time out options
   Widget _buildSwitchRow({
     required String title,
@@ -616,4 +602,3 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
     );
   }
 }
-

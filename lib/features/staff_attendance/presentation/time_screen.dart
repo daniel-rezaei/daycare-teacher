@@ -32,10 +32,10 @@ class _TimeScreenState extends State<TimeScreen> {
     super.initState();
     _loadIds();
     _rehydrateFromStore();
-    
+
     // Listen to store changes
     _store.addListener(_onStoreChanged);
-    
+
     // Start timer if needed
     _startTimerIfNeeded();
   }
@@ -60,23 +60,16 @@ class _TimeScreenState extends State<TimeScreen> {
 
       // Rehydrate from persistent storage first
       await _store.rehydrate();
-      
+
       // Then fetch from API to ensure we have latest state
       context.read<StaffAttendanceBloc>().add(
-            GetLatestStaffAttendanceEvent(staffId: staffId),
-          );
+        GetLatestStaffAttendanceEvent(staffId: staffId),
+      );
     }
   }
 
   /// Rehydrate timer from store (persistent storage)
   void _rehydrateFromStore() {
-    debugPrint(
-      '[TIME_SCREEN] Rehydrating from store: '
-      'isClockedIn=${_store.isClockedIn}, '
-      'timeInAt=${_store.timeInAt}, '
-      'accumulatedTotal=${_store.accumulatedTotal.inMinutes}min',
-    );
-    
     if (_store.isClockedIn && _store.timeInAt != null) {
       _startTimerIfNeeded();
     } else {
@@ -95,12 +88,6 @@ class _TimeScreenState extends State<TimeScreen> {
     if (_timer != null && _timer!.isActive) {
       return;
     }
-
-    debugPrint(
-      '[TIME_SCREEN] Starting timer from store: '
-      'timeInAt=${_store.timeInAt}, '
-      'accumulatedTotal=${_store.accumulatedTotal.inMinutes}min',
-    );
 
     // Start periodic updates
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -144,7 +131,6 @@ class _TimeScreenState extends State<TimeScreen> {
   /// Automatically end active class session when Time-Out happens
   void _autoEndActiveClassSession() {
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[TIME_SCREEN] Cannot end session: classId is null');
       return;
     }
 
@@ -153,25 +139,18 @@ class _TimeScreenState extends State<TimeScreen> {
 
     if (_isClassSessionActive(session)) {
       if (session!.id == null || session.id!.isEmpty) {
-        debugPrint('[TIME_SCREEN] Cannot end session: sessionId is null');
         return;
       }
 
       final endAt = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
-      debugPrint(
-        '[TIME_SCREEN] Auto-ending class session on Time-Out: '
-        'sessionId=${session.id}, endAt=$endAt',
-      );
 
       context.read<HomeBloc>().add(
-            UpdateSessionEvent(
-              sessionId: session.id!,
-              endAt: endAt,
-              classId: _classId!,
-            ),
-          );
-    } else {
-      debugPrint('[TIME_SCREEN] No active class session to end');
+        UpdateSessionEvent(
+          sessionId: session.id!,
+          endAt: endAt,
+          classId: _classId!,
+        ),
+      );
     }
   }
 
@@ -224,23 +203,11 @@ class _TimeScreenState extends State<TimeScreen> {
                   child: BlocConsumer<StaffAttendanceBloc, StaffAttendanceState>(
                     listener: (context, state) {
                       if (state is GetLatestStaffAttendanceSuccess) {
-                        final latestAttendance = state.latestAttendance;
-                        
-                        debugPrint(
-                          '[TIME_SCREEN] GetLatestStaffAttendanceSuccess: '
-                          'eventType=${latestAttendance?.eventType}',
-                        );
-                        
                         // Store is already synced by bloc, just ensure timer is running
                         _startTimerIfNeeded();
                       } else if (state is CreateStaffAttendanceSuccess) {
                         final attendance = state.attendance;
-                        
-                        debugPrint(
-                          '[TIME_SCREEN] CreateStaffAttendanceSuccess: '
-                          'eventType=${attendance.eventType}',
-                        );
-                        
+
                         if (attendance.eventType == 'time_out') {
                           _stopTimer();
                           _autoEndActiveClassSession();
@@ -249,9 +216,6 @@ class _TimeScreenState extends State<TimeScreen> {
                         }
                       } else if (state is GetLatestStaffAttendanceFailure ||
                           state is CreateStaffAttendanceFailure) {
-                        debugPrint(
-                          '[TIME_SCREEN] Error state: ${state.runtimeType}',
-                        );
                         // On error, try to use store state
                         _startTimerIfNeeded();
                       }
@@ -269,11 +233,12 @@ class _TimeScreenState extends State<TimeScreen> {
                         errorMessage = state.message;
                       }
 
-                      final isProcessing = state is CreateStaffAttendanceLoading;
-                      
+                      final isProcessing =
+                          state is CreateStaffAttendanceLoading;
+
                       // Show loading if: loading state OR timer is running but not ready yet
-                      final showTimerLoading = isLoading || 
-                          (isRunning && !isTimerReady);
+                      final showTimerLoading =
+                          isLoading || (isRunning && !isTimerReady);
 
                       return Column(
                         children: [
@@ -316,9 +281,7 @@ class _TimeScreenState extends State<TimeScreen> {
                               padding: EdgeInsets.symmetric(vertical: 16),
                               alignment: Alignment.center,
                               child: showTimerLoading
-                                  ? const CupertinoActivityIndicator(
-                                      radius: 16,
-                                    )
+                                  ? const CupertinoActivityIndicator(radius: 16)
                                   : Text(
                                       _formatDuration(currentElapsed),
                                       style: TextStyle(
@@ -353,21 +316,21 @@ class _TimeScreenState extends State<TimeScreen> {
                                     if (isRunning) {
                                       // Time-Out
                                       context.read<StaffAttendanceBloc>().add(
-                                            CreateStaffAttendanceEvent(
-                                              staffId: _staffId!,
-                                              eventType: 'time_out',
-                                              classId: _classId,
-                                            ),
-                                          );
+                                        CreateStaffAttendanceEvent(
+                                          staffId: _staffId!,
+                                          eventType: 'time_out',
+                                          classId: _classId,
+                                        ),
+                                      );
                                     } else {
                                       // Time-In
                                       context.read<StaffAttendanceBloc>().add(
-                                            CreateStaffAttendanceEvent(
-                                              staffId: _staffId!,
-                                              eventType: 'time_in',
-                                              classId: _classId,
-                                            ),
-                                          );
+                                        CreateStaffAttendanceEvent(
+                                          staffId: _staffId!,
+                                          eventType: 'time_in',
+                                          classId: _classId,
+                                        ),
+                                      );
                                     }
                                   },
                             child: isLoading || isProcessing

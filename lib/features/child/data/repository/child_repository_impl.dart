@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/core/locator/di.dart';
@@ -65,40 +64,28 @@ class ChildRepositoryImpl extends ChildRepository {
   }
 
   @override
-  Future<DataState<List<DietaryRestrictionEntity>>> getAllDietaryRestrictions() async {
+  Future<DataState<List<DietaryRestrictionEntity>>>
+  getAllDietaryRestrictions() async {
     try {
-      debugPrint('[PROFILE_LOAD] Repository: Loading Dietary Restrictions...');
       final Response response = await childApi.getAllDietaryRestrictions();
 
       if (response.data == null || response.data['data'] == null) {
-        debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions response data is null');
         return DataFailed('Response data is null');
       }
 
       final List<dynamic> list = response.data['data'] as List<dynamic>;
-      debugPrint('[PROFILE_LOAD] Repository: Dietary Restrictions raw count: ${list.length}');
 
       final List<DietaryRestrictionEntity> restrictionsEntity = [];
       for (var item in list) {
-        try {
-          final entity = DietaryRestrictionModel.fromJson(item as Map<String, dynamic>);
-          restrictionsEntity.add(entity);
-          debugPrint('[PROFILE_LOAD] Repository: Dietary item - id: ${entity.id}, childId: ${entity.childId}, restrictionName: ${entity.restrictionName}');
-        } catch (e) {
-          debugPrint('[PROFILE_ERROR] Repository: Failed to parse Dietary item: $e');
-          debugPrint('[PROFILE_ERROR] Repository: Item data: $item');
-        }
+        final entity = DietaryRestrictionModel.fromJson(
+          item as Map<String, dynamic>,
+        );
+        restrictionsEntity.add(entity);
       }
-
-      debugPrint('[PROFILE_LOAD] Repository: Dietary Restrictions loaded: ${restrictionsEntity.length}');
       return DataSuccess(restrictionsEntity);
     } on DioException catch (e) {
-      debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions DioException: ${e.message}');
-      debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions error response: ${e.response?.data}');
       return _handleDioError(e);
-    } catch (e, stackTrace) {
-      debugPrint('[PROFILE_ERROR] Repository: Dietary Restrictions unexpected error: $e');
-      debugPrint('[PROFILE_ERROR] Repository: Stack trace: $stackTrace');
+    } catch (e) {
       return DataFailed('Unexpected error: $e');
     }
   }
@@ -121,14 +108,17 @@ class ChildRepositoryImpl extends ChildRepository {
   }
 
   @override
-  Future<DataState<List<PhysicalRequirementEntity>>> getAllPhysicalRequirements() async {
+  Future<DataState<List<PhysicalRequirementEntity>>>
+  getAllPhysicalRequirements() async {
     try {
       final Response response = await childApi.getAllPhysicalRequirements();
 
       final List<dynamic> list = response.data['data'] as List<dynamic>;
 
       final List<PhysicalRequirementEntity> requirementsEntity = list
-          .map((e) => PhysicalRequirementModel.fromJson(e as Map<String, dynamic>))
+          .map(
+            (e) => PhysicalRequirementModel.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
 
       return DataSuccess(requirementsEntity);
@@ -138,14 +128,17 @@ class ChildRepositoryImpl extends ChildRepository {
   }
 
   @override
-  Future<DataState<List<ReportableDiseaseEntity>>> getAllReportableDiseases() async {
+  Future<DataState<List<ReportableDiseaseEntity>>>
+  getAllReportableDiseases() async {
     try {
       final Response response = await childApi.getAllReportableDiseases();
 
       final List<dynamic> list = response.data['data'] as List<dynamic>;
 
       final List<ReportableDiseaseEntity> diseasesEntity = list
-          .map((e) => ReportableDiseaseModel.fromJson(e as Map<String, dynamic>))
+          .map(
+            (e) => ReportableDiseaseModel.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
 
       return DataSuccess(diseasesEntity);
@@ -157,38 +150,21 @@ class ChildRepositoryImpl extends ChildRepository {
   @override
   Future<DataState<List<ImmunizationEntity>>> getAllImmunizations() async {
     try {
-      debugPrint('[PROFILE_LOAD] Repository: Loading Immunizations...');
       final Response response = await childApi.getAllImmunizations();
 
       if (response.data == null || response.data['data'] == null) {
-        debugPrint('[PROFILE_ERROR] Repository: Immunizations response data is null');
         return DataFailed('Response data is null');
       }
-
       final List<dynamic> list = response.data['data'] as List<dynamic>;
-      debugPrint('[PROFILE_LOAD] Repository: Immunizations raw count: ${list.length}');
-
       final List<ImmunizationEntity> immunizationsEntity = [];
       for (var item in list) {
-        try {
-          final entity = ImmunizationModel.fromJson(item as Map<String, dynamic>);
-          immunizationsEntity.add(entity);
-          debugPrint('[PROFILE_LOAD] Repository: Immunization item - id: ${entity.id}, childId: ${entity.childId}, vaccineName: ${entity.vaccineName}');
-        } catch (e) {
-          debugPrint('[PROFILE_ERROR] Repository: Failed to parse Immunization item: $e');
-          debugPrint('[PROFILE_ERROR] Repository: Item data: $item');
-        }
+        final entity = ImmunizationModel.fromJson(item as Map<String, dynamic>);
+        immunizationsEntity.add(entity);
       }
-
-      debugPrint('[PROFILE_LOAD] Repository: Immunizations loaded: ${immunizationsEntity.length}');
       return DataSuccess(immunizationsEntity);
     } on DioException catch (e) {
-      debugPrint('[PROFILE_ERROR] Repository: Immunizations DioException: ${e.message}');
-      debugPrint('[PROFILE_ERROR] Repository: Immunizations error response: ${e.response?.data}');
       return _handleDioError(e);
-    } catch (e, stackTrace) {
-      debugPrint('[PROFILE_ERROR] Repository: Immunizations unexpected error: $e');
-      debugPrint('[PROFILE_ERROR] Repository: Stack trace: $stackTrace');
+    } catch (e) {
       return DataFailed('Unexpected error: $e');
     }
   }
@@ -215,7 +191,8 @@ class ChildRepositoryImpl extends ChildRepository {
     try {
       final Response response = await childApi.getChildById(childId: childId);
 
-      final Map<String, dynamic> data = response.data['data'] as Map<String, dynamic>;
+      final Map<String, dynamic> data =
+          response.data['data'] as Map<String, dynamic>;
       final ChildEntity childEntity = ChildModel.fromJson(data);
 
       return DataSuccess(childEntity);
@@ -225,62 +202,45 @@ class ChildRepositoryImpl extends ChildRepository {
   }
 
   @override
-  Future<DataState<ChildEntity>> getChildByContactId({required String contactId}) async {
+  Future<DataState<ChildEntity>> getChildByContactId({
+    required String contactId,
+  }) async {
     try {
-      debugPrint('[CHILD_REPO] ========== getChildByContactId START ==========');
-      debugPrint('[CHILD_REPO] 📥 contactId: $contactId');
-      
-      final Response response = await childApi.getChildByContactId(contactId: contactId);
+      final Response response = await childApi.getChildByContactId(
+        contactId: contactId,
+      );
 
-      debugPrint('[CHILD_REPO] ✅ API response received');
-      debugPrint('[CHILD_REPO] 📦 Response data type: ${response.data.runtimeType}');
-      
       if (response.data == null || response.data['data'] == null) {
-        debugPrint('[CHILD_REPO] ⚠️ Response data is null');
         return DataFailed('Child not found for contactId: $contactId');
       }
 
       final List<dynamic> dataList = response.data['data'] as List<dynamic>;
-      debugPrint('[CHILD_REPO] 📊 Data list length: ${dataList.length}');
-      
+
       if (dataList.isEmpty) {
-        debugPrint('[CHILD_REPO] ⚠️ Data list is empty');
         return DataFailed('Child not found for contactId: $contactId');
       }
 
       final Map<String, dynamic> data = dataList[0] as Map<String, dynamic>;
-      debugPrint('[CHILD_REPO] 📋 Child data keys: ${data.keys.toList()}');
-      debugPrint('[CHILD_REPO] 📋 Child dob value: ${data['dob']}');
-      debugPrint('[CHILD_REPO] 📋 Child id: ${data['id']}');
-      debugPrint('[CHILD_REPO] 📋 Child contact_id: ${data['contact_id']}');
-      
       final ChildEntity childEntity = ChildModel.fromJson(data);
-      
-      debugPrint('[CHILD_REPO] ✅ ChildEntity created: id=${childEntity.id}, dob=${childEntity.dob}');
-      debugPrint('[CHILD_REPO] ========== getChildByContactId SUCCESS ==========');
 
       return DataSuccess(childEntity);
     } on DioException catch (e) {
-      debugPrint('[CHILD_REPO] ❌ DioException: ${e.message}');
-      debugPrint('[CHILD_REPO] ========== getChildByContactId ERROR ==========');
       return _handleDioError(e);
-    } catch (e, stackTrace) {
-      debugPrint('[CHILD_REPO] ❌ Unexpected error: $e');
-      debugPrint('[CHILD_REPO] Stack trace: $stackTrace');
-      debugPrint('[CHILD_REPO] ========== getChildByContactId ERROR ==========');
+    } catch (e) {
       return DataFailed('Error retrieving child information: $e');
     }
   }
 
   DataFailed<T> _handleDioError<T>(DioException e) {
     String errorMessage = 'Error retrieving information';
-    
+
     if (e.response != null) {
-      errorMessage = e.response?.data['message'] ?? 
-                     e.response?.statusMessage ?? 
-                     'Error connecting to server';
+      errorMessage =
+          e.response?.data['message'] ??
+          e.response?.statusMessage ??
+          'Error connecting to server';
     } else if (e.type == DioExceptionType.connectionTimeout ||
-               e.type == DioExceptionType.receiveTimeout) {
+        e.type == DioExceptionType.receiveTimeout) {
       errorMessage = 'Connection timeout';
     } else if (e.type == DioExceptionType.connectionError) {
       errorMessage = 'Error connecting to server';
@@ -289,4 +249,3 @@ class ChildRepositoryImpl extends ChildRepository {
     return DataFailed(errorMessage);
   }
 }
-

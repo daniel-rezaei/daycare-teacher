@@ -18,14 +18,14 @@ class TimeInAccessGuard {
       return latestAttendance != null &&
           latestAttendance.eventType == 'time_in';
     }
-    
+
     // Check CreateStaffAttendanceSuccess state (after Time-In/Time-Out action)
     if (state is CreateStaffAttendanceSuccess) {
       final attendance = state.attendance;
       // If latest action was Time-In, we have active Time-In
       return attendance.eventType == 'time_in';
     }
-    
+
     // If state is not success or is loading/failure/initial, assume no active Time-In
     // This is fail-safe: block access if we can't confirm active Time-In
     return false;
@@ -38,23 +38,21 @@ class TimeInAccessGuard {
     try {
       final state = context.read<StaffAttendanceBloc>().state;
       final hasActiveFromBloc = hasActiveTimeIn(state);
-      
+
       // Also check the AttendanceSessionStore as a fallback
       // This ensures we have accurate state even if bloc state is not in a success state
       final timerStore = AttendanceSessionStore.instance;
-      final hasActiveFromStore = timerStore.isClockedIn && timerStore.timeInAt != null;
-      
+      final hasActiveFromStore =
+          timerStore.isClockedIn && timerStore.timeInAt != null;
+
       // If either source indicates active Time-In, return true
       // This prevents false negatives when bloc state hasn't updated yet
       return hasActiveFromBloc || hasActiveFromStore;
     } catch (e) {
-      debugPrint('[TIME_IN_ACCESS_GUARD] Error checking state: $e');
-      // On error, check the store as a fallback
       try {
         final timerStore = AttendanceSessionStore.instance;
         return timerStore.isClockedIn && timerStore.timeInAt != null;
       } catch (storeError) {
-        debugPrint('[TIME_IN_ACCESS_GUARD] Error checking store: $storeError');
         return false;
       }
     }
@@ -63,7 +61,7 @@ class TimeInAccessGuard {
   /// Guard a protected action
   /// If no active Time-In, shows snackbar and returns false
   /// If active Time-In exists, returns true
-  /// 
+  ///
   /// Usage:
   /// ```dart
   /// if (!TimeInAccessGuard.guardAction(context)) return;
@@ -71,10 +69,10 @@ class TimeInAccessGuard {
   /// ```
   static bool guardAction(BuildContext context) {
     final hasActive = checkActiveTimeInFromContext(context);
-    
+
     // The message "You must check in first" must ONLY be shown when:
     // - The user has NOT done Time In yet
-    // If the user HAS already checked in and has NOT checked out yet, 
+    // If the user HAS already checked in and has NOT checked out yet,
     // the message must NOT be shown and all buttons must work normally.
     if (!hasActive) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,14 +83,14 @@ class TimeInAccessGuard {
       );
       return false;
     }
-    
+
     return true;
   }
 
   /// Guard a protected navigation
   /// If no active Time-In, shows snackbar and prevents navigation
   /// If active Time-In exists, allows navigation
-  /// 
+  ///
   /// Usage:
   /// ```dart
   /// TimeInAccessGuard.guardNavigation(
@@ -111,7 +109,7 @@ class TimeInAccessGuard {
 
   /// Refresh Time-In status from API before checking
   /// Useful when you need to ensure latest status before guarding
-  /// 
+  ///
   /// Usage:
   /// ```dart
   /// await TimeInAccessGuard.refreshAndGuardAction(context);
@@ -120,7 +118,7 @@ class TimeInAccessGuard {
     try {
       final prefs = await SharedPreferences.getInstance();
       final staffId = prefs.getString(AppConstants.staffIdKey);
-      
+
       if (staffId == null || staffId.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -133,16 +131,15 @@ class TimeInAccessGuard {
 
       // Request latest attendance status
       context.read<StaffAttendanceBloc>().add(
-            GetLatestStaffAttendanceEvent(staffId: staffId),
-          );
+        GetLatestStaffAttendanceEvent(staffId: staffId),
+      );
 
       // Wait a bit for the state to update (in real scenario, you'd use BlocListener)
       // For now, check current state
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       return guardAction(context);
     } catch (e) {
-      debugPrint('[TIME_IN_ACCESS_GUARD] Error refreshing status: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You must check in first'),
@@ -153,4 +150,3 @@ class TimeInAccessGuard {
     }
   }
 }
-

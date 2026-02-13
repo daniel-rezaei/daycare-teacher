@@ -1,15 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 
-enum ChildAttendanceStatus {
-  notArrived,
-  present,
-  checkedOut,
-  absent,
-}
+enum ChildAttendanceStatus { notArrived, present, checkedOut, absent }
 
 class ChildStatusHelper {
   ChildStatusHelper._();
@@ -27,32 +21,22 @@ class ChildStatusHelper {
         .where((id) => id != null && id.isNotEmpty)
         .toSet();
 
-    debugPrint('[CHILD_STATUS_DEBUG] Valid child contact IDs: $validChildContactIds');
-    debugPrint('[CHILD_STATUS_DEBUG] Filtering children for classId: $classId');
-
     // فیلتر بچه‌هایی که contact_id آن‌ها در validChildContactIds موجود است
     // و primary_room_id آن‌ها برابر با class_id است
     final filtered = children.where((child) {
       final isActive = child.status == 'active';
-      final hasValidContactId = child.contactId != null && child.contactId!.isNotEmpty;
-      final contactExists = hasValidContactId && validChildContactIds.contains(child.contactId);
-      final isInClass = classId != null && 
-          child.primaryRoomId != null && 
+      final hasValidContactId =
+          child.contactId != null && child.contactId!.isNotEmpty;
+      final contactExists =
+          hasValidContactId && validChildContactIds.contains(child.contactId);
+      final isInClass =
+          classId != null &&
+          child.primaryRoomId != null &&
           child.primaryRoomId == classId;
-
-      final shouldInclude = isActive && hasValidContactId && contactExists && isInClass;
-
-      debugPrint(
-        '[CHILD_STATUS_DEBUG] Child ${child.id}: primaryRoomId=${child.primaryRoomId}, '
-        'classId=$classId, isActive=$isActive, hasValidContactId=$hasValidContactId, '
-        'contactExists=$contactExists, isInClass=$isInClass, shouldInclude=$shouldInclude',
-      );
-
+      final shouldInclude =
+          isActive && hasValidContactId && contactExists && isInClass;
       return shouldInclude;
     }).toList();
-
-    debugPrint('[CHILD_STATUS_DEBUG] Filtered children count: ${filtered.length}');
-
     return filtered;
   }
 
@@ -70,7 +54,11 @@ class ChildStatusHelper {
 
     // فیلتر کردن بر اساس تاریخ امروز (در local timezone)
     final today = DateTime.now(); // Local time
-    final todayStart = DateTime(today.year, today.month, today.day); // Local day start
+    final todayStart = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ); // Local day start
     final todayEnd = todayStart.add(const Duration(days: 1)); // Local day end
 
     final todayAttendance = childAttendance.where((attendance) {
@@ -82,11 +70,11 @@ class ChildStatusHelper {
         // Parse API time (UTC) and convert to local for comparison
         final checkInDateUtc = DateTime.parse(attendance.checkInAt!);
         final checkInDateLocal = checkInDateUtc.toLocal();
-        debugPrint('[CHILD_STATUS_DEBUG] isChildPresent - checkInAt (UTC): ${attendance.checkInAt}, parsedLocal: $checkInDateLocal, todayStart: $todayStart');
-        return checkInDateLocal.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+        return checkInDateLocal.isAfter(
+              todayStart.subtract(const Duration(seconds: 1)),
+            ) &&
             checkInDateLocal.isBefore(todayEnd);
       } catch (e) {
-        debugPrint('[CHILD_STATUS_DEBUG] Error parsing checkInAt: ${attendance.checkInAt}, error: $e');
         return false;
       }
     }).toList();
@@ -102,20 +90,15 @@ class ChildStatusHelper {
 
     final latest = todayAttendance.first;
     // اگر check_in_at وجود دارد و check_out_at null است، یعنی حاضر است
-    final isPresent = latest.checkInAt != null &&
+    final isPresent =
+        latest.checkInAt != null &&
         latest.checkInAt!.isNotEmpty &&
         (latest.checkOutAt == null || latest.checkOutAt!.isEmpty);
-
-    debugPrint(
-      '[CHILD_STATUS_DEBUG] Child $childId: checkInAt=${latest.checkInAt}, '
-      'checkOutAt=${latest.checkOutAt}, isPresent=$isPresent',
-    );
-
     return isPresent;
   }
 
   /// Get child attendance for today
-  /// 
+  ///
   /// Note: This method filters by childId and today's date only.
   /// For status determination, use [getChildStatusToday] which also filters by classId.
   static AttendanceChildEntity? getChildAttendance(
@@ -124,24 +107,22 @@ class ChildStatusHelper {
     String? classId,
   }) {
     final now = DateTime.now();
-    final todayAttendance = attendanceList
-        .where((attendance) {
-          // بررسی معتبر بودن رکورد
-          if (attendance.childId == null || 
-              attendance.checkInAt == null ||
-              attendance.childId != childId) {
-            return false;
-          }
+    final todayAttendance = attendanceList.where((attendance) {
+      // بررسی معتبر بودن رکورد
+      if (attendance.childId == null ||
+          attendance.checkInAt == null ||
+          attendance.childId != childId) {
+        return false;
+      }
 
-          // اگر classId ارائه شده، بررسی تطابق
-          if (classId != null && attendance.classId != classId) {
-            return false;
-          }
+      // اگر classId ارائه شده، بررسی تطابق
+      if (classId != null && attendance.classId != classId) {
+        return false;
+      }
 
-          // بررسی تطابق تاریخ با امروز
-          return DateUtils.isSameDate(attendance.checkInAt!, now);
-        })
-        .toList();
+      // بررسی تطابق تاریخ با امروز
+      return DateUtils.isSameDate(attendance.checkInAt!, now);
+    }).toList();
 
     if (todayAttendance.isEmpty) return null;
 
@@ -155,7 +136,7 @@ class ChildStatusHelper {
   }
 
   /// Get child attendance status for today based on business logic
-  /// 
+  ///
   /// Returns:
   /// - [ChildAttendanceStatus.notArrived]: No valid attendance record for today and current class, and not marked as absent locally
   /// - [ChildAttendanceStatus.present]: Has attendance with check_in_at != null and check_out_at == null for today
@@ -176,7 +157,7 @@ class ChildStatusHelper {
     // 4. تاریخ check_in_at برابر با امروز است
     final validTodayAttendance = attendanceList.where((attendance) {
       // بررسی معتبر بودن رکورد
-      if (attendance.childId == null || 
+      if (attendance.childId == null ||
           attendance.classId == null ||
           attendance.childId!.isEmpty ||
           attendance.classId!.isEmpty) {
@@ -203,44 +184,25 @@ class ChildStatusHelper {
 
     // اگر رکورد attendance معتبری برای امروز وجود دارد
     if (validTodayAttendance.isNotEmpty) {
-      debugPrint(
-        '[CHILD_STATUS_DEBUG] Child $childId: Found ${validTodayAttendance.length} valid attendance(s) for today',
-      );
-      
       // بررسی اینکه آیا رکوردی با check_out_at == null وجود دارد
       final hasActiveAttendance = validTodayAttendance.any(
-        (attendance) => attendance.checkOutAt == null || attendance.checkOutAt!.isEmpty,
+        (attendance) =>
+            attendance.checkOutAt == null || attendance.checkOutAt!.isEmpty,
       );
 
       if (hasActiveAttendance) {
-        debugPrint(
-          '[CHILD_STATUS_DEBUG] Child $childId: Has active attendance (check_out_at == null) -> present',
-        );
         return ChildAttendanceStatus.present;
       }
-
-      // اگر همه رکوردها check_out_at != null دارند
-      debugPrint(
-        '[CHILD_STATUS_DEBUG] Child $childId: All attendances have check_out_at -> checkedOut',
-      );
       return ChildAttendanceStatus.checkedOut;
     }
 
     // اگر هیچ رکورد attendance معتبری وجود ندارد
     // بررسی اینکه آیا در لیست غایبین محلی است
     final isLocallyAbsent = locallyAbsentChildIds?.contains(childId) ?? false;
-    
+
     if (isLocallyAbsent) {
-      debugPrint(
-        '[CHILD_STATUS_DEBUG] Child $childId: Marked as absent locally -> absent',
-      );
       return ChildAttendanceStatus.absent;
     }
-
-    debugPrint(
-      '[CHILD_STATUS_DEBUG] Child $childId: No valid attendance for today and class $classId -> notArrived',
-    );
     return ChildAttendanceStatus.notArrived;
   }
 }
-

@@ -19,34 +19,23 @@ class _LogoutWidgetState extends State<LogoutWidget> {
     if (_isLoading) return;
 
     setState(() => _isLoading = true);
-    debugPrint('[LOGOUT] 🔘 Logout tapped');
 
     try {
       // 1️⃣ Clerk logout
       final auth = ClerkAuth.of(context);
-      debugPrint('[LOGOUT] 🔐 Signing out from Clerk...');
       await auth.signOut();
-      debugPrint('[LOGOUT] ✅ Clerk signOut done');
 
       // 2️⃣ Clear SharedPreferences
-      debugPrint('[LOGOUT] 🧹 Clearing SharedPreferences...');
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('is_logged_in');
-      debugPrint('[LOGOUT] ✅ is_logged_in removed');
 
       // 3️⃣ Navigate to Welcome (clear stack)
       if (!mounted) return;
-
-      debugPrint('[LOGOUT] 🚪 Navigating to WelcomeScreen');
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const WelcomeScreen()),
         (_) => false,
       );
-    } catch (e, s) {
-      debugPrint('[LOGOUT] ❌ Logout failed');
-      debugPrint('[LOGOUT] ❌ error: $e');
-      debugPrint('[LOGOUT] ❌ stack: $s');
-
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -55,7 +44,6 @@ class _LogoutWidgetState extends State<LogoutWidget> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        debugPrint('[LOGOUT] ⏹ Logout flow finished');
       }
     }
   }

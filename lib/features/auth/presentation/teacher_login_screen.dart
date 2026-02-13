@@ -38,9 +38,6 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
     final savedEmail = prefs.getString('remembered_email');
     final rememberFlag = prefs.getBool('remember_me') ?? false;
 
-    debugPrint('[REMEMBER_ME] savedEmail: $savedEmail');
-    debugPrint('[REMEMBER_ME] rememberFlag: $rememberFlag');
-
     if (rememberFlag && savedEmail != null) {
       emailController.text = savedEmail;
       setState(() => isRemember = true);
@@ -75,49 +72,36 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
             emailController.text.trim(),
           );
           await prefs.setBool('remember_me', true);
-
-          debugPrint('[REMEMBER_ME] Email saved');
         } else {
           await prefs.remove('remembered_email');
           await prefs.setBool('remember_me', false);
-
-          debugPrint('[REMEMBER_ME] Email removed');
         }
 
         // ✅ ذخیره auth_mode
         await prefs.setString('auth_mode', 'individual');
 
         // ✅ دریافت contact_id و class_id بر اساس email
-        try {
-          final authUsecase = getIt<AuthUsecase>();
-          final result = await authUsecase.getContactIdAndClassIdByEmail(
-            email: emailController.text.trim(),
-          );
+        final authUsecase = getIt<AuthUsecase>();
+        final result = await authUsecase.getContactIdAndClassIdByEmail(
+          email: emailController.text.trim(),
+        );
 
-          if (result.data != null) {
-            final contactId = result.data!['contact_id'];
-            final classId = result.data!['class_id'];
-            final staffId = result.data!['staff_id'];
+        if (result.data != null) {
+          final contactId = result.data!['contact_id'];
+          final classId = result.data!['class_id'];
+          final staffId = result.data!['staff_id'];
 
-            if (contactId != null && contactId.isNotEmpty) {
-              await prefs.setString('contact_id', contactId);
-              debugPrint('[LOGIN] contact_id saved: $contactId');
-            }
-
-            if (classId != null && classId.isNotEmpty) {
-              await prefs.setString('class_id', classId);
-              debugPrint('[LOGIN] class_id saved: $classId');
-            }
-
-            if (staffId != null && staffId.isNotEmpty) {
-              await prefs.setString('staff_id', staffId);
-              debugPrint('[LOGIN] staff_id saved: $staffId');
-            }
-          } else {
-            debugPrint('[LOGIN] Error: ${result.error}');
+          if (contactId != null && contactId.isNotEmpty) {
+            await prefs.setString('contact_id', contactId);
           }
-        } catch (e) {
-          debugPrint('[LOGIN] Exception fetching contact_id and class_id: $e');
+
+          if (classId != null && classId.isNotEmpty) {
+            await prefs.setString('class_id', classId);
+          }
+
+          if (staffId != null && staffId.isNotEmpty) {
+            await prefs.setString('staff_id', staffId);
+          }
         }
 
         if (!mounted) return;

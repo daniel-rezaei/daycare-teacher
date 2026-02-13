@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -30,14 +28,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       DataState dataState = await authUsecase.classRoom();
 
       if (dataState is DataSuccess) {
-        debugPrint('[AUTH_DEBUG] GetClassRoomsSuccess: ${dataState.data.length} classes');
         emit(GetClassRoomsSuccess(dataState.data));
       } else if (dataState is DataFailed) {
-        debugPrint('[AUTH_DEBUG] GetClassRoomsFailure: ${dataState.error}');
         emit(GetClassRoomsFailure(dataState.error!));
       }
     } catch (e) {
-      debugPrint('[AUTH_DEBUG] Exception getting class rooms: $e');
       emit(GetClassRoomsFailure('Error retrieving classes'));
     }
   }

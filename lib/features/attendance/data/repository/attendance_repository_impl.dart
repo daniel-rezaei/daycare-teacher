@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -76,26 +75,9 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
     pickupAuthorizationId, // DOMAIN LOCKDOWN: Only accepts existing PickupAuthorization ID
     String? checkoutPickupContactId, // Contact ID of the person picking up
   }) async {
-    debugPrint(
-      '[ATTENDANCE_REPO] ========== updateAttendance called ==========',
-    );
-    debugPrint('[ATTENDANCE_REPO] attendanceId: $attendanceId');
-    debugPrint('[ATTENDANCE_REPO] checkOutAt: "$checkOutAt"');
-    debugPrint('[ATTENDANCE_REPO] notes: $notes');
-    debugPrint('[ATTENDANCE_REPO] photo: $photo');
-    debugPrint(
-      '[ATTENDANCE_REPO] pickupAuthorizationId: $pickupAuthorizationId',
-    );
-    debugPrint(
-      '[ATTENDANCE_REPO] checkoutPickupContactId: $checkoutPickupContactId',
-    );
-
     try {
       // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
       // No contact/guardian/pickup creation allowed from checkout flow
-      debugPrint(
-        '[ATTENDANCE_REPO] Calling attendanceApi.updateAttendance (direct, no pre-fetch)...',
-      );
       final Response response = await attendanceApi.updateAttendance(
         attendanceId: attendanceId,
         checkOutAt: checkOutAt,
@@ -109,13 +91,6 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
           response.data['data'] as Map<String, dynamic>;
       final AttendanceChildEntity attendanceEntity =
           AttendanceChildModel.fromJson(data);
-
-      debugPrint('[ATTENDANCE_REPO] Update successful:');
-      debugPrint(
-        '[ATTENDANCE_REPO] - checkOutAt: ${attendanceEntity.checkOutAt}',
-      );
-      debugPrint('[ATTENDANCE_REPO] - notes: ${attendanceEntity.notes}');
-
       return DataSuccess(attendanceEntity);
     } on DioException catch (e) {
       return _handleDioError(e);

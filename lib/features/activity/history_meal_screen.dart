@@ -117,7 +117,6 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
 
       throw Exception('Activity type not found: $type');
     } catch (e) {
-      debugPrint('[HISTORY] Error getting activity type ID: $e');
       rethrow;
     }
   }
@@ -143,7 +142,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
     try {
       // Get activity type ID (cached)
       final activityTypeId = await _getActivityTypeId(widget.activityType);
-      
+
       // Fetch all activities in one call
       final response = await getIt<Dio>().get(
         '/items/activities',
@@ -157,7 +156,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       );
 
       final activities = response.data['data'] as List<dynamic>;
-      
+
       if (activities.isEmpty) {
         if (mounted) {
           setState(() {
@@ -190,7 +189,6 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
         final details = detailsMap[activityId];
         if (details == null) {
           // Skip activities without details, but log for debugging
-          debugPrint('[HISTORY] No details found for activity: $activityId');
           continue;
         }
 
@@ -224,9 +222,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
           _isLoading = false;
         });
       }
-    } catch (e, stackTrace) {
-      debugPrint('[HISTORY] Error loading history: $e');
-      debugPrint('[HISTORY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -238,7 +234,8 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
   /// Batch fetch activity details for all activity IDs in parallel
   /// Uses parallel fetching with optimal batch size for best performance
   Future<Map<String, Map<String, String?>>> _batchGetActivityDetails(
-      List<String> activityIds) async {
+    List<String> activityIds,
+  ) async {
     if (activityIds.isEmpty) return {};
 
     // Get endpoint configuration
@@ -269,7 +266,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
     // Process in batches
     for (int i = 0; i < activityIds.length; i += batchSize) {
       final batch = activityIds.skip(i).take(batchSize).toList();
-      
+
       // Fetch all details in this batch in parallel
       final futures = batch.map((activityId) async {
         try {
@@ -284,7 +281,9 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
           );
 
           final data = response.data['data'] as List<dynamic>;
-          if (data.isEmpty) return MapEntry<String, Map<String, String?>?>(activityId, null);
+          if (data.isEmpty) {
+            return MapEntry<String, Map<String, String?>?>(activityId, null);
+          }
 
           final detail = data[0] as Map<String, dynamic>;
           final typeValue = detail[typeField]?.toString();
@@ -296,11 +295,12 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
 
           return MapEntry(activityId, {
             'type': typeValue,
-            'quantity': quantityField != null ? detail[quantityField]?.toString() : null,
+            'quantity': quantityField != null
+                ? detail[quantityField]?.toString()
+                : null,
             '_rawTypeValue': typeValue, // Store original for resolution
           });
         } catch (e) {
-          debugPrint('[HISTORY] Error fetching detail for $activityId: $e');
           return MapEntry<String, Map<String, String?>?>(activityId, null);
         }
       });
@@ -318,11 +318,11 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       try {
         // Fetch all names in parallel batches
         final Map<String, String> idToNameMap = {};
-        
+
         final idsList = idsToResolve.toList();
         for (int i = 0; i < idsList.length; i += batchSize) {
           final batch = idsList.skip(i).take(batchSize).toList();
-          
+
           final resolveFutures = batch.map((id) async {
             try {
               final resolveResponse = await getIt<Dio>().get(
@@ -333,7 +333,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                   'limit': 1,
                 },
               );
-              
+
               final resolveData = resolveResponse.data['data'] as List<dynamic>;
               if (resolveData.isNotEmpty) {
                 final name = resolveData[0]['name']?.toString();
@@ -343,7 +343,6 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
               }
               return MapEntry<String, String?>(id, null);
             } catch (e) {
-              debugPrint('[HISTORY] Error resolving ID $id: $e');
               return MapEntry<String, String?>(id, null);
             }
           });
@@ -366,7 +365,6 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
           entry.value.remove('_rawTypeValue');
         }
       } catch (e) {
-        debugPrint('[HISTORY] Error batch resolving IDs: $e');
         // Remove temporary fields even on error
         for (final entry in result.entries) {
           entry.value.remove('_rawTypeValue');
@@ -377,7 +375,6 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
 
     return result;
   }
-
 
   /// Get configuration for activity details endpoint
   Map<String, dynamic>? _getActivityDetailsConfig() {
@@ -446,7 +443,6 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
         return null;
     }
   }
-
 
   void _onSearchChanged(String query) {
     setState(() {

@@ -202,7 +202,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   const SizedBox(height: 8),
                   Text(
@@ -293,7 +293,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
@@ -410,7 +410,7 @@ Future<Map<String, String>?> showFilterBottomSheetAccident(
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   Text(
                     "Decription",
                     style: TextStyle(

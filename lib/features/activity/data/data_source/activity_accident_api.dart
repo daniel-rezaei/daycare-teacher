@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @singleton
@@ -10,14 +8,12 @@ class ActivityAccidentApi {
 
   /// Get activity type ID from backend based on type
   Future<String> _getActivityTypeId(String type) async {
-    debugPrint('[ACCIDENT_API] Fetching activity type ID for type: $type');
     final response = await httpclient.get('/items/activity_types');
     final data = response.data['data'] as List<dynamic>;
 
     for (final item in data) {
       if (item['type'] == type) {
         final id = item['id'] as String;
-        debugPrint('[ACCIDENT_API] Found activity type ID for $type: $id');
         return id;
       }
     }
@@ -45,9 +41,6 @@ class ActivityAccidentApi {
       }
       return null;
     } catch (e) {
-      debugPrint(
-        '[ACCIDENT_API] Error converting text to value for $fieldName: $e',
-      );
       return null;
     }
   }
@@ -81,9 +74,6 @@ class ActivityAccidentApi {
       }
       return values;
     } catch (e) {
-      debugPrint(
-        '[ACCIDENT_API] Error converting texts to values for $fieldName: $e',
-      );
       return [];
     }
   }
@@ -91,18 +81,10 @@ class ActivityAccidentApi {
   /// Get field options from Child_Accident_Report table
   /// Returns list of choice texts from data.meta.options.choices[].text (for display)
   Future<List<String>> getFieldOptions(String fieldName) async {
-    debugPrint(
-      '[ACCIDENT_API] Fetching $fieldName options from /fields/child_accident_report/$fieldName',
-    );
     try {
       final response = await httpclient.get(
         '/fields/Child_Accident_Report/$fieldName',
       );
-      debugPrint(
-        '[ACCIDENT_API] $fieldName response status: ${response.statusCode}',
-      );
-      debugPrint('[ACCIDENT_API] $fieldName response data: ${response.data}');
-
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
       final meta = data['meta'] as Map<String, dynamic>;
@@ -111,12 +93,8 @@ class ActivityAccidentApi {
 
       // Use 'text' for display (e.g., "Bite" instead of "bite")
       final texts = choices.map((e) => e['text'].toString()).toList();
-
-      debugPrint('[ACCIDENT_API] Parsed $fieldName texts: $texts');
       return texts;
-    } catch (e, stackTrace) {
-      debugPrint('[ACCIDENT_API] Error fetching $fieldName: $e');
-      debugPrint('[ACCIDENT_API] StackTrace: $stackTrace');
+    } catch (e) {
       return [];
     }
   }
@@ -163,10 +141,6 @@ class ActivityAccidentApi {
     required String classId,
     required String startAtUtc,
   }) async {
-    debugPrint(
-      '[ACCIDENT_API] ========== STEP A: Creating Activity (Parent) ==========',
-    );
-
     // Get activity type ID from backend
     final activityTypeId = await _getActivityTypeId('accident');
 
@@ -179,14 +153,8 @@ class ActivityAccidentApi {
       'class_id': classId,
       'child_id': childId,
     };
-
-    debugPrint('[ACCIDENT_API] Activity request data: $data');
-
     final response = await httpclient.post('/items/activities', data: data);
-
     final activityId = response.data['data']['id'] as String;
-    debugPrint('[ACCIDENT_API] ✅ Activity created with ID: $activityId');
-
     return activityId;
   }
 
@@ -209,13 +177,6 @@ class ActivityAccidentApi {
     String? description,
     String? photo, // file ID (string, not create[])
   }) async {
-    debugPrint(
-      '[ACCIDENT_API] ========== STEP B: Creating Accident Details (Child) ==========',
-    );
-    debugPrint('[ACCIDENT_API] activityId: $activityId');
-    debugPrint('[ACCIDENT_API] childId: $childId');
-    debugPrint('[ACCIDENT_API] dateTime: $dateTime');
-
     final data = <String, dynamic>{
       'activity_id': activityId,
       'child_id': childId,
@@ -315,27 +276,13 @@ class ActivityAccidentApi {
     if (photo != null && photo.isNotEmpty) {
       data['photo'] = photo; // String file ID
     }
-
-    // Log final payload before sending
-    debugPrint('[ACCIDENT_PAYLOAD_DEBUG] ========== FINAL PAYLOAD ==========');
-    debugPrint(const JsonEncoder.withIndent('  ').convert(data));
-    debugPrint('[ACCIDENT_PAYLOAD_DEBUG] ====================================');
-
     try {
       final response = await httpclient.post(
         '/items/Child_Accident_Report',
         data: data,
       );
-      debugPrint(
-        '[ACCIDENT_API] Accident details response status: ${response.statusCode}',
-      );
-      debugPrint(
-        '[ACCIDENT_API] Accident details response data: ${response.data}',
-      );
       return response;
-    } catch (e, stackTrace) {
-      debugPrint('[ACCIDENT_API] Error creating accident details: $e');
-      debugPrint('[ACCIDENT_API] StackTrace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
@@ -343,12 +290,8 @@ class ActivityAccidentApi {
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
   Future<bool> hasHistory(String classId) async {
-    debugPrint(
-      '[ACCIDENT_API] ========== Checking history for classId: $classId ==========',
-    );
     try {
       final activityTypeId = await _getActivityTypeId('accident');
-      debugPrint('[ACCIDENT_API] Activity type ID: $activityTypeId');
 
       final response = await httpclient.get(
         '/items/activities',
@@ -361,14 +304,8 @@ class ActivityAccidentApi {
 
       final data = response.data['data'] as List<dynamic>;
       final hasHistory = data.isNotEmpty;
-
-      debugPrint(
-        '[ACCIDENT_API] ========== History check result: $hasHistory (found ${data.length} items) ==========',
-      );
       return hasHistory;
-    } catch (e, stackTrace) {
-      debugPrint('[ACCIDENT_API] Error checking history: $e');
-      debugPrint('[ACCIDENT_API] StackTrace: $stackTrace');
+    } catch (e) {
       return false; // On error, assume no history to show children list
     }
   }

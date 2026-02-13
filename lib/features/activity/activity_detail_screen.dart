@@ -59,7 +59,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   List<String> _typeOptions = [];
   List<String> _quantityOptions = [];
   List<String> _subTypeOptions = [];
-  bool _isLoadingOptions = true;
 
   @override
   void initState() {
@@ -81,10 +80,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   Future<void> _loadAllOptions() async {
-    setState(() {
-      _isLoadingOptions = true;
-    });
-
     try {
       switch (widget.activityType) {
         case 'meal':
@@ -138,18 +133,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           });
       }
     } catch (e) {
-      debugPrint('[ACTIVITY_DETAIL] Error loading options: $e');
       setState(() {
         _typeOptions = [];
         _quantityOptions = [];
         _subTypeOptions = [];
       });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingOptions = false;
-        });
-      }
     }
   }
 
@@ -230,7 +218,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('[ACTIVITY_DETAIL] Error loading activities: $e');
       setState(() {
         _isLoading = false;
       });
@@ -406,7 +393,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         'endAtTime': hasTimeFields ? detail['end_at']?.toString() : null,
       };
     } catch (e) {
-      debugPrint('[ACTIVITY_DETAIL] Error getting activity details: $e');
       return null;
     }
   }

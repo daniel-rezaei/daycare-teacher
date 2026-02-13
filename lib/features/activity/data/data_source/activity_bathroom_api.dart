@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @singleton
@@ -10,14 +8,12 @@ class ActivityBathroomApi {
 
   /// Get activity type ID from backend based on type
   Future<String> _getActivityTypeId(String type) async {
-    debugPrint('[BATHROOM_API] Fetching activity type ID for type: $type');
     final response = await httpclient.get('/items/activity_types');
     final data = response.data['data'] as List<dynamic>;
 
     for (final item in data) {
       if (item['type'] == type) {
         final id = item['id'] as String;
-        debugPrint('[BATHROOM_API] Found activity type ID for $type: $id');
         return id;
       }
     }
@@ -33,10 +29,6 @@ class ActivityBathroomApi {
     required String classId,
     required String startAtUtc,
   }) async {
-    debugPrint(
-      '[BATHROOM_API] ========== STEP A: Creating Activity (Parent) ==========',
-    );
-
     // Get activity type ID from backend
     final activityTypeId = await _getActivityTypeId('bathroom');
 
@@ -50,13 +42,9 @@ class ActivityBathroomApi {
       'class_id': classId,
       'child_id': childId,
     };
-
-    debugPrint('[BATHROOM_API] Activity request data: $data');
-
     final response = await httpclient.post('/items/activities', data: data);
 
     final activityId = response.data['data']['id'] as String;
-    debugPrint('[BATHROOM_API] ✅ Activity created with ID: $activityId');
 
     return activityId;
   }
@@ -71,16 +59,6 @@ class ActivityBathroomApi {
     List<String>? tags,
     String? photo, // file ID
   }) async {
-    debugPrint(
-      '[BATHROOM_API] ========== STEP B: Creating Bathroom Details (Child) ==========',
-    );
-    debugPrint('[BATHROOM_API] activityId: $activityId');
-    debugPrint('[BATHROOM_API] type: $type');
-    debugPrint('[BATHROOM_API] sub_type: $subType');
-    debugPrint('[BATHROOM_API] tags: $tags');
-    debugPrint('[BATHROOM_API] description: $description');
-    debugPrint('[BATHROOM_API] photo: $photo');
-
     final data = <String, dynamic>{
       'activity_id': activityId,
       'type': type,
@@ -102,28 +80,13 @@ class ActivityBathroomApi {
         ],
       };
     }
-
-    debugPrint('[BATHROOM_API] Bathroom details request data: $data');
-
-    debugPrint('================= DIRECTUS RAW BODY =================');
-    debugPrint(const JsonEncoder.withIndent('  ').convert(data));
-    debugPrint('=====================================================');
-
     try {
       final response = await httpclient.post(
         '/items/activity_bathroom',
         data: data,
       );
-      debugPrint(
-        '[BATHROOM_API] Bathroom details response status: ${response.statusCode}',
-      );
-      debugPrint(
-        '[BATHROOM_API] Bathroom details response data: ${response.data}',
-      );
       return response;
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_API] Error creating bathroom details: $e');
-      debugPrint('[BATHROOM_API] StackTrace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
@@ -131,18 +94,8 @@ class ActivityBathroomApi {
   /// Get bathroom type options from field metadata
   /// Returns list of choice values from data.meta.options.choices[].value
   Future<List<String>> getBathroomTypes() async {
-    debugPrint(
-      '[BATHROOM_API] Fetching bathroom type options from /fields/activity_bathroom/type',
-    );
     try {
       final response = await httpclient.get('/fields/activity_bathroom/type');
-      debugPrint(
-        '[BATHROOM_API] Bathroom type response status: ${response.statusCode}',
-      );
-      debugPrint(
-        '[BATHROOM_API] Bathroom type response data: ${response.data}',
-      );
-
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
       final meta = data['meta'] as Map<String, dynamic>;
@@ -150,12 +103,8 @@ class ActivityBathroomApi {
       final choices = options['choices'] as List<dynamic>;
 
       final values = choices.map((e) => e['value'].toString()).toList();
-
-      debugPrint('[BATHROOM_API] Parsed bathroom type values: $values');
       return values;
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_API] Error fetching bathroom types: $e');
-      debugPrint('[BATHROOM_API] StackTrace: $stackTrace');
+    } catch (e) {
       return [];
     }
   }
@@ -163,18 +112,10 @@ class ActivityBathroomApi {
   /// Get sub-type options from field metadata
   /// Returns list of choice values from data.meta.options.choices[].value
   Future<List<String>> getSubTypes() async {
-    debugPrint(
-      '[BATHROOM_API] Fetching sub-type options from /fields/activity_bathroom/sub_type',
-    );
     try {
       final response = await httpclient.get(
         '/fields/activity_bathroom/sub_type',
       );
-      debugPrint(
-        '[BATHROOM_API] Sub-type response status: ${response.statusCode}',
-      );
-      debugPrint('[BATHROOM_API] Sub-type response data: ${response.data}');
-
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
       final meta = data['meta'] as Map<String, dynamic>;
@@ -182,12 +123,8 @@ class ActivityBathroomApi {
       final choices = options['choices'] as List<dynamic>;
 
       final values = choices.map((e) => e['value'].toString()).toList();
-
-      debugPrint('[BATHROOM_API] Parsed sub-type values: $values');
       return values;
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_API] Error fetching sub-types: $e');
-      debugPrint('[BATHROOM_API] StackTrace: $stackTrace');
+    } catch (e) {
       return [];
     }
   }
@@ -198,13 +135,8 @@ class ActivityBathroomApi {
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
   Future<bool> hasHistory(String classId) async {
-    debugPrint(
-      '[BATHROOM_API] ========== Checking history for classId: $classId ==========',
-    );
     try {
       final activityTypeId = await _getActivityTypeId('bathroom');
-      debugPrint('[BATHROOM_API] Activity type ID: $activityTypeId');
-
       final response = await httpclient.get(
         '/items/activities',
         queryParameters: {
@@ -216,14 +148,8 @@ class ActivityBathroomApi {
 
       final data = response.data['data'] as List<dynamic>;
       final hasHistory = data.isNotEmpty;
-
-      debugPrint(
-        '[BATHROOM_API] ========== History check result: $hasHistory (found ${data.length} items) ==========',
-      );
       return hasHistory;
-    } catch (e, stackTrace) {
-      debugPrint('[BATHROOM_API] Error checking history: $e');
-      debugPrint('[BATHROOM_API] StackTrace: $stackTrace');
+    } catch (e) {
       return false; // On error, assume no history to show children list
     }
   }

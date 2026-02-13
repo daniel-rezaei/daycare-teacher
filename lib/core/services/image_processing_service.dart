@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 
@@ -26,10 +25,10 @@ class ImageProcessingService {
       // Calculate target dimensions while maintaining aspect ratio
       int newWidth = image.width;
       int newHeight = image.height;
-      
+
       if (image.width > params.maxWidth || image.height > params.maxHeight) {
         final aspectRatio = image.width / image.height;
-        
+
         if (image.width > image.height) {
           newWidth = params.maxWidth;
           newHeight = (params.maxWidth / aspectRatio).round();
@@ -59,7 +58,6 @@ class ImageProcessingService {
       final encodedBytes = img.encodeJpg(resized, quality: params.quality);
       return Uint8List.fromList(encodedBytes);
     } catch (e) {
-      debugPrint('[IMAGE_PROCESSING] Error in isolate: $e');
       return null;
     }
   }
@@ -76,13 +74,12 @@ class ImageProcessingService {
     try {
       final sourceFile = File(sourcePath);
       if (!await sourceFile.exists()) {
-        debugPrint('[IMAGE_PROCESSING] Source file does not exist: $sourcePath');
         return null;
       }
 
       // Read bytes (this is fast, file I/O)
       final bytes = await sourceFile.readAsBytes();
-      
+
       // Process in background isolate (non-blocking)
       final processedBytes = await compute(
         _processImageInIsolate,
@@ -95,7 +92,6 @@ class ImageProcessingService {
       );
 
       if (processedBytes == null) {
-        debugPrint('[IMAGE_PROCESSING] Failed to process image');
         return null;
       }
 
@@ -103,14 +99,8 @@ class ImageProcessingService {
       final outputFile = File(outputPath);
       await outputFile.writeAsBytes(processedBytes);
 
-      debugPrint(
-        '[IMAGE_PROCESSING] Processed image saved: ${(processedBytes.length / 1024).toStringAsFixed(2)}KB',
-      );
-
       return outputPath;
-    } catch (e, stackTrace) {
-      debugPrint('[IMAGE_PROCESSING] Error processing image: $e');
-      debugPrint('[IMAGE_PROCESSING] Stack trace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
@@ -161,9 +151,7 @@ class ImageProcessingService {
         originalPath: processedPath,
         thumbnailPath: thumbnailPath,
       );
-    } catch (e, stackTrace) {
-      debugPrint('[IMAGE_PROCESSING] Error in processCameraImage: $e');
-      debugPrint('[IMAGE_PROCESSING] Stack trace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
@@ -175,61 +163,51 @@ class ImageProcessingService {
     required String savedImagePath,
     required String thumbnailPath,
   }) async {
-    try {
-      // Process main image in background isolate (replaces saved file with optimized version)
-      final processedPath = await processAndSaveImage(
-        sourcePath: cameraImagePath,
-        outputPath: savedImagePath,
-      );
+    // Process main image in background isolate (replaces saved file with optimized version)
+    final processedPath = await processAndSaveImage(
+      sourcePath: cameraImagePath,
+      outputPath: savedImagePath,
+    );
 
-      if (processedPath != null) {
-        // Create thumbnail from processed image
-        _createThumbnailAsync(processedPath, thumbnailPath);
-      }
-
-      // Delete original camera file
-      _deleteFileAsync(cameraImagePath);
-    } catch (e) {
-      debugPrint('[IMAGE_PROCESSING] Error in async processing: $e');
+    if (processedPath != null) {
+      // Create thumbnail from processed image
+      _createThumbnailAsync(processedPath, thumbnailPath);
     }
+
+    // Delete original camera file
+    _deleteFileAsync(cameraImagePath);
   }
 
   /// Delete file asynchronously (fire and forget)
   static void _deleteFileAsync(String filePath) async {
-    try {
-      final file = File(filePath);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      debugPrint('[IMAGE_PROCESSING] Failed to delete file: $e');
+    final file = File(filePath);
+    if (await file.exists()) {
+      await file.delete();
     }
   }
 
   /// Create thumbnail asynchronously in background isolate
-  static void _createThumbnailAsync(String sourcePath, String thumbnailPath) async {
-    try {
-      // Read file
-      final bytes = await File(sourcePath).readAsBytes();
-      
-      // Process in background isolate
-      final thumbnailBytes = await compute(
-        _processImageInIsolate,
-        ImageProcessParams(
-          bytes: bytes,
-          maxWidth: thumbnailWidth,
-          maxHeight: thumbnailWidth,
-          quality: thumbnailQuality,
-        ),
-      );
-      
-      // Write thumbnail if processing succeeded
-      if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
-        await File(thumbnailPath).writeAsBytes(thumbnailBytes);
-        debugPrint('[IMAGE_PROCESSING] Thumbnail created: $thumbnailPath');
-      }
-    } catch (e) {
-      debugPrint('[IMAGE_PROCESSING] Thumbnail creation failed: $e');
+  static void _createThumbnailAsync(
+    String sourcePath,
+    String thumbnailPath,
+  ) async {
+    // Read file
+    final bytes = await File(sourcePath).readAsBytes();
+
+    // Process in background isolate
+    final thumbnailBytes = await compute(
+      _processImageInIsolate,
+      ImageProcessParams(
+        bytes: bytes,
+        maxWidth: thumbnailWidth,
+        maxHeight: thumbnailWidth,
+        quality: thumbnailQuality,
+      ),
+    );
+
+    // Write thumbnail if processing succeeded
+    if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
+      await File(thumbnailPath).writeAsBytes(thumbnailBytes);
     }
   }
 }
@@ -254,9 +232,5 @@ class ImageProcessResult {
   final String originalPath;
   final String thumbnailPath;
 
-  ImageProcessResult({
-    required this.originalPath,
-    required this.thumbnailPath,
-  });
+  ImageProcessResult({required this.originalPath, required this.thumbnailPath});
 }
-

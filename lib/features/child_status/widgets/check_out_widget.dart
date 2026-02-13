@@ -48,7 +48,8 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _noteController = TextEditingController();
   final List<File> _images = [];
-  String? _selectedPickupAuthorizationId; // DOMAIN LOCKDOWN: Only select existing PickupAuthorization ID
+  String?
+  _selectedPickupAuthorizationId; // DOMAIN LOCKDOWN: Only select existing PickupAuthorization ID
   String? _selectedPickupContactId; // Contact ID of the person picking up
   bool _isSubmitting = false;
   bool _checkoutSubmitted = false; // برای جلوگیری از pop چندباره
@@ -59,8 +60,8 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
 
     // دریافت PickupAuthorization
     context.read<PickupAuthorizationBloc>().add(
-          GetPickupAuthorizationByChildIdEvent(childId: widget.childId),
-        );
+      GetPickupAuthorizationByChildIdEvent(childId: widget.childId),
+    );
 
     // دریافت Contacts
     context.read<ChildBloc>().add(const GetAllContactsEvent());
@@ -95,26 +96,19 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
   // Removed duplicate methods - using utilities instead
 
   Future<void> _handleSubmit() async {
-    debugPrint('[CHECKOUT_DEBUG] Submit button clicked');
-    
     if (_isSubmitting) {
-      debugPrint('[CHECKOUT_DEBUG] Already submitting, returning');
       return;
     }
 
-    if (_selectedPickupAuthorizationId == null || _selectedPickupAuthorizationId!.isEmpty) {
-      debugPrint('[CHECKOUT_DEBUG] No pickup authorization selected');
+    if (_selectedPickupAuthorizationId == null ||
+        _selectedPickupAuthorizationId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select the person picking up the child')),
+        const SnackBar(
+          content: Text('Please select the person picking up the child'),
+        ),
       );
       return;
     }
-
-    debugPrint('[CHECKOUT_DEBUG] Starting submit process');
-    debugPrint('[CHECKOUT_DEBUG] Selected pickupAuthorizationId: $_selectedPickupAuthorizationId');
-    debugPrint('[CHECKOUT_DEBUG] Widget childId (Child.id): ${widget.childId}');
-    debugPrint('[CHECKOUT_DEBUG] Note: ${_noteController.text}');
-    debugPrint('[CHECKOUT_DEBUG] Images count: ${_images.length}');
 
     setState(() {
       _isSubmitting = true;
@@ -124,31 +118,21 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
       // Step 1: Upload images if any
       List<String> uploadedFileIds = [];
       if (_images.isNotEmpty) {
-        debugPrint('[CHECKOUT_DEBUG] Starting image upload, count: ${_images.length}');
         final fileUploadUsecase = GetIt.instance<FileUploadUsecase>();
-        
+
         for (int i = 0; i < _images.length; i++) {
           final imageFile = _images[i];
-          debugPrint('[CHECKOUT_DEBUG] Uploading image ${i + 1}/${_images.length}: ${imageFile.path}');
-          
+
           final uploadResult = await fileUploadUsecase.uploadFile(
             filePath: imageFile.path,
           );
-          
+
           if (uploadResult is DataSuccess && uploadResult.data != null) {
             uploadedFileIds.add(uploadResult.data!);
-            debugPrint('[CHECKOUT_DEBUG] Image ${i + 1} uploaded successfully, fileId: ${uploadResult.data}');
-            
+
             // ذخیره تصویر در گالری داخلی بعد از آپلود موفق
-            try {
-              await GalleryService.saveImageToGallery(imageFile);
-              debugPrint('[CHECKOUT_DEBUG] Image ${i + 1} saved to internal gallery');
-            } catch (e) {
-              debugPrint('[CHECKOUT_DEBUG] Failed to save image ${i + 1} to gallery: $e');
-              // ادامه می‌دهیم حتی اگر ذخیره در گالری با خطا مواجه شود
-            }
+            await GalleryService.saveImageToGallery(imageFile);
           } else {
-            debugPrint('[CHECKOUT_DEBUG] Failed to upload image ${i + 1}');
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Error uploading image ${i + 1}')),
@@ -160,60 +144,40 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
             return;
           }
         }
-        debugPrint('[CHECKOUT_DEBUG] All images uploaded successfully, total: ${uploadedFileIds.length}');
-      } else {
-        debugPrint('[CHECKOUT_DEBUG] No images to upload');
       }
 
       // Step 2: Update Attendance_Child
-      debugPrint('[CHECKOUT_STEP2] ========== Step 2: Preparing Check Out Data ==========');
-      debugPrint('[CHECKOUT_STEP2] Calling DateUtils.getCurrentDateTimeForCheckOut()...');
       final checkOutAt = DateUtils.getCurrentDateTimeForCheckOut();
-      debugPrint('[CHECKOUT_STEP2] checkOutAt generated: "$checkOutAt"');
-      debugPrint('[CHECKOUT_STEP2] checkOutAt type: ${checkOutAt.runtimeType}');
-      debugPrint('[CHECKOUT_STEP2] checkOutAt length: ${checkOutAt.length}');
-      debugPrint('[CHECKOUT_STEP2] checkOutAt isEmpty: ${checkOutAt.isEmpty}');
-      
-      final note = _noteController.text.isNotEmpty ? _noteController.text : null;
+      final note = _noteController.text.isNotEmpty
+          ? _noteController.text
+          : null;
       // فقط اولین file_id را به صورت string ارسال می‌کنیم
-      final photoFileId = uploadedFileIds.isNotEmpty ? uploadedFileIds.first : null;
-      
-      debugPrint('[CHECKOUT_STEP2] ========== All Check Out Data Prepared ==========');
-      debugPrint('[CHECKOUT_STEP2] - attendanceId: ${widget.attendanceId}');
-      debugPrint('[CHECKOUT_STEP2] - checkOutAt: "$checkOutAt"');
-      debugPrint('[CHECKOUT_STEP2] - pickupAuthorizationId: $_selectedPickupAuthorizationId');
-      debugPrint('[CHECKOUT_STEP2] - checkoutPickupContactId: $_selectedPickupContactId');
-      debugPrint('[CHECKOUT_STEP2] - notes: $note');
-      debugPrint('[CHECKOUT_STEP2] - photo fileId (first): $photoFileId');
-      debugPrint('[CHECKOUT_STEP2] - total uploaded files: ${uploadedFileIds.length}');
-      
-      debugPrint('[CHECKOUT_STEP2] ========== Dispatching UpdateAttendanceEvent ==========');
-      debugPrint('[CHECKOUT_STEP2] DOMAIN LOCKDOWN: Only sending existing pickup_authorization_id');
-      
+      final photoFileId = uploadedFileIds.isNotEmpty
+          ? uploadedFileIds.first
+          : null;
+
       // علامت‌گذاری که checkout در حال ارسال است
       setState(() {
         _checkoutSubmitted = true;
       });
-      
+
       // DOMAIN LOCKDOWN: Checkout API accepts ONLY pickup_authorization_id
       // No contact/guardian/pickup creation allowed from checkout flow
       context.read<AttendanceBloc>().add(
-            UpdateAttendanceEvent(
-              attendanceId: widget.attendanceId,
-              checkOutAt: checkOutAt,
-              notes: note,
-              pickupAuthorizationId: _selectedPickupAuthorizationId!,
-              checkoutPickupContactId: _selectedPickupContactId,
-              photo: photoFileId,
-            ),
-          );
-    } catch (e, stackTrace) {
-      debugPrint('[CHECKOUT_DEBUG] Exception in _handleSubmit: $e');
-      debugPrint('[CHECKOUT_DEBUG] StackTrace: $stackTrace');
+        UpdateAttendanceEvent(
+          attendanceId: widget.attendanceId,
+          checkOutAt: checkOutAt,
+          notes: note,
+          pickupAuthorizationId: _selectedPickupAuthorizationId!,
+          checkoutPickupContactId: _selectedPickupContactId,
+          photo: photoFileId,
+        ),
+      );
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
         setState(() {
           _isSubmitting = false;
         });
@@ -228,25 +192,23 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
         // بررسی اینکه آیا attendance مربوط به این widget به‌روز شده است
         if (state is GetAttendanceByClassIdSuccess) {
           // پیدا کردن attendance مربوط به این attendanceId
-          final matchingAttendances = state.attendanceList.where(
-            (att) => att.id == widget.attendanceId,
-          ).toList();
-          
+          final matchingAttendances = state.attendanceList
+              .where((att) => att.id == widget.attendanceId)
+              .toList();
+
           if (matchingAttendances.isEmpty) {
-            debugPrint('❌ Attendance not found for attendanceId: ${widget.attendanceId}');
             return;
           }
-          
+
           final updatedAttendance = matchingAttendances.first;
-          
+
           // اگر این attendance به‌روز شده و checkOutAt دارد، یعنی checkout موفق بوده
           // فقط اگر در حال submit هستیم و attendance مربوط به این widget است
           if (_isSubmitting &&
               _checkoutSubmitted &&
-              updatedAttendance.id == widget.attendanceId && 
-              updatedAttendance.checkOutAt != null && 
+              updatedAttendance.id == widget.attendanceId &&
+              updatedAttendance.checkOutAt != null &&
               updatedAttendance.checkOutAt!.isNotEmpty) {
-            debugPrint('[CHECKOUT_DEBUG] Attendance updated with checkOutAt - Popping back to previous page');
             setState(() {
               _isSubmitting = false;
               _checkoutSubmitted = false; // reset flag
@@ -263,9 +225,9 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
           });
           // نمایش خطا به کاربر
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         }
       },
@@ -291,11 +253,15 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    BlocBuilder<PickupAuthorizationBloc, PickupAuthorizationState>(
+                    BlocBuilder<
+                      PickupAuthorizationBloc,
+                      PickupAuthorizationState
+                    >(
                       builder: (context, pickupState) {
                         return BlocBuilder<ChildBloc, ChildState>(
                           builder: (context, childState) {
-                            if (pickupState is GetPickupAuthorizationByChildIdLoading ||
+                            if (pickupState
+                                    is GetPickupAuthorizationByChildIdLoading ||
                                 childState.isLoadingContacts) {
                               return const Center(
                                 child: Padding(
@@ -306,7 +272,8 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                             }
 
                             List<PickupAuthorizationEntity> pickupList = [];
-                            if (pickupState is GetPickupAuthorizationByChildIdSuccess) {
+                            if (pickupState
+                                is GetPickupAuthorizationByChildIdSuccess) {
                               pickupList = pickupState.pickupAuthorizationList;
                             }
 
@@ -319,7 +286,9 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                               return const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
-                                  child: Text('No authorization found for this child'),
+                                  child: Text(
+                                    'No authorization found for this child',
+                                  ),
                                 ),
                               );
                             }
@@ -335,14 +304,17 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                   contacts,
                                 );
                                 // DOMAIN LOCKDOWN: Select PickupAuthorization ID, not contact ID
-                                final isSelected = _selectedPickupAuthorizationId == pickup.id;
+                                final isSelected =
+                                    _selectedPickupAuthorizationId == pickup.id;
 
                                 return GestureDetector(
                                   onTap: () {
                                     setState(() {
                                       // DOMAIN LOCKDOWN: Store PickupAuthorization ID, not contact ID
-                                      _selectedPickupAuthorizationId = pickup.id;
-                                      _selectedPickupContactId = pickup.authorizedContactId;
+                                      _selectedPickupAuthorizationId =
+                                          pickup.id;
+                                      _selectedPickupContactId =
+                                          pickup.authorizedContactId;
                                     });
                                   },
                                   child: Container(
@@ -372,19 +344,26 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                             shape: BoxShape.circle,
                                           ),
                                           child: ClipOval(
-                                            child: contact?.photo != null &&
+                                            child:
+                                                contact?.photo != null &&
                                                     contact!.photo!.isNotEmpty
                                                 ? CachedNetworkImage(
-                                                    imageUrl: PhotoUtils.getPhotoUrl(contact.photo),
+                                                    imageUrl:
+                                                        PhotoUtils.getPhotoUrl(
+                                                          contact.photo,
+                                                        ),
                                                     width: 48,
                                                     height: 48,
                                                     fit: BoxFit.cover,
-                                                    httpHeaders: PhotoUtils.getImageHeaders(),
-                                                    errorWidget: (context, url, error) =>
-                                                        Assets.images.image.image(
-                                                      width: 48,
-                                                      height: 48,
-                                                    ),
+                                                    httpHeaders:
+                                                        PhotoUtils.getImageHeaders(),
+                                                    errorWidget:
+                                                        (context, url, error) =>
+                                                            Assets.images.image
+                                                                .image(
+                                                                  width: 48,
+                                                                  height: 48,
+                                                                ),
                                                   )
                                                 : Assets.images.image.image(
                                                     width: 48,
@@ -395,10 +374,13 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                ContactUtils.getContactName(contact),
+                                                ContactUtils.getContactName(
+                                                  contact,
+                                                ),
                                                 style: const TextStyle(
                                                   color: AppColors.textPrimary,
                                                   fontSize: 16,
@@ -408,8 +390,14 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
                                               const SizedBox(height: 4),
                                               Text(
                                                 () {
-                                                  final capitalized = StringUtils.capitalizeFirstLetter(pickup.relationToChild);
-                                                  return capitalized.isEmpty ? AppConstants.unknownContact : capitalized;
+                                                  final capitalized =
+                                                      StringUtils.capitalizeFirstLetter(
+                                                        pickup.relationToChild,
+                                                      );
+                                                  return capitalized.isEmpty
+                                                      ? AppConstants
+                                                            .unknownContact
+                                                      : capitalized;
                                                 }(),
                                                 style: TextStyle(
                                                   color: AppColors.textTertiary

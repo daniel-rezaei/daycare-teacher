@@ -18,43 +18,22 @@ class ProfileChildSectionWidget extends StatelessWidget {
     required this.childId,
   });
 
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChildBloc, ChildState>(
       builder: (context, state) {
-        debugPrint('[PROFILE_SECTION] ========== Building ProfileChildSectionWidget ==========');
-        debugPrint('[PROFILE_SECTION] State type: ${state.runtimeType}');
-        debugPrint('[PROFILE_SECTION] childId (contactId): $childId');
-        
         // پیدا کردن بچه از لیست children با contact_id
         String? dob;
         final children = state.children;
         if (children != null && children.isNotEmpty) {
-          try {
-            final child = children.firstWhere(
-              (c) => c.contactId == childId,
-            );
-            
-            debugPrint('[PROFILE_SECTION] Found child in list - id: ${child.id}, contactId: ${child.contactId}, dob: ${child.dob}');
-            dob = child.dob;
-          } catch (e) {
-            debugPrint('[PROFILE_SECTION] Child not found in list with contactId: $childId, error: $e');
-          }
-        } else {
-          debugPrint('[PROFILE_SECTION] Children list is null or empty');
+          final child = children.firstWhere((c) => c.contactId == childId);
+          dob = child.dob;
         }
 
-        debugPrint('[PROFILE_SECTION] dob value: $dob');
-        
         // Format date of birth: "2024-04-03" -> "April 3, 2024"
         final dobFormatted = dob != null && dob.isNotEmpty
             ? DateUtils.formatFullDisplayDate(dob)
             : 'Not available';
-        
-        debugPrint('[PROFILE_SECTION] dobFormatted: $dobFormatted');
-        debugPrint('[PROFILE_SECTION] ========== End Building ==========');
-
         return Row(
           children: [
             const SizedBox(width: 16),
@@ -65,10 +44,7 @@ class ProfileChildSectionWidget extends StatelessWidget {
                 border: Border.all(width: 2, color: Colors.white),
                 shape: BoxShape.circle,
               ),
-              child: ChildAvatarWidget(
-                photoId: childPhoto,
-                size: 68,
-              ),
+              child: ChildAvatarWidget(photoId: childPhoto, size: 68),
             ),
             const SizedBox(width: 12),
             Column(
@@ -87,7 +63,10 @@ class ProfileChildSectionWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.backgroundGray,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(width: 2, color: AppColors.backgroundBorder),
+                    border: Border.all(
+                      width: 2,
+                      color: AppColors.backgroundBorder,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         blurRadius: 8,
@@ -95,7 +74,10 @@ class ProfileChildSectionWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -113,7 +95,9 @@ class ProfileChildSectionWidget extends StatelessWidget {
                       Container(
                         width: 1,
                         height: 24,
-                        decoration: const BoxDecoration(color: AppColors.divider),
+                        decoration: const BoxDecoration(
+                          color: AppColors.divider,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Text(

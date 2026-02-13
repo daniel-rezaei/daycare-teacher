@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @singleton
@@ -10,18 +8,16 @@ class ActivitySleepApi {
 
   /// Get activity type ID from backend based on type
   Future<String> _getActivityTypeId(String type) async {
-    debugPrint('[SLEEP_API] Fetching activity type ID for type: $type');
     final response = await httpclient.get('/items/activity_types');
     final data = response.data['data'] as List<dynamic>;
-    
+
     for (final item in data) {
       if (item['type'] == type) {
         final id = item['id'] as String;
-        debugPrint('[SLEEP_API] Found activity type ID for $type: $id');
         return id;
       }
     }
-    
+
     throw Exception('[SLEEP_API] Activity type not found for: $type');
   }
 
@@ -33,13 +29,8 @@ class ActivitySleepApi {
     required String classId,
     required String startAtUtc,
   }) async {
-    debugPrint(
-      '[SLEEP_API] ========== STEP A: Creating Activity (Parent) ==========',
-    );
-
     // Get activity type ID from backend
     final activityTypeId = await _getActivityTypeId('sleep');
-
     final data = <String, dynamic>{
       'activity_type_id': activityTypeId,
       'start_at': startAtUtc,
@@ -50,14 +41,8 @@ class ActivitySleepApi {
       'class_id': classId,
       'child_id': childId,
     };
-
-    debugPrint('[SLEEP_API] Activity request data: $data');
-
     final response = await httpclient.post('/items/activities', data: data);
-
     final activityId = response.data['data']['id'] as String;
-    debugPrint('[SLEEP_API] ✅ Activity created with ID: $activityId');
-
     return activityId;
   }
 
@@ -72,17 +57,6 @@ class ActivitySleepApi {
     String? startAt,
     String? endAt,
   }) async {
-    debugPrint(
-      '[SLEEP_API] ========== STEP B: Creating Sleep Details (Child) ==========',
-    );
-    debugPrint('[SLEEP_API] activityId: $activityId');
-    debugPrint('[SLEEP_API] type: $type');
-    debugPrint('[SLEEP_API] tags: $tags');
-    debugPrint('[SLEEP_API] description: $description');
-    debugPrint('[SLEEP_API] photo: $photo');
-    debugPrint('[SLEEP_API] start_at: $startAt');
-    debugPrint('[SLEEP_API] end_at: $endAt');
-
     final data = <String, dynamic>{
       'activity_id': activityId,
       'sleep_monitoring': type,
@@ -111,26 +85,13 @@ class ActivitySleepApi {
     if (endAt != null && endAt.isNotEmpty) {
       data['end_at'] = endAt;
     }
-
-    debugPrint('[SLEEP_API] Sleep details request data: $data');
-
-    debugPrint('================= DIRECTUS RAW BODY =================');
-    debugPrint(const JsonEncoder.withIndent('  ').convert(data));
-    debugPrint('=====================================================');
-
     try {
       final response = await httpclient.post(
         '/items/activity_sleep',
         data: data,
       );
-      debugPrint(
-        '[SLEEP_API] Sleep details response status: ${response.statusCode}',
-      );
-      debugPrint('[SLEEP_API] Sleep details response data: ${response.data}');
       return response;
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_API] Error creating sleep details: $e');
-      debugPrint('[SLEEP_API] StackTrace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
@@ -138,31 +99,18 @@ class ActivitySleepApi {
   /// Get sleep type options from field metadata
   /// Returns list of choice values from data.meta.options.choices[].value
   Future<List<String>> getSleepTypes() async {
-    debugPrint(
-      '[SLEEP_API] Fetching sleep type options from /fields/activity_sleep/sleep_monitoring',
-    );
     try {
       final response = await httpclient.get(
         '/fields/activity_sleep/sleep_monitoring',
       );
-      debugPrint(
-        '[SLEEP_API] Sleep type response status: ${response.statusCode}',
-      );
-      debugPrint('[SLEEP_API] Sleep type response data: ${response.data}');
-
       final root = response.data as Map<String, dynamic>;
       final data = root['data'] as Map<String, dynamic>;
       final meta = data['meta'] as Map<String, dynamic>;
       final options = meta['options'] as Map<String, dynamic>;
       final choices = options['choices'] as List<dynamic>;
-
       final values = choices.map((e) => e['value'].toString()).toList();
-
-      debugPrint('[SLEEP_API] Parsed sleep type values: $values');
       return values;
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_API] Error fetching sleep types: $e');
-      debugPrint('[SLEEP_API] StackTrace: $stackTrace');
+    } catch (e) {
       return [];
     }
   }
@@ -173,11 +121,8 @@ class ActivitySleepApi {
   /// Get activity history for a given class
   /// Returns true if at least one activity exists, false otherwise
   Future<bool> hasHistory(String classId) async {
-    debugPrint('[SLEEP_API] ========== Checking history for classId: $classId ==========');
     try {
       final activityTypeId = await _getActivityTypeId('sleep');
-      debugPrint('[SLEEP_API] Activity type ID: $activityTypeId');
-      
       final response = await httpclient.get(
         '/items/activities',
         queryParameters: {
@@ -186,15 +131,11 @@ class ActivitySleepApi {
           'limit': 1, // Only need to check if any exists
         },
       );
-      
+
       final data = response.data['data'] as List<dynamic>;
       final hasHistory = data.isNotEmpty;
-      
-      debugPrint('[SLEEP_API] ========== History check result: $hasHistory (found ${data.length} items) ==========');
       return hasHistory;
-    } catch (e, stackTrace) {
-      debugPrint('[SLEEP_API] Error checking history: $e');
-      debugPrint('[SLEEP_API] StackTrace: $stackTrace');
+    } catch (e) {
       return false; // On error, assume no history to show children list
     }
   }

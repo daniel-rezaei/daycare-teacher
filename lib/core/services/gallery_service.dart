@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -16,17 +15,17 @@ class GalleryService {
   static Future<String?> saveImageToGallery(File imageFile) async {
     try {
       if (!imageFile.existsSync()) {
-        debugPrint('[GALLERY_SERVICE] Image file does not exist: ${imageFile.path}');
         return null;
       }
 
       final dir = await getApplicationDocumentsDirectory();
       final imagePath = imageFile.path;
-      
+
       // بررسی اینکه آیا تصویر از گالری داخلی آمده یا نه
       // اگر مسیر فایل در getApplicationDocumentsDirectory باشد، یعنی از گالری داخلی آمده
-      if (imagePath.startsWith(dir.path) && imagePath.endsWith('.jpg') && !imagePath.endsWith('_thumb.jpg')) {
-        debugPrint('[GALLERY_SERVICE] Image is already in internal gallery: $imagePath');
+      if (imagePath.startsWith(dir.path) &&
+          imagePath.endsWith('.jpg') &&
+          !imagePath.endsWith('_thumb.jpg')) {
         // تصویر از گالری داخلی آمده، نیازی به ذخیره مجدد نیست
         return imagePath;
       }
@@ -38,39 +37,32 @@ class GalleryService {
 
       // کپی کردن فایل اصلی
       await imageFile.copy(originalPath);
-      debugPrint('[GALLERY_SERVICE] Original image saved: $originalPath');
-
       // ریفرش کردن کش
       PhotoCacheService.refresh();
 
       // ساخت thumbnail در پس‌زمینه (از فایل اصلی که کپی شده) - بدون await
       // این کار در پس‌زمینه انجام می‌شود و UI را block نمی‌کند
-      _createThumbnail(originalPath, thumbPath).catchError((e) {
-        debugPrint('[GALLERY_SERVICE] Thumbnail creation error: $e');
-      });
+      _createThumbnail(originalPath, thumbPath);
 
       return originalPath;
     } catch (e) {
-      debugPrint('[GALLERY_SERVICE] Error saving image to gallery: $e');
       return null;
     }
   }
 
   /// ساخت thumbnail در پس‌زمینه (در isolate جداگانه)
-  static Future<void> _createThumbnail(String sourcePath, String thumbPath) async {
-    try {
-      // خواندن فایل در isolate اصلی (سریع است)
-      final bytes = await File(sourcePath).readAsBytes();
-      
-      // پردازش تصویر در isolate جداگانه برای جلوگیری از block شدن UI
-      final thumbnailBytes = await compute(_processThumbnail, bytes);
-      
-      if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
-        await File(thumbPath).writeAsBytes(thumbnailBytes);
-        debugPrint('[GALLERY_SERVICE] Thumbnail created: $thumbPath');
-      }
-    } catch (e) {
-      debugPrint('[GALLERY_SERVICE] Thumbnail creation failed: $e');
+  static Future<void> _createThumbnail(
+    String sourcePath,
+    String thumbPath,
+  ) async {
+    // خواندن فایل در isolate اصلی (سریع است)
+    final bytes = await File(sourcePath).readAsBytes();
+
+    // پردازش تصویر در isolate جداگانه برای جلوگیری از block شدن UI
+    final thumbnailBytes = await compute(_processThumbnail, bytes);
+
+    if (thumbnailBytes != null && thumbnailBytes.isNotEmpty) {
+      await File(thumbPath).writeAsBytes(thumbnailBytes);
     }
   }
 
@@ -84,7 +76,6 @@ class GalleryService {
       }
       return null;
     } catch (e) {
-      debugPrint('[GALLERY_SERVICE] Thumbnail processing failed: $e');
       return null;
     }
   }
@@ -99,4 +90,3 @@ class GalleryService {
     }
   }
 }
-

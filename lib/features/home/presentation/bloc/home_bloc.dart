@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
@@ -76,24 +74,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final dataState = await homeUsecase.homeRepository.classRoom();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadClassRoomsSuccess: ${dataState.data?.length ?? 0} classes');
-        emit(state.copyWith(
-          classRooms: dataState.data ?? [],
-          isLoadingClassRooms: false,
-        ));
+        emit(
+          state.copyWith(
+            classRooms: dataState.data ?? [],
+            isLoadingClassRooms: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadClassRoomsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingClassRooms: false,
-          classRoomsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingClassRooms: false,
+            classRoomsError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading class rooms: $e');
-      emit(state.copyWith(
-        isLoadingClassRooms: false,
-        classRoomsError: 'Error retrieving classes',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingClassRooms: false,
+          classRoomsError: 'Error retrieving classes',
+        ),
+      );
     }
   }
 
@@ -104,27 +105,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWith(isLoadingContact: true, contactError: null));
 
     try {
-      final dataState = await homeUsecase.homeRepository.getContact(id: event.contactId);
+      final dataState = await homeUsecase.homeRepository.getContact(
+        id: event.contactId,
+      );
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadContactSuccess: ${dataState.data?.id ?? 'unknown'}');
-        emit(state.copyWith(
-          contact: dataState.data,
-          isLoadingContact: false,
-        ));
+        emit(state.copyWith(contact: dataState.data, isLoadingContact: false));
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadContactFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingContact: false,
-          contactError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingContact: false,
+            contactError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading contact: $e');
-      emit(state.copyWith(
-        isLoadingContact: false,
-        contactError: 'Error retrieving profile information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingContact: false,
+          contactError: 'Error retrieving profile information',
+        ),
+      );
     }
   }
 
@@ -132,10 +133,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadSessionEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(
-      isLoadingSession: true,
-      sessionError: null,
-    ));
+    emit(state.copyWith(isLoadingSession: true, sessionError: null));
 
     try {
       final dataState = await homeUsecase.homeRepository.getSessionByClassId(
@@ -143,24 +141,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadSessionSuccess: ${dataState.data?.id}');
-        emit(state.copyWith(
-          session: dataState.data,
-          isLoadingSession: false,
-        ));
+        emit(state.copyWith(session: dataState.data, isLoadingSession: false));
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadSessionFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingSession: false,
-          sessionError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingSession: false,
+            sessionError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading session: $e');
-      emit(state.copyWith(
-        isLoadingSession: false,
-        sessionError: 'Error retrieving session information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingSession: false,
+          sessionError: 'Error retrieving session information',
+        ),
+      );
     }
   }
 
@@ -168,10 +164,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     CreateSessionEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(
-      isProcessingSession: true,
-      sessionError: null,
-    ));
+    emit(state.copyWith(isProcessingSession: true, sessionError: null));
 
     try {
       final dataState = await homeUsecase.homeRepository.createSession(
@@ -181,25 +174,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] CreateSessionSuccess: ${dataState.data?.id ?? 'unknown'}');
-        emit(state.copyWith(
-          isProcessingSession: false,
-        ));
+        emit(state.copyWith(isProcessingSession: false));
         // Reload session after creation
         add(LoadSessionEvent(event.classId));
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] CreateSessionFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isProcessingSession: false,
-          sessionError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isProcessingSession: false,
+            sessionError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception creating session: $e');
-      emit(state.copyWith(
-        isProcessingSession: false,
-        sessionError: 'Error creating session',
-      ));
+      emit(
+        state.copyWith(
+          isProcessingSession: false,
+          sessionError: 'Error creating session',
+        ),
+      );
     }
   }
 
@@ -207,10 +199,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     UpdateSessionEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(
-      isProcessingSession: true,
-      sessionError: null,
-    ));
+    emit(state.copyWith(isProcessingSession: true, sessionError: null));
 
     try {
       final dataState = await homeUsecase.homeRepository.updateSession(
@@ -219,25 +208,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] UpdateSessionSuccess: ${dataState.data?.id ?? 'unknown'}');
-        emit(state.copyWith(
-          isProcessingSession: false,
-        ));
+        emit(state.copyWith(isProcessingSession: false));
         // Reload session after update
         add(LoadSessionEvent(event.classId));
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] UpdateSessionFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isProcessingSession: false,
-          sessionError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isProcessingSession: false,
+            sessionError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception updating session: $e');
-      emit(state.copyWith(
-        isProcessingSession: false,
-        sessionError: 'Error updating session',
-      ));
+      emit(
+        state.copyWith(
+          isProcessingSession: false,
+          sessionError: 'Error updating session',
+        ),
+      );
     }
   }
 
@@ -251,24 +239,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final dataState = await homeUsecase.homeRepository.getAllChildren();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadChildrenSuccess: ${dataState.data?.length ?? 0} children');
-        emit(state.copyWith(
-          children: dataState.data ?? [],
-          isLoadingChildren: false,
-        ));
+        emit(
+          state.copyWith(
+            children: dataState.data ?? [],
+            isLoadingChildren: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadChildrenFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingChildren: false,
-          childrenError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingChildren: false,
+            childrenError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading children: $e');
-      emit(state.copyWith(
-        isLoadingChildren: false,
-        childrenError: 'Error retrieving children information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingChildren: false,
+          childrenError: 'Error retrieving children information',
+        ),
+      );
     }
   }
 
@@ -282,24 +273,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final dataState = await homeUsecase.homeRepository.getAllContacts();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadContactsSuccess: ${dataState.data?.length ?? 0} contacts');
-        emit(state.copyWith(
-          contacts: dataState.data ?? [],
-          isLoadingContacts: false,
-        ));
+        emit(
+          state.copyWith(
+            contacts: dataState.data ?? [],
+            isLoadingContacts: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadContactsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingContacts: false,
-          contactsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingContacts: false,
+            contactsError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading contacts: $e');
-      emit(state.copyWith(
-        isLoadingContacts: false,
-        contactsError: 'Error retrieving Contacts information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingContacts: false,
+          contactsError: 'Error retrieving Contacts information',
+        ),
+      );
     }
   }
 
@@ -307,34 +301,39 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadDietaryRestrictionsEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(
-      isLoadingDietaryRestrictions: true,
-      dietaryRestrictionsError: null,
-    ));
+    emit(
+      state.copyWith(
+        isLoadingDietaryRestrictions: true,
+        dietaryRestrictionsError: null,
+      ),
+    );
 
     try {
-      final dataState = await homeUsecase.homeRepository.getAllDietaryRestrictions();
+      final dataState = await homeUsecase.homeRepository
+          .getAllDietaryRestrictions();
 
       if (dataState is DataSuccess) {
-        debugPrint(
-            '[HOME_DEBUG] LoadDietaryRestrictionsSuccess: ${dataState.data?.length ?? 0} restrictions');
-        emit(state.copyWith(
-          dietaryRestrictions: dataState.data ?? [],
-          isLoadingDietaryRestrictions: false,
-        ));
+        emit(
+          state.copyWith(
+            dietaryRestrictions: dataState.data ?? [],
+            isLoadingDietaryRestrictions: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadDietaryRestrictionsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingDietaryRestrictions: false,
-          dietaryRestrictionsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingDietaryRestrictions: false,
+            dietaryRestrictionsError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading dietary restrictions: $e');
-      emit(state.copyWith(
-        isLoadingDietaryRestrictions: false,
-        dietaryRestrictionsError: 'Error retrieving dietary restrictions',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingDietaryRestrictions: false,
+          dietaryRestrictionsError: 'Error retrieving dietary restrictions',
+        ),
+      );
     }
   }
 
@@ -348,24 +347,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final dataState = await homeUsecase.homeRepository.getAllMedications();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadMedicationsSuccess: ${dataState.data?.length ?? 0} medications');
-        emit(state.copyWith(
-          medications: dataState.data ?? [],
-          isLoadingMedications: false,
-        ));
+        emit(
+          state.copyWith(
+            medications: dataState.data ?? [],
+            isLoadingMedications: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadMedicationsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingMedications: false,
-          medicationsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingMedications: false,
+            medicationsError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading medications: $e');
-      emit(state.copyWith(
-        isLoadingMedications: false,
-        medicationsError: 'Error retrieving medications information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingMedications: false,
+          medicationsError: 'Error retrieving medications information',
+        ),
+      );
     }
   }
 
@@ -373,30 +375,40 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadPhysicalRequirementsEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(isLoadingPhysicalRequirements: true, physicalRequirementsError: null));
+    emit(
+      state.copyWith(
+        isLoadingPhysicalRequirements: true,
+        physicalRequirementsError: null,
+      ),
+    );
 
     try {
-      final dataState = await homeUsecase.homeRepository.getAllPhysicalRequirements();
+      final dataState = await homeUsecase.homeRepository
+          .getAllPhysicalRequirements();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadPhysicalRequirementsSuccess: ${dataState.data?.length ?? 0} requirements');
-        emit(state.copyWith(
-          physicalRequirements: dataState.data ?? [],
-          isLoadingPhysicalRequirements: false,
-        ));
+        emit(
+          state.copyWith(
+            physicalRequirements: dataState.data ?? [],
+            isLoadingPhysicalRequirements: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadPhysicalRequirementsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingPhysicalRequirements: false,
-          physicalRequirementsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingPhysicalRequirements: false,
+            physicalRequirementsError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading physical requirements: $e');
-      emit(state.copyWith(
-        isLoadingPhysicalRequirements: false,
-        physicalRequirementsError: 'Error retrieving physical requirements information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingPhysicalRequirements: false,
+          physicalRequirementsError:
+              'Error retrieving physical requirements information',
+        ),
+      );
     }
   }
 
@@ -404,30 +416,40 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadReportableDiseasesEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(isLoadingReportableDiseases: true, reportableDiseasesError: null));
+    emit(
+      state.copyWith(
+        isLoadingReportableDiseases: true,
+        reportableDiseasesError: null,
+      ),
+    );
 
     try {
-      final dataState = await homeUsecase.homeRepository.getAllReportableDiseases();
+      final dataState = await homeUsecase.homeRepository
+          .getAllReportableDiseases();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadReportableDiseasesSuccess: ${dataState.data?.length ?? 0} diseases');
-        emit(state.copyWith(
-          reportableDiseases: dataState.data ?? [],
-          isLoadingReportableDiseases: false,
-        ));
+        emit(
+          state.copyWith(
+            reportableDiseases: dataState.data ?? [],
+            isLoadingReportableDiseases: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadReportableDiseasesFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingReportableDiseases: false,
-          reportableDiseasesError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingReportableDiseases: false,
+            reportableDiseasesError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading reportable diseases: $e');
-      emit(state.copyWith(
-        isLoadingReportableDiseases: false,
-        reportableDiseasesError: 'Error retrieving reportable diseases information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingReportableDiseases: false,
+          reportableDiseasesError:
+              'Error retrieving reportable diseases information',
+        ),
+      );
     }
   }
 
@@ -443,25 +465,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
 
       if (dataState is DataSuccess) {
-        debugPrint(
-            '[HOME_DEBUG] LoadAttendanceSuccess: ${dataState.data?.length ?? 0} attendance items');
-        emit(state.copyWith(
-          attendanceList: dataState.data ?? [],
-          isLoadingAttendance: false,
-        ));
+        emit(
+          state.copyWith(
+            attendanceList: dataState.data ?? [],
+            isLoadingAttendance: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadAttendanceFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingAttendance: false,
-          attendanceError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingAttendance: false,
+            attendanceError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading attendance: $e');
-      emit(state.copyWith(
-        isLoadingAttendance: false,
-        attendanceError: 'Error retrieving attendance information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingAttendance: false,
+          attendanceError: 'Error retrieving attendance information',
+        ),
+      );
     }
   }
 
@@ -469,31 +493,35 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadNotificationsEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(isLoadingNotifications: true, notificationsError: null));
+    emit(
+      state.copyWith(isLoadingNotifications: true, notificationsError: null),
+    );
 
     try {
       final dataState = await homeUsecase.homeRepository.getAllNotifications();
 
       if (dataState is DataSuccess) {
-        debugPrint(
-            '[HOME_DEBUG] LoadNotificationsSuccess: ${dataState.data?.length ?? 0} notifications');
-        emit(state.copyWith(
-          notifications: dataState.data ?? [],
-          isLoadingNotifications: false,
-        ));
+        emit(
+          state.copyWith(
+            notifications: dataState.data ?? [],
+            isLoadingNotifications: false,
+          ),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadNotificationsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingNotifications: false,
-          notificationsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(
+            isLoadingNotifications: false,
+            notificationsError: dataState.error!,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading notifications: $e');
-      emit(state.copyWith(
-        isLoadingNotifications: false,
-        notificationsError: 'Error retrieving notifications information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingNotifications: false,
+          notificationsError: 'Error retrieving notifications information',
+        ),
+      );
     }
   }
 
@@ -507,25 +535,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final dataState = await homeUsecase.homeRepository.getAllEvents();
 
       if (dataState is DataSuccess) {
-        debugPrint('[HOME_DEBUG] LoadEventsSuccess: ${dataState.data?.length ?? 0} events');
-        emit(state.copyWith(
-          events: dataState.data ?? [],
-          isLoadingEvents: false,
-        ));
+        emit(
+          state.copyWith(events: dataState.data ?? [], isLoadingEvents: false),
+        );
       } else if (dataState is DataFailed) {
-        debugPrint('[HOME_DEBUG] LoadEventsFailure: ${dataState.error}');
-        emit(state.copyWith(
-          isLoadingEvents: false,
-          eventsError: dataState.error!,
-        ));
+        emit(
+          state.copyWith(isLoadingEvents: false, eventsError: dataState.error!),
+        );
       }
     } catch (e) {
-      debugPrint('[HOME_DEBUG] Exception loading events: $e');
-      emit(state.copyWith(
-        isLoadingEvents: false,
-        eventsError: 'Error retrieving events information',
-      ));
+      emit(
+        state.copyWith(
+          isLoadingEvents: false,
+          eventsError: 'Error retrieving events information',
+        ),
+      );
     }
   }
 }
-

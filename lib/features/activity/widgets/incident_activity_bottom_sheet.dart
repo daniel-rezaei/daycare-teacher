@@ -74,7 +74,7 @@ class _IncidentActivityBottomSheetState
 
   // Staff
   List<StaffClassModel> _staffList = [];
-  Set<String> _selectedStaffIds =
+  final Set<String> _selectedStaffIds =
       {}; // Multi-select for staff (using contactId)
 
   // Class ID for fetching staff
@@ -92,36 +92,18 @@ class _IncidentActivityBottomSheetState
   @override
   void initState() {
     super.initState();
-    debugPrint(
-      '[INCIDENT_ACTIVITY] ========== Opening IncidentActivityBottomSheet ==========',
-    );
-    debugPrint(
-      '[INCIDENT_ACTIVITY] Selected child: ${widget.selectedChild.id}',
-    );
-    debugPrint('[INCIDENT_ACTIVITY] DateTime: ${widget.dateTime}');
-
     _loadClassId();
     _loadAllOptions();
     _loadStaff();
   }
 
   Future<void> _loadClassId() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedClassId = prefs.getString(AppConstants.classIdKey);
-      if (savedClassId != null && savedClassId.isNotEmpty) {
-        setState(() {
-          _classId = savedClassId;
-        });
-        debugPrint('[INCIDENT_ACTIVITY] ClassId loaded: $_classId');
-      } else {
-        debugPrint(
-          '[INCIDENT_ACTIVITY] ⚠️ ClassId not found in SharedPreferences',
-        );
-      }
-    } catch (e, stackTrace) {
-      debugPrint('[INCIDENT_ACTIVITY] Error loading classId: $e');
-      debugPrint('[INCIDENT_ACTIVITY] StackTrace: $stackTrace');
+    final prefs = await SharedPreferences.getInstance();
+    final savedClassId = prefs.getString(AppConstants.classIdKey);
+    if (savedClassId != null && savedClassId.isNotEmpty) {
+      setState(() {
+        _classId = savedClassId;
+      });
     }
   }
 
@@ -161,13 +143,8 @@ class _IncidentActivityBottomSheetState
           _notifyPoliceByOptions = results[7];
           _isLoadingOptions = false;
         });
-        debugPrint(
-          '[INCIDENT_ACTIVITY] Options loaded: Nature=${_natureOfIncidentOptions.length}, Location=${_locationOptions.length}, NotifyBy=${_notifyByOptions.length}',
-        );
       }
-    } catch (e, stackTrace) {
-      debugPrint('[INCIDENT_ACTIVITY] Error loading options: $e');
-      debugPrint('[INCIDENT_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingOptions = false;
@@ -182,7 +159,6 @@ class _IncidentActivityBottomSheetState
     });
 
     try {
-      debugPrint('[INCIDENT_ACTIVITY] Loading all staff from all classes...');
       final response = await _homeApi.getAllStaff();
       final List<dynamic> data = response.data['data'] as List<dynamic>;
 
@@ -208,13 +184,8 @@ class _IncidentActivityBottomSheetState
           _staffList = uniqueStaffList;
           _isLoadingStaff = false;
         });
-        debugPrint(
-          '[INCIDENT_ACTIVITY] All staff loaded: ${_staffList.length} unique members (from ${allStaff.length} total records)',
-        );
       }
-    } catch (e, stackTrace) {
-      debugPrint('[INCIDENT_ACTIVITY] Error loading staff: $e');
-      debugPrint('[INCIDENT_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingStaff = false;
@@ -224,7 +195,6 @@ class _IncidentActivityBottomSheetState
   }
 
   void _onImagesChanged(List<File> images) {
-    debugPrint('[INCIDENT_ACTIVITY] Images changed: ${images.length}');
     setState(() {
       _images.clear();
       _images.addAll(images);
@@ -239,52 +209,26 @@ class _IncidentActivityBottomSheetState
         _selectedStaffIds.add(contactId);
       }
     });
-    debugPrint(
-      '[INCIDENT_ACTIVITY] Selected staff contact IDs: $_selectedStaffIds',
-    );
   }
 
   Future<String?> _uploadPhoto(File imageFile) async {
     try {
-      debugPrint('[INCIDENT_ACTIVITY] Uploading photo: ${imageFile.path}');
       final uploadResult = await _fileUploadUsecase.uploadFile(
         filePath: imageFile.path,
       );
       if (uploadResult is DataSuccess && uploadResult.data != null) {
-        debugPrint(
-          '[INCIDENT_ACTIVITY] Photo uploaded successfully: ${uploadResult.data}',
-        );
         return uploadResult.data;
       } else {
-        debugPrint('[INCIDENT_ACTIVITY] Photo upload failed');
         return null;
       }
-    } catch (e, stackTrace) {
-      debugPrint('[INCIDENT_ACTIVITY] Error uploading photo: $e');
-      debugPrint('[INCIDENT_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> _handleAdd() async {
-    debugPrint('[INCIDENT_ACTIVITY] ========== Add button pressed ==========');
-    debugPrint(
-      '[INCIDENT_ACTIVITY] Selected child: ${widget.selectedChild.id}',
-    );
-    debugPrint(
-      '[INCIDENT_ACTIVITY] Nature of incident: $_selectedNatureOfIncident',
-    );
-    debugPrint('[INCIDENT_ACTIVITY] Location: $_selectedLocation');
-    debugPrint('[INCIDENT_ACTIVITY] Staff IDs: $_selectedStaffIds');
-    debugPrint('[INCIDENT_ACTIVITY] Notify by: $_selectedNotifyBy');
-    debugPrint(
-      '[INCIDENT_ACTIVITY] Description: ${_descriptionController.text}',
-    );
-    debugPrint('[INCIDENT_ACTIVITY] Images: ${_images.length}');
-
     // Validation
     if (widget.selectedChild.id == null || widget.selectedChild.id!.isEmpty) {
-      debugPrint('[INCIDENT_ACTIVITY] Validation failed: Child ID is null');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Child ID not found. Please try again.')),
       );
@@ -292,7 +236,6 @@ class _IncidentActivityBottomSheetState
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      debugPrint('[INCIDENT_ACTIVITY] Validation failed: No classId available');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class ID not found. Please try again.')),
       );
@@ -312,28 +255,19 @@ class _IncidentActivityBottomSheetState
 
       // Format start_at in UTC ISO 8601 format
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[INCIDENT_ACTIVITY] start_at (UTC): $startAtUtc');
 
       // Format date_time in UTC ISO 8601 format for Step B
       final dateTimeUtc = widget.dateTime.toUtc().toIso8601String();
-      debugPrint('[INCIDENT_ACTIVITY] date_time (UTC): $dateTimeUtc');
 
       // STEP A: Create parent activity
-      debugPrint(
-        '[INCIDENT_ACTIVITY] STEP A: Creating activity for child ${widget.selectedChild.id}',
-      );
       final activityId = await _api.createActivity(
         childId: widget.selectedChild.id!,
         classId: _classId!,
         startAtUtc: startAtUtc,
       );
-      debugPrint('[INCIDENT_ACTIVITY] ✅ Activity created with ID: $activityId');
 
       // STEP B: Create incident details linked to activity
-      debugPrint(
-        '[INCIDENT_ACTIVITY] STEP B: Creating incident details for activity $activityId',
-      );
-      final response = await _api.createIncidentDetails(
+      await _api.createIncidentDetails(
         activityId: activityId,
         childId: widget.selectedChild.id!,
         dateTime: dateTimeUtc,
@@ -360,12 +294,6 @@ class _IncidentActivityBottomSheetState
             : _descriptionController.text,
         photo: photoFileId,
       );
-
-      debugPrint(
-        '[INCIDENT_ACTIVITY] ✅ Incident details created: ${response.statusCode}',
-      );
-      debugPrint('[INCIDENT_ACTIVITY] Response data: ${response.data}');
-
       if (mounted) {
         setState(() {
           _isSubmitting = false;
@@ -384,9 +312,7 @@ class _IncidentActivityBottomSheetState
           ),
         );
       }
-    } catch (e, stackTrace) {
-      debugPrint('[INCIDENT_ACTIVITY] Error in _handleAdd: $e');
-      debugPrint('[INCIDENT_ACTIVITY] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isSubmitting = false;
@@ -760,7 +686,7 @@ class _PersonNotifiedRow extends StatelessWidget {
                 final picked = await showModalBottomSheet<DateTime>(
                   context: context,
                   builder: (context) => StatefulBuilder(
-                    builder: (context, setState) => Container(
+                    builder: (context, setState) => SizedBox(
                       height: 300,
                       child: Column(
                         children: [
@@ -895,7 +821,7 @@ class _StaffCircleItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 100,
       height: 130,
       child: Column(
