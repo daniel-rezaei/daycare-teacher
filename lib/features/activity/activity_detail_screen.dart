@@ -1099,6 +1099,15 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             '🟣 [_getActivityDetails] Observation case - needsResolveId: true',
           );
           break;
+        case 'mood':
+          endpoint = '/items/activity_mood';
+          typeField = 'mood_id';
+          quantityField = null;
+          subTypeField = null;
+          hasTimeFields = false;
+          needsResolveId = true;
+          resolveEndpoint = '/items/mood';
+          break;
         case 'accident':
           endpoint = '/items/Child_Accident_Report';
           typeField = null;
@@ -1139,7 +1148,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           widget.activityType == 'meal' ||
           widget.activityType == 'drink' ||
           widget.activityType == 'bathroom' ||
-          widget.activityType == 'play';
+          widget.activityType == 'play' ||
+          widget.activityType == 'mood';
       if (isPhotoM2M) {
         fields.add('photo.directus_files_id');
       } else {
@@ -1306,47 +1316,43 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         }
       }
 
-      // Handle observation-specific fields
+      // Resolve type ID to name for types that need it (observation, mood)
       String? resolvedType;
-      List<String> skillObserved = [];
+      if (needsResolveId && typeField != null && detail[typeField] != null) {
+        final typeId = detail[typeField].toString();
+        print(
+          '🟣 [_getActivityDetails] Resolving type id: $typeId (${widget.activityType})',
+        );
+        try {
+          if (resolveEndpoint != null) {
+            final resolveResponse = await getIt<Dio>().get(
+              resolveEndpoint,
+              queryParameters: {
+                'filter[id][_eq]': typeId,
+                'fields': 'id,name',
+                'limit': 1,
+              },
+            );
+            final resolveData = resolveResponse.data['data'] as List<dynamic>;
+            if (resolveData.isNotEmpty) {
+              resolvedType = resolveData[0]['name']?.toString();
+              print('🟣 [_getActivityDetails] Resolved name: $resolvedType');
+            } else {
+              resolvedType = typeId; // Fallback to ID
+            }
+          }
+        } catch (e) {
+          print('🔴 [_getActivityDetails] Error resolving type: $e');
+          resolvedType = typeId; // Fallback to ID
+        }
+      }
 
+      // Handle observation-specific fields
+      List<String> skillObserved = [];
       if (widget.activityType == 'observation') {
         print(
           '🟣 [_getActivityDetails] Processing observation-specific fields',
         );
-
-        // Resolve category_id to category name
-        if (needsResolveId && typeField != null && detail[typeField] != null) {
-          final categoryId = detail[typeField].toString();
-          print('🟣 [_getActivityDetails] Resolving category_id: $categoryId');
-          try {
-            if (resolveEndpoint != null) {
-              final resolveResponse = await getIt<Dio>().get(
-                resolveEndpoint,
-                queryParameters: {
-                  'filter[id][_eq]': categoryId,
-                  'fields': 'id,name',
-                  'limit': 1,
-                },
-              );
-              final resolveData = resolveResponse.data['data'] as List<dynamic>;
-              if (resolveData.isNotEmpty) {
-                resolvedType = resolveData[0]['name']?.toString();
-                print(
-                  '🟣 [_getActivityDetails] Resolved category name: $resolvedType',
-                );
-              } else {
-                print(
-                  '🟠 [_getActivityDetails] Category not found for id: $categoryId',
-                );
-                resolvedType = categoryId; // Fallback to ID
-              }
-            }
-          } catch (e) {
-            print('🔴 [_getActivityDetails] Error resolving category: $e');
-            resolvedType = categoryId; // Fallback to ID
-          }
-        }
 
         // Handle skill_observed array
         if (detail['skill_observed'] != null) {

@@ -313,45 +313,25 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       }
     }
 
-    // Batch resolve IDs to names if needed
+    // Batch resolve IDs to names if needed (single request with _in for speed)
     if (needsResolveId && idsToResolve.isNotEmpty && resolveEndpoint != null) {
       try {
-        // Fetch all names in parallel batches
         final Map<String, String> idToNameMap = {};
-
         final idsList = idsToResolve.toList();
-        for (int i = 0; i < idsList.length; i += batchSize) {
-          final batch = idsList.skip(i).take(batchSize).toList();
 
-          final resolveFutures = batch.map((id) async {
-            try {
-              final resolveResponse = await getIt<Dio>().get(
-                resolveEndpoint,
-                queryParameters: {
-                  'filter[id][_eq]': id,
-                  'fields': 'id,name',
-                  'limit': 1,
-                },
-              );
-
-              final resolveData = resolveResponse.data['data'] as List<dynamic>;
-              if (resolveData.isNotEmpty) {
-                final name = resolveData[0]['name']?.toString();
-                if (name != null) {
-                  return MapEntry(id, name);
-                }
-              }
-              return MapEntry<String, String?>(id, null);
-            } catch (e) {
-              return MapEntry<String, String?>(id, null);
-            }
-          });
-
-          final resolveResults = await Future.wait(resolveFutures);
-          for (final entry in resolveResults) {
-            if (entry.value != null) {
-              idToNameMap[entry.key] = entry.value!;
-            }
+        // Single request: filter[id][_in]=id1,id2,id3
+        final idsComma = idsList.join(',');
+        final resolveResponse = await getIt<Dio>().get(
+          resolveEndpoint,
+          queryParameters: {'filter[id][_in]': idsComma, 'fields': 'id,name'},
+        );
+        final resolveData = resolveResponse.data['data'] as List<dynamic>;
+        for (final item in resolveData) {
+          final map = item as Map<String, dynamic>;
+          final id = map['id']?.toString();
+          final name = map['name']?.toString();
+          if (id != null && name != null) {
+            idToNameMap[id] = name;
           }
         }
 
