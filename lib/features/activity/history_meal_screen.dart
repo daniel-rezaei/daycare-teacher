@@ -178,6 +178,8 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       String endpoint;
       String typeField;
       String? quantityField;
+      bool needsResolveId = false;
+      String? resolveEndpoint;
 
       switch (widget.activityType) {
         case 'meal':
@@ -205,6 +207,20 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
           typeField = 'sleep_monitoring';
           quantityField = null;
           break;
+        case 'observation':
+          endpoint = '/items/Observation_Record';
+          typeField = 'category_id';
+          quantityField = null;
+          needsResolveId = true;
+          resolveEndpoint = '/items/observation_category';
+          break;
+        case 'mood':
+          endpoint = '/items/activity_mood';
+          typeField = 'mood_id';
+          quantityField = null;
+          needsResolveId = true;
+          resolveEndpoint = '/items/mood';
+          break;
         case 'accident':
         case 'incident':
           // These don't have simple type/quantity fields
@@ -227,8 +243,31 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       if (data.isEmpty) return null;
 
       final detail = data[0] as Map<String, dynamic>;
+      String? typeValue = detail[typeField]?.toString();
+
+      // Resolve ID to name if needed
+      if (needsResolveId && typeValue != null && typeValue.isNotEmpty) {
+        try {
+          final resolveResponse = await getIt<Dio>().get(
+            resolveEndpoint!,
+            queryParameters: {
+              'filter[id][_eq]': typeValue,
+              'fields': 'id,name',
+              'limit': 1,
+            },
+          );
+          final resolveData = resolveResponse.data['data'] as List<dynamic>;
+          if (resolveData.isNotEmpty) {
+            typeValue = resolveData[0]['name']?.toString() ?? typeValue;
+          }
+        } catch (e) {
+          debugPrint('[HISTORY] Error resolving ID to name: $e');
+          // Keep the original ID if resolution fails
+        }
+      }
+
       return {
-        'type': detail[typeField]?.toString(),
+        'type': typeValue,
         'quantity': quantityField != null
             ? detail[quantityField]?.toString()
             : null,
