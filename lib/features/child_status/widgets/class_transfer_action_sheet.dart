@@ -18,6 +18,7 @@ import 'package:teacher_app/features/child_status/widgets/transfer_class_widget.
 import 'package:teacher_app/features/class_transfer_request/presentation/bloc/class_transfer_request_bloc.dart';
 import 'package:teacher_app/features/class_transfer_request/domain/entity/class_transfer_request_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
+import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 
 /// ISOLATED MODULE: Atomic Class Transfer Action Sheet
@@ -109,6 +110,37 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
     return selectedClassId != null && selectedClassId != widget.currentClassId;
   }
 
+  /// Check if class session is active (started but not ended)
+  bool _isClassSessionActive(StaffClassSessionEntity? session) {
+    if (session == null) return false;
+    return session.startAt != null &&
+        session.startAt!.isNotEmpty &&
+        (session.endAt == null || session.endAt!.isEmpty);
+  }
+
+  /// Automatically end active class session when Time-Out happens
+  /// This ensures consistency with TimeScreen behavior
+  void _autoEndActiveClassSession() {
+    final homeState = context.read<HomeBloc>().state;
+    final session = homeState.session;
+
+    if (_isClassSessionActive(session)) {
+      if (session!.id == null || session.id!.isEmpty) {
+        return;
+      }
+
+      final endAt = DateFormat('yyyy-MM-ddTHH:mm:ss').format(DateTime.now());
+
+      context.read<HomeBloc>().add(
+        UpdateSessionEvent(
+          sessionId: session.id!,
+          endAt: endAt,
+          classId: widget.currentClassId,
+        ),
+      );
+    }
+  }
+
   /// ATOMIC TRANSACTION: Execute all actions in exact order on Save only
   /// NO side effects allowed until Save is explicitly tapped
   Future<void> _handleSave() async {
@@ -174,6 +206,10 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
 
         // Wait for time out to complete
         await _waitForTimeOut();
+
+        // Ensure active class session is ended when Time-Out happens
+        // This matches the behavior in TimeScreen
+        _autoEndActiveClassSession();
       }
 
       // SCENARIO A & B: NO CLASS CHANGE - Close sheet, no logout/navigation
@@ -277,18 +313,36 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
   }
 
   /// Wait for time out to complete
+  /// Waits for both CreateStaffAttendanceSuccess and GetLatestStaffAttendanceSuccess
+  /// to ensure the AttendanceSessionStore is fully synced
   Future<void> _waitForTimeOut() async {
     final completer = Completer<void>();
     late StreamSubscription subscription;
+    bool createSuccessReceived = false;
+    bool getLatestSuccessReceived = false;
 
     subscription = context.read<StaffAttendanceBloc>().stream.listen((state) {
       if (state is CreateStaffAttendanceSuccess &&
           state.attendance.eventType == 'time_out') {
-        if (!completer.isCompleted) {
+        createSuccessReceived = true;
+        // Check if we've received both success states
+        if (getLatestSuccessReceived && !completer.isCompleted) {
           completer.complete();
           subscription.cancel();
         }
-      } else if (state is CreateStaffAttendanceFailure) {
+      } else if (state is GetLatestStaffAttendanceSuccess) {
+        // Verify that the latest attendance is time_out
+        final latestAttendance = state.latestAttendance;
+        if (latestAttendance != null && latestAttendance.eventType == 'time_out') {
+          getLatestSuccessReceived = true;
+          // Check if we've received both success states
+          if (createSuccessReceived && !completer.isCompleted) {
+            completer.complete();
+            subscription.cancel();
+          }
+        }
+      } else if (state is CreateStaffAttendanceFailure ||
+          state is GetLatestStaffAttendanceFailure) {
         if (!completer.isCompleted) {
           completer.complete();
           subscription.cancel();
@@ -298,9 +352,10 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
 
     // Wait with timeout
     await completer.future.timeout(
-      const Duration(seconds: 10),
+      const Duration(seconds: 15),
       onTimeout: () {
         subscription.cancel();
+        // Even if timeout, the store should be updated by CreateStaffAttendanceSuccess
       },
     );
   }
@@ -369,6 +424,19 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text(state.message)));
+            }
+          },
+        ),
+        // Listen for StaffAttendanceBloc to handle Time-Out completion
+        BlocListener<StaffAttendanceBloc, StaffAttendanceState>(
+          listener: (context, state) {
+            if (state is CreateStaffAttendanceSuccess &&
+                state.attendance.eventType == 'time_out' &&
+                _timeOutEnabled) {
+              // Time-Out completed successfully
+              // The AttendanceSessionStore is already updated by the bloc
+              // This ensures the timer in TimeScreen will stop automatically
+              // No additional action needed here as the store notifies listeners
             }
           },
         ),
