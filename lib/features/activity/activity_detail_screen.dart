@@ -249,6 +249,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             );
           }
 
+          print(
+            '📷 [_loadActivitiesForDate] Adding item activityId=$activityId details["photo"]=${details['photo']}',
+          );
           items.add(
             _ActivityDetailItem(
               activityId: activityId,
@@ -272,6 +275,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       }
 
       print('🟣 [_loadActivitiesForDate] Total items created: ${items.length}');
+      for (var i = 0; i < items.length; i++) {
+        print(
+          '📷 [_loadActivitiesForDate] items[$i] activityId=${items[i].activityId} photo=${items[i].photo}',
+        );
+      }
       setState(() {
         _activities = items;
         _isLoading = false;
@@ -613,7 +621,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       }
       print('🟡 [_getAccidentDetails] Record ID: ${detail['id']}');
 
-      // Handle photo
+      // Handle photo (Map, String, or List from M2M - junction or expanded file)
       String? photoId;
       if (detail['photo'] != null) {
         if (detail['photo'] is Map) {
@@ -623,8 +631,12 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         } else if (detail['photo'] is List &&
             (detail['photo'] as List).isNotEmpty) {
           final photoList = detail['photo'] as List;
-          if (photoList[0] is Map) {
-            photoId = photoList[0]['directus_files_id'] as String?;
+          final first = photoList[0];
+          if (first is Map) {
+            photoId =
+                first['directus_files_id'] as String? ?? first['id'] as String?;
+          } else if (first is String || first is int) {
+            photoId = first.toString();
           }
         }
       }
@@ -712,7 +724,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       }
       print('🟠 [_getIncidentDetails] Record ID: ${detail['id']}');
 
-      // Handle photo
+      // Handle photo (Map, String, or List from M2M - junction or expanded file)
       String? photoId;
       if (detail['photo'] != null) {
         if (detail['photo'] is Map) {
@@ -722,8 +734,12 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         } else if (detail['photo'] is List &&
             (detail['photo'] as List).isNotEmpty) {
           final photoList = detail['photo'] as List;
-          if (photoList[0] is Map) {
-            photoId = photoList[0]['directus_files_id'] as String?;
+          final first = photoList[0];
+          if (first is Map) {
+            photoId =
+                first['directus_files_id'] as String? ?? first['id'] as String?;
+          } else if (first is String || first is int) {
+            photoId = first.toString();
           }
         }
       }
@@ -997,7 +1013,17 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       }
       fields.add('description');
       fields.add('tag');
-      fields.add('photo');
+      // Request nested directus_files_id so we get actual file ID (not junction row ID)
+      final isPhotoM2M =
+          widget.activityType == 'meal' ||
+          widget.activityType == 'drink' ||
+          widget.activityType == 'bathroom' ||
+          widget.activityType == 'play';
+      if (isPhotoM2M) {
+        fields.add('photo.directus_files_id');
+      } else {
+        fields.add('photo');
+      }
 
       // For observation, also fetch skill_observed and activity_id (needed for filtering)
       if (widget.activityType == 'observation') {
@@ -1052,21 +1078,73 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       final detail = data[0] as Map<String, dynamic>;
       print('🟣 [_getActivityDetails] Detail keys: ${detail.keys.toList()}');
 
-      // Handle photo - could be nested
+      // DEBUG: raw photo from API
+      final rawPhoto = detail['photo'];
+      print(
+        '📷 [_getActivityDetails] activityType=${widget.activityType} activityId=$activityId',
+      );
+      print(
+        '📷 [_getActivityDetails] raw photo: $rawPhoto (runtimeType: ${rawPhoto?.runtimeType})',
+      );
+      if (rawPhoto is List && rawPhoto.isNotEmpty) {
+        final first = rawPhoto[0];
+        print(
+          '📷 [_getActivityDetails] photo list[0]: $first (runtimeType: ${first.runtimeType})',
+        );
+      } else if (rawPhoto is Map) {
+        print(
+          '📷 [_getActivityDetails] photo map keys: ${rawPhoto.keys.toList()}',
+        );
+      }
+
+      // Handle photo - could be nested (Map, String, or List from M2M relation)
       String? photoId;
       if (detail['photo'] != null) {
         if (detail['photo'] is Map) {
-          photoId = detail['photo']['id'] as String?;
+          final photoMap = detail['photo'] as Map;
+          photoId =
+              photoMap['id'] as String? ??
+              photoMap['directus_files_id']?.toString();
+          print(
+            '📷 [_getActivityDetails] photo parsed from Map -> photoId: $photoId',
+          );
         } else if (detail['photo'] is String) {
           photoId = detail['photo'] as String;
+          print(
+            '📷 [_getActivityDetails] photo parsed from String -> photoId: $photoId',
+          );
         } else if (detail['photo'] is List &&
             (detail['photo'] as List).isNotEmpty) {
           final photoList = detail['photo'] as List;
-          if (photoList[0] is Map) {
-            photoId = photoList[0]['directus_files_id'] as String?;
+          final first = photoList[0];
+          if (first is Map) {
+            // directus_files_id = junction row; id = expanded file record (may be int or String)
+            final fd = first['directus_files_id'];
+            final fid = first['id'];
+            photoId = fd?.toString() ?? fid?.toString();
+            print(
+              '📷 [_getActivityDetails] photo parsed from List[Map] -> photoId: $photoId',
+            );
+          } else if (first is String || first is int) {
+            // Directus can return list of IDs as primitives: [11] or ["uuid"]
+            photoId = first.toString();
+            print(
+              '📷 [_getActivityDetails] photo parsed from List[int/String] -> photoId: $photoId',
+            );
+          } else {
+            print(
+              '📷 [_getActivityDetails] photo is List but first element type not handled: ${first.runtimeType}',
+            );
           }
+        } else {
+          print(
+            '📷 [_getActivityDetails] photo not Map/String/List, skipping. type=${detail['photo'].runtimeType}',
+          );
         }
+      } else {
+        print('📷 [_getActivityDetails] detail["photo"] is null');
       }
+      print('📷 [_getActivityDetails] final photoId for item: $photoId');
 
       // Handle tags - parse and clean up brackets and quotes
       List<String> tags = [];
@@ -1650,19 +1728,27 @@ class _ActivityDetailSection extends StatelessWidget {
             const SizedBox(height: 16),
           ],
           // Photo (read-only)
-          if (activity.photo != null && activity.photo!.isNotEmpty) ...[
-            const Text(
-              'Photo',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _ReadOnlyPhotoWidget(photoId: activity.photo!),
-            const SizedBox(height: 16),
-          ],
+          ...() {
+            print(
+              '📷 [UI] activityId=${activity.activityId} activity.photo=${activity.photo} (show photo: ${activity.photo != null && activity.photo!.isNotEmpty})',
+            );
+            if (activity.photo != null && activity.photo!.isNotEmpty) {
+              return [
+                const Text(
+                  'Photo',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _ReadOnlyPhotoWidget(photoId: activity.photo!),
+                const SizedBox(height: 16),
+              ];
+            }
+            return <Widget>[];
+          }(),
           // Time range for play/sleep
           if (activity.startAtTime != null || activity.endAtTime != null) ...[
             Row(
