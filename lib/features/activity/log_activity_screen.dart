@@ -196,238 +196,261 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     await _navigateToActivity(context, 'mood');
   }
 
+  /// Pops until we reach the Activity tab (root of this flow) so back
+  /// always returns to the activities screen, not to History/SelectChildren/etc.
+  void _goBackToActivitiesScreen(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     final double cardWidth =
         (MediaQuery.of(context).size.width - 16 * 2 - 12) / 2;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          BackgroundWidget(),
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// --- Header ---
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Row(
-                      children: [
-                        Assets.images.arrowLeft.svg(),
-                        const SizedBox(width: 16),
-                        const Text(
-                          'Log Activity – Toddler 2',
-                          style: TextStyle(
-                            color: Color(0xff444349),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xffFFFFFF).withValues(alpha: .6),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(24),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xff000000).withValues(alpha: .1),
-                          blurRadius: 16,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _goBackToActivitiesScreen(context);
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            BackgroundWidget(),
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// --- Header ---
+                  Padding(
                     padding: const EdgeInsets.all(16),
-
-                    /// ---------------- GRID + LAST ITEM FULL WIDTH ----------------
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
+                    child: GestureDetector(
+                      onTap: () {
+                        _goBackToActivitiesScreen(context);
+                      },
+                      child: Row(
                         children: [
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.lunchPng.image(height: 48),
-                              title: 'Meal',
-                              isLoading: _loadingStates['meal'] ?? false,
-                              onTap: () {
-                                _navigateToMealActivity(context);
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.drink.image(height: 48),
-                              title: 'Drink',
-                              isLoading: _loadingStates['drink'] ?? false,
-                              onTap: () {
-                                _navigateToDrinkActivity(context);
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.learn.image(height: 48),
-                              title: 'Learn',
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  useSafeArea: true,
-                                  builder: (context) =>
-                                      const CreateNewLessenBottomSheet(),
-                                );
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.bathroom.image(height: 48),
-                              title: 'Bathroom',
-                              isLoading: _loadingStates['bathroom'] ?? false,
-                              onTap: () {
-                                _navigateToBathroomActivity(context);
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.play.image(height: 48),
-                              title: 'Play',
-                              isLoading: _loadingStates['play'] ?? false,
-                              onTap: () {
-                                _navigateToPlayActivity(context);
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.sleep.image(height: 48),
-                              title: 'Sleep',
-                              isLoading: _loadingStates['sleep'] ?? false,
-                              onTap: () {
-                                _navigateToSleepActivity(context);
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.observation.image(height: 48),
-                              title: 'Observation',
-                              isLoading: _loadingStates['observation'] ?? false,
-                              onTap: () {
-                                _navigateToObservationActivity(context);
-                              },
-                              isDisabled: false,
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.incident.image(height: 48),
-                              title: 'Incident',
-                              isLoading: _loadingStates['incident'] ?? false,
-                              onTap: () {
-                                _navigateToIncidentActivity(context);
-                              },
-                              isDisabled: false,
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.accident.image(height: 48),
-                              title: 'Accident',
-                              isLoading: _loadingStates['accident'] ?? false,
-                              onTap: () {
-                                _navigateToAccidentActivity(context);
-                              },
-                              isDisabled: false,
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.attendance.image(height: 48),
-                              title: 'Attendance',
-                              onTap: () {
-                                final hasTimeIn =
-                                    TimeInAccessGuard.checkActiveTimeInFromContext(
-                                  context,
-                                );
-                                final session =
-                                    context.read<HomeBloc>().state.session;
-                                final isClassCheckedIn =
-                                    _isClassCheckedIn(session);
-
-                                if (!hasTimeIn) {
-                                  CustomSnackbar.showWarning(
-                                    context,
-                                    'You must Time In first.',
-                                  );
-                                  return;
-                                }
-                                if (!isClassCheckedIn) {
-                                  CustomSnackbar.showWarning(
-                                    context,
-                                    'You must Check-In the class before opening Attendance.',
-                                  );
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ChildStatusScreen(),
-                                  ),
-                                );
-                              },
-                              isDisabled: false,
-                            ),
-                          ),
-
-                          /// ⭐⭐⭐ آیتم آخر – تمام عرض ⭐⭐⭐
-                          SizedBox(
-                            width: double.infinity,
-                            child: InfoCardLogActivityWidget(
-                              icon: Assets.images.mood.image(height: 48),
-                              title: 'Mood',
-                              isLoading: _loadingStates['mood'] ?? false,
-                              onTap: () {
-                                _navigateToMoodActivity(context);
-                              },
-                              isDisabled: false,
+                          Assets.images.arrowLeft.svg(),
+                          const SizedBox(width: 16),
+                          const Text(
+                            'Log Activity – Toddler 2',
+                            style: TextStyle(
+                              color: Color(0xff444349),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xffFFFFFF).withValues(alpha: .6),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xff000000,
+                            ).withValues(alpha: .1),
+                            blurRadius: 16,
+                            offset: const Offset(0, -4),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(16),
+
+                      /// ---------------- GRID + LAST ITEM FULL WIDTH ----------------
+                      child: SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.lunchPng.image(height: 48),
+                                title: 'Meal',
+                                isLoading: _loadingStates['meal'] ?? false,
+                                onTap: () {
+                                  _navigateToMealActivity(context);
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.drink.image(height: 48),
+                                title: 'Drink',
+                                isLoading: _loadingStates['drink'] ?? false,
+                                onTap: () {
+                                  _navigateToDrinkActivity(context);
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.learn.image(height: 48),
+                                title: 'Learn',
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    useSafeArea: true,
+                                    builder: (context) =>
+                                        const CreateNewLessenBottomSheet(),
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.bathroom.image(height: 48),
+                                title: 'Bathroom',
+                                isLoading: _loadingStates['bathroom'] ?? false,
+                                onTap: () {
+                                  _navigateToBathroomActivity(context);
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.play.image(height: 48),
+                                title: 'Play',
+                                isLoading: _loadingStates['play'] ?? false,
+                                onTap: () {
+                                  _navigateToPlayActivity(context);
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.sleep.image(height: 48),
+                                title: 'Sleep',
+                                isLoading: _loadingStates['sleep'] ?? false,
+                                onTap: () {
+                                  _navigateToSleepActivity(context);
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.observation.image(
+                                  height: 48,
+                                ),
+                                title: 'Observation',
+                                isLoading:
+                                    _loadingStates['observation'] ?? false,
+                                onTap: () {
+                                  _navigateToObservationActivity(context);
+                                },
+                                isDisabled: false,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.incident.image(height: 48),
+                                title: 'Incident',
+                                isLoading: _loadingStates['incident'] ?? false,
+                                onTap: () {
+                                  _navigateToIncidentActivity(context);
+                                },
+                                isDisabled: false,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.accident.image(height: 48),
+                                title: 'Accident',
+                                isLoading: _loadingStates['accident'] ?? false,
+                                onTap: () {
+                                  _navigateToAccidentActivity(context);
+                                },
+                                isDisabled: false,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.attendance.image(
+                                  height: 48,
+                                ),
+                                title: 'Attendance',
+                                onTap: () {
+                                  final hasTimeIn =
+                                      TimeInAccessGuard.checkActiveTimeInFromContext(
+                                        context,
+                                      );
+                                  final session = context
+                                      .read<HomeBloc>()
+                                      .state
+                                      .session;
+                                  final isClassCheckedIn = _isClassCheckedIn(
+                                    session,
+                                  );
+
+                                  if (!hasTimeIn) {
+                                    CustomSnackbar.showWarning(
+                                      context,
+                                      'You must Time In first.',
+                                    );
+                                    return;
+                                  }
+                                  if (!isClassCheckedIn) {
+                                    CustomSnackbar.showWarning(
+                                      context,
+                                      'You must Check-In the class before opening Attendance.',
+                                    );
+                                    return;
+                                  }
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ChildStatusScreen(),
+                                    ),
+                                  );
+                                },
+                                isDisabled: false,
+                              ),
+                            ),
+
+                            /// ⭐⭐⭐ آیتم آخر – تمام عرض ⭐⭐⭐
+                            SizedBox(
+                              width: double.infinity,
+                              child: InfoCardLogActivityWidget(
+                                icon: Assets.images.mood.image(height: 48),
+                                title: 'Mood',
+                                isLoading: _loadingStates['mood'] ?? false,
+                                onTap: () {
+                                  _navigateToMoodActivity(context);
+                                },
+                                isDisabled: false,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
