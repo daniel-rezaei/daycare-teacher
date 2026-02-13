@@ -253,6 +253,8 @@ class _ObservationActivityBottomSheetState
           ..._tags,
         ];
 
+        final prefs = await SharedPreferences.getInstance();
+        final staffId = prefs.getString(AppConstants.staffIdKey);
         await _api.createObservationDetails(
           activityId: activityId,
           domainId: _selectedDomainId!,
@@ -263,6 +265,7 @@ class _ObservationActivityBottomSheetState
           photo: photoFileId,
           followUpRequired: _followUpRequired,
           shareWithParent: _shareWithParent,
+          staffId: staffId,
         );
         if (mounted) {
           setState(() {

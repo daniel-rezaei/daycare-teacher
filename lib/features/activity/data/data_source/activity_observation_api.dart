@@ -55,6 +55,7 @@ class ActivityObservationApi {
     String? photo,
     bool? followUpRequired,
     bool? shareWithParent,
+    String? staffId,
   }) async {
     final data = <String, dynamic>{
       'category_id': domainId,
@@ -65,6 +66,7 @@ class ActivityObservationApi {
       if (skillObserved != null && skillObserved.isNotEmpty)
         'skill_observed': skillObserved,
       if (photo != null && photo.isNotEmpty) 'photo': photo,
+      if (staffId != null && staffId.isNotEmpty) 'staff_id': staffId,
     };
     try {
       final response = await httpclient.post(

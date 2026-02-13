@@ -169,6 +169,7 @@ class ActivityAccidentApi {
     required List<String> firstAidProvidedTexts,
     required List<String> childReactionTexts,
     required List<String> staffIds,
+    String? staffId, // current user staff_id (Staff.id)
     String? dateTimeNotifiedText, // Can be enum text or ISO8601 datetime string
     required bool medicalFollowUpRequired,
     required bool incidentReportedToAuthority,
@@ -234,6 +235,9 @@ class ActivityAccidentApi {
     // contact_id: array format (multi-select) - using contact_id instead of staff_id
     if (staffIds.isNotEmpty) {
       data['contact_id'] = staffIds.first; // Array for multi-select
+    }
+    if (staffId != null && staffId.isNotEmpty) {
+      data['staff_id'] = staffId;
     }
 
     // date_time_notified: can be enum text (convert to value) or ISO8601 datetime string (use directly)

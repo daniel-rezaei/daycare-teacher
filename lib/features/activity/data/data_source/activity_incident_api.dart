@@ -180,6 +180,7 @@ class ActivityIncidentApi {
     required List<String> natureOfInjuryTexts,
     required List<String> locationTexts,
     required List<String> staffIds,
+    String? staffId, // current user staff_id (Staff.id)
     String? notifyByText,
     String? notifyParentDateTime,
     String? notifyParentByText,
@@ -221,6 +222,9 @@ class ActivityIncidentApi {
     // contact_id: array format (multi-select) - using contact_id instead of staff_id
     if (staffIds.isNotEmpty) {
       data['contact_id'] = staffIds.first; // Array for multi-select
+    }
+    if (staffId != null && staffId.isNotEmpty) {
+      data['staff_id'] = staffId;
     }
 
     // notify_by: array format (multi-select)

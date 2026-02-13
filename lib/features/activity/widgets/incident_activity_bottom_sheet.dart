@@ -263,6 +263,8 @@ class _IncidentActivityBottomSheetState
         startAtUtc: startAtUtc,
       );
 
+      final prefs = await SharedPreferences.getInstance();
+      final staffId = prefs.getString(AppConstants.staffIdKey);
       // STEP B: Create incident details linked to activity
       await _api.createIncidentDetails(
         activityId: activityId,
@@ -271,6 +273,7 @@ class _IncidentActivityBottomSheetState
         natureOfInjuryTexts: _selectedNatureOfIncident,
         locationTexts: _selectedLocation,
         staffIds: _selectedStaffIds.toList(),
+        staffId: staffId,
         notifyByText: _selectedNotifyBy,
         notifyParentDateTime: _notifyParentDateTime?.toUtc().toIso8601String(),
         notifyParentByText: _notifyParentBy,
