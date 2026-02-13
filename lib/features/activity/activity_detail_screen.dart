@@ -168,6 +168,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     });
 
     try {
+      // Handle accident and incident differently - query directly from their tables
+      if (widget.activityType == 'accident' ||
+          widget.activityType == 'incident') {
+        await _loadAccidentOrIncidentActivities(date);
+        return;
+      }
+
       final activityTypeId = await _getActivityTypeId(widget.activityType);
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
@@ -221,6 +228,167 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadAccidentOrIncidentActivities(DateTime date) async {
+    try {
+      final dateStart = DateTime(date.year, date.month, date.day);
+      final dateEnd = dateStart.add(const Duration(days: 1));
+
+      String endpoint;
+      if (widget.activityType == 'accident') {
+        endpoint = '/items/Child_Accident_Report';
+      } else {
+        endpoint = '/items/Child_Incident_Report';
+      }
+
+      // Query directly from accident/incident table
+      // Try filtering by date_time_notified first (as it's the actual accident time)
+      var response = await getIt<Dio>().get(endpoint);
+
+      var data = response.data['data'] as List<dynamic>;
+
+      // If no results and we're looking for accidents, also try filtering by date_created
+      // (some records might not have date_time_notified set)
+      if (data.isEmpty && widget.activityType == 'accident') {
+        response = await getIt<Dio>().get(
+          endpoint,
+          queryParameters: {
+            'filter[child_id][_eq]': widget.childId,
+            'filter[date_created][_gte]': dateStart.toUtc().toIso8601String(),
+            'filter[date_created][_lt]': dateEnd.toUtc().toIso8601String(),
+            'fields':
+                'id,date_created,date_time_notified,description,photo,activity_id',
+            'sort': '-date_created',
+          },
+        );
+        data = response.data['data'] as List<dynamic>;
+      }
+      final List<_ActivityDetailItem> items = [];
+
+      for (final record in data) {
+        final recordId = record['id'];
+        // Use date_time_notified if available, otherwise fallback to date_created
+        final dateTimeNotified = record['date_time_notified'] as String?;
+        final dateCreated = record['date_created'] as String?;
+        final activityId = record['activity_id'] as String?;
+
+        // Get full activity details
+        final details = await _getAccidentOrIncidentDetails(
+          recordId.toString(),
+          activityId,
+        );
+        if (details != null) {
+          items.add(
+            _ActivityDetailItem(
+              activityId: activityId ?? recordId.toString(),
+              startAt: dateTimeNotified ?? dateCreated ?? '',
+              type: details['type'],
+              quantity: details['quantity'],
+              description: details['description'],
+              tags: details['tags'],
+              photo: details['photo'],
+              subType: details['subType'],
+              startAtTime: details['startAtTime'],
+              endAtTime: details['endAtTime'],
+            ),
+          );
+        }
+      }
+
+      setState(() {
+        _activities = items;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> _getAccidentOrIncidentDetails(
+    String recordId,
+    String? activityId,
+  ) async {
+    try {
+      String endpoint;
+      if (widget.activityType == 'accident') {
+        endpoint = '/items/Child_Accident_Report';
+      } else {
+        endpoint = '/items/Child_Incident_Report';
+      }
+
+      // Get all relevant fields including array fields that can be used as tags
+      final response = await getIt<Dio>().get(
+        endpoint,
+        queryParameters: {
+          'filter[id][_eq]': recordId,
+          'fields': widget.activityType == 'accident'
+              ? 'id,description,photo,nature_of_injury,location,first_aid_provided,child_reaction,notify_by'
+              : 'id,description,photo',
+          'limit': 1,
+        },
+      );
+
+      final data = response.data['data'] as List<dynamic>;
+      if (data.isEmpty) return null;
+
+      final detail = data[0] as Map<String, dynamic>;
+
+      // Handle photo
+      String? photoId;
+      if (detail['photo'] != null) {
+        if (detail['photo'] is Map) {
+          photoId = detail['photo']['id'] as String?;
+        } else if (detail['photo'] is String) {
+          photoId = detail['photo'] as String;
+        } else if (detail['photo'] is List &&
+            (detail['photo'] as List).isNotEmpty) {
+          final photoList = detail['photo'] as List;
+          if (photoList[0] is Map) {
+            photoId = photoList[0]['directus_files_id'] as String?;
+          }
+        }
+      }
+
+      // Collect tags from array fields for accidents
+      List<String> tags = [];
+      if (widget.activityType == 'accident') {
+        // Collect tags from various array fields
+        final addTagsFromField = (dynamic field) {
+          if (field is List) {
+            for (var item in field) {
+              if (item != null) {
+                final tag = item.toString().trim();
+                if (tag.isNotEmpty && !tags.contains(tag)) {
+                  tags.add(tag);
+                }
+              }
+            }
+          }
+        };
+
+        addTagsFromField(detail['nature_of_injury']);
+        addTagsFromField(detail['location']);
+        addTagsFromField(detail['first_aid_provided']);
+        addTagsFromField(detail['child_reaction']);
+        addTagsFromField(detail['notify_by']);
+      }
+
+      return {
+        'type': null,
+        'quantity': null,
+        'subType': null,
+        'description': detail['description']?.toString(),
+        'tags': tags,
+        'photo': photoId,
+        'startAtTime': null,
+        'endAtTime': null,
+      };
+    } catch (e) {
+      return null;
     }
   }
 
