@@ -66,6 +66,9 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  // Cache for activity type IDs to avoid repeated API calls
+  static final Map<String, String> _activityTypeIdCache = {};
+
   @override
   void initState() {
     super.initState();
@@ -89,20 +92,59 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
     }
   }
 
+  /// Get activity type ID with caching
+  Future<String> _getActivityTypeId(String type) async {
+    // Check cache first
+    if (_activityTypeIdCache.containsKey(type)) {
+      return _activityTypeIdCache[type]!;
+    }
+
+    try {
+      final response = await getIt<Dio>().get('/items/activity_types');
+      final data = response.data['data'] as List<dynamic>;
+
+      for (final item in data) {
+        final itemType = item['type'] as String?;
+        final itemId = item['id'] as String?;
+        if (itemType != null && itemId != null) {
+          _activityTypeIdCache[itemType] = itemId;
+        }
+      }
+
+      if (_activityTypeIdCache.containsKey(type)) {
+        return _activityTypeIdCache[type]!;
+      }
+
+      throw Exception('Activity type not found: $type');
+    } catch (e) {
+      debugPrint('[HISTORY] Error getting activity type ID: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _loadHistory() async {
     if (widget.classId == null || widget.classId!.isEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _historyItems = [];
+        _filteredItems = [];
+      });
+    }
 
     try {
+      // Get activity type ID (cached)
       final activityTypeId = await _getActivityTypeId(widget.activityType);
+      
+      // Fetch all activities in one call
       final response = await getIt<Dio>().get(
         '/items/activities',
         queryParameters: {
@@ -115,11 +157,43 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       );
 
       final activities = response.data['data'] as List<dynamic>;
+      
+      if (activities.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      // Extract activity IDs for batch fetching
+      final activityIds = activities
+          .map((a) => a['id'] as String?)
+          .where((id) => id != null)
+          .cast<String>()
+          .toList();
+
+      // Batch fetch all activity details in parallel
+      final detailsMap = await _batchGetActivityDetails(activityIds);
+
+      // Build items list
       final List<_ActivityHistoryItem> items = [];
 
       for (final activity in activities) {
-        final activityId = activity['id'] as String;
+        final activityId = activity['id'] as String?;
+        if (activityId == null) continue;
+
         final childId = activity['child_id']?['id'] as String?;
+        if (childId == null) continue;
+
+        final details = detailsMap[activityId];
+        if (details == null) {
+          // Skip activities without details, but log for debugging
+          debugPrint('[HISTORY] No details found for activity: $activityId');
+          continue;
+        }
+
         final childPhoto = activity['child_id']?['photo'] as String?;
         final contactId = activity['child_id']?['contact_id']?['id'] as String?;
         final firstName =
@@ -128,155 +202,251 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
             activity['child_id']?['contact_id']?['last_name'] as String?;
         final startAt = activity['start_at'] as String?;
 
-        if (childId == null) continue;
-
-        // Get activity details based on type
-        final details = await _getActivityDetails(activityId);
-        if (details != null) {
-          items.add(
-            _ActivityHistoryItem(
-              childId: childId,
-              childPhoto: childPhoto,
-              contactId: contactId,
-              firstName: firstName,
-              lastName: lastName,
-              activityDate: startAt ?? '',
-              activityType: widget.activityType,
-              quantity: details['quantity'],
-              type: details['type'],
-            ),
-          );
-        }
+        items.add(
+          _ActivityHistoryItem(
+            childId: childId,
+            childPhoto: childPhoto,
+            contactId: contactId,
+            firstName: firstName,
+            lastName: lastName,
+            activityDate: startAt ?? '',
+            activityType: widget.activityType,
+            quantity: details['quantity'],
+            type: details['type'],
+          ),
+        );
       }
 
-      setState(() {
-        _historyItems = items;
-        _filteredItems = items;
-        _isLoading = false;
-      });
-    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _historyItems = items;
+          _filteredItems = items;
+          _isLoading = false;
+        });
+      }
+    } catch (e, stackTrace) {
       debugPrint('[HISTORY] Error loading history: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint('[HISTORY] StackTrace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  Future<String> _getActivityTypeId(String type) async {
-    final response = await getIt<Dio>().get('/items/activity_types');
-    final data = response.data['data'] as List<dynamic>;
-    for (final item in data) {
-      if (item['type'] == type) {
-        return item['id'] as String;
+  /// Batch fetch activity details for all activity IDs in parallel
+  /// Uses parallel fetching with optimal batch size for best performance
+  Future<Map<String, Map<String, String?>>> _batchGetActivityDetails(
+      List<String> activityIds) async {
+    if (activityIds.isEmpty) return {};
+
+    // Get endpoint configuration
+    final config = _getActivityDetailsConfig();
+    if (config == null) return {};
+
+    final String? endpoint = config['endpoint'] as String?;
+    if (endpoint == null) {
+      // For accident/incident, return simple type for all
+      final Map<String, Map<String, String?>> result = {};
+      for (final id in activityIds) {
+        result[id] = {'type': widget.activityType, 'quantity': null};
       }
+      return result;
     }
-    throw Exception('Activity type not found: $type');
-  }
 
-  Future<Map<String, String?>?> _getActivityDetails(String activityId) async {
-    try {
-      String endpoint;
-      String typeField;
-      String? quantityField;
-      bool needsResolveId = false;
-      String? resolveEndpoint;
+    final String typeField = config['typeField'] as String;
+    final String? quantityField = config['quantityField'] as String?;
+    final bool needsResolveId = config['needsResolveId'] as bool? ?? false;
+    final String? resolveEndpoint = config['resolveEndpoint'] as String?;
 
-      switch (widget.activityType) {
-        case 'meal':
-          endpoint = '/items/activity_meals';
-          typeField = 'meal_type';
-          quantityField = 'quantity';
-          break;
-        case 'drink':
-          endpoint = '/items/activity_drinks';
-          typeField = 'drink_type';
-          quantityField = 'quantity';
-          break;
-        case 'bathroom':
-          endpoint = '/items/activity_bathroom';
-          typeField = 'type';
-          quantityField = null;
-          break;
-        case 'play':
-          endpoint = '/items/activity_play';
-          typeField = 'type';
-          quantityField = null;
-          break;
-        case 'sleep':
-          endpoint = '/items/activity_sleep';
-          typeField = 'sleep_monitoring';
-          quantityField = null;
-          break;
-        case 'observation':
-          endpoint = '/items/Observation_Record';
-          typeField = 'category_id';
-          quantityField = null;
-          needsResolveId = true;
-          resolveEndpoint = '/items/observation_category';
-          break;
-        case 'mood':
-          endpoint = '/items/activity_mood';
-          typeField = 'mood_id';
-          quantityField = null;
-          needsResolveId = true;
-          resolveEndpoint = '/items/mood';
-          break;
-        case 'accident':
-        case 'incident':
-          // These don't have simple type/quantity fields
-          return {'type': widget.activityType, 'quantity': null};
-        default:
-          return null;
-      }
+    // Fetch all details in parallel batches for optimal performance
+    // Using smaller batches to avoid overwhelming the server
+    const batchSize = 20;
+    final Map<String, Map<String, String?>> result = {};
+    final Set<String> idsToResolve = {};
 
-      final response = await getIt<Dio>().get(
-        endpoint,
-        queryParameters: {
-          'filter[activity_id][_eq]': activityId,
-          'fields':
-              'id,$typeField${quantityField != null ? ',$quantityField' : ''}',
-          'limit': 1,
-        },
-      );
-
-      final data = response.data['data'] as List<dynamic>;
-      if (data.isEmpty) return null;
-
-      final detail = data[0] as Map<String, dynamic>;
-      String? typeValue = detail[typeField]?.toString();
-
-      // Resolve ID to name if needed
-      if (needsResolveId && typeValue != null && typeValue.isNotEmpty) {
+    // Process in batches
+    for (int i = 0; i < activityIds.length; i += batchSize) {
+      final batch = activityIds.skip(i).take(batchSize).toList();
+      
+      // Fetch all details in this batch in parallel
+      final futures = batch.map((activityId) async {
         try {
-          final resolveResponse = await getIt<Dio>().get(
-            resolveEndpoint!,
+          final response = await getIt<Dio>().get(
+            endpoint,
             queryParameters: {
-              'filter[id][_eq]': typeValue,
-              'fields': 'id,name',
+              'filter[activity_id][_eq]': activityId,
+              'fields':
+                  'id,activity_id,$typeField${quantityField != null ? ',$quantityField' : ''}',
               'limit': 1,
             },
           );
-          final resolveData = resolveResponse.data['data'] as List<dynamic>;
-          if (resolveData.isNotEmpty) {
-            typeValue = resolveData[0]['name']?.toString() ?? typeValue;
+
+          final data = response.data['data'] as List<dynamic>;
+          if (data.isEmpty) return MapEntry<String, Map<String, String?>?>(activityId, null);
+
+          final detail = data[0] as Map<String, dynamic>;
+          final typeValue = detail[typeField]?.toString();
+
+          // Collect IDs that need resolution
+          if (needsResolveId && typeValue != null && typeValue.isNotEmpty) {
+            idsToResolve.add(typeValue);
           }
+
+          return MapEntry(activityId, {
+            'type': typeValue,
+            'quantity': quantityField != null ? detail[quantityField]?.toString() : null,
+            '_rawTypeValue': typeValue, // Store original for resolution
+          });
         } catch (e) {
-          debugPrint('[HISTORY] Error resolving ID to name: $e');
-          // Keep the original ID if resolution fails
+          debugPrint('[HISTORY] Error fetching detail for $activityId: $e');
+          return MapEntry<String, Map<String, String?>?>(activityId, null);
+        }
+      });
+
+      final batchResults = await Future.wait(futures);
+      for (final entry in batchResults) {
+        if (entry.value != null) {
+          result[entry.key] = entry.value!;
         }
       }
+    }
 
-      return {
-        'type': typeValue,
-        'quantity': quantityField != null
-            ? detail[quantityField]?.toString()
-            : null,
-      };
-    } catch (e) {
-      debugPrint('[HISTORY] Error getting activity details: $e');
-      return null;
+    // Batch resolve IDs to names if needed
+    if (needsResolveId && idsToResolve.isNotEmpty && resolveEndpoint != null) {
+      try {
+        // Fetch all names in parallel batches
+        final Map<String, String> idToNameMap = {};
+        
+        final idsList = idsToResolve.toList();
+        for (int i = 0; i < idsList.length; i += batchSize) {
+          final batch = idsList.skip(i).take(batchSize).toList();
+          
+          final resolveFutures = batch.map((id) async {
+            try {
+              final resolveResponse = await getIt<Dio>().get(
+                resolveEndpoint,
+                queryParameters: {
+                  'filter[id][_eq]': id,
+                  'fields': 'id,name',
+                  'limit': 1,
+                },
+              );
+              
+              final resolveData = resolveResponse.data['data'] as List<dynamic>;
+              if (resolveData.isNotEmpty) {
+                final name = resolveData[0]['name']?.toString();
+                if (name != null) {
+                  return MapEntry(id, name);
+                }
+              }
+              return MapEntry<String, String?>(id, null);
+            } catch (e) {
+              debugPrint('[HISTORY] Error resolving ID $id: $e');
+              return MapEntry<String, String?>(id, null);
+            }
+          });
+
+          final resolveResults = await Future.wait(resolveFutures);
+          for (final entry in resolveResults) {
+            if (entry.value != null) {
+              idToNameMap[entry.key] = entry.value!;
+            }
+          }
+        }
+
+        // Update details with resolved names
+        for (final entry in result.entries) {
+          final rawTypeValue = entry.value['_rawTypeValue'];
+          if (rawTypeValue is String && idToNameMap.containsKey(rawTypeValue)) {
+            entry.value['type'] = idToNameMap[rawTypeValue];
+          }
+          // Remove temporary field
+          entry.value.remove('_rawTypeValue');
+        }
+      } catch (e) {
+        debugPrint('[HISTORY] Error batch resolving IDs: $e');
+        // Remove temporary fields even on error
+        for (final entry in result.entries) {
+          entry.value.remove('_rawTypeValue');
+        }
+        // Continue with IDs if resolution fails
+      }
+    }
+
+    return result;
+  }
+
+
+  /// Get configuration for activity details endpoint
+  Map<String, dynamic>? _getActivityDetailsConfig() {
+    switch (widget.activityType) {
+      case 'meal':
+        return {
+          'endpoint': '/items/activity_meals',
+          'typeField': 'meal_type',
+          'quantityField': 'quantity',
+          'needsResolveId': false,
+        };
+      case 'drink':
+        return {
+          'endpoint': '/items/activity_drinks',
+          'typeField': 'drink_type',
+          'quantityField': 'quantity',
+          'needsResolveId': false,
+        };
+      case 'bathroom':
+        return {
+          'endpoint': '/items/activity_bathroom',
+          'typeField': 'type',
+          'quantityField': null,
+          'needsResolveId': false,
+        };
+      case 'play':
+        return {
+          'endpoint': '/items/activity_play',
+          'typeField': 'type',
+          'quantityField': null,
+          'needsResolveId': false,
+        };
+      case 'sleep':
+        return {
+          'endpoint': '/items/activity_sleep',
+          'typeField': 'sleep_monitoring',
+          'quantityField': null,
+          'needsResolveId': false,
+        };
+      case 'observation':
+        return {
+          'endpoint': '/items/Observation_Record',
+          'typeField': 'category_id',
+          'quantityField': null,
+          'needsResolveId': true,
+          'resolveEndpoint': '/items/observation_category',
+        };
+      case 'mood':
+        return {
+          'endpoint': '/items/activity_mood',
+          'typeField': 'mood_id',
+          'quantityField': null,
+          'needsResolveId': true,
+          'resolveEndpoint': '/items/mood',
+        };
+      case 'accident':
+      case 'incident':
+        // These don't have simple type/quantity fields
+        return {
+          'endpoint': null,
+          'typeField': null,
+          'quantityField': null,
+          'needsResolveId': false,
+        };
+      default:
+        return null;
     }
   }
+
 
   void _onSearchChanged(String query) {
     setState(() {
