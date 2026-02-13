@@ -115,7 +115,7 @@ class _UpcomingEventsHeaderWidgetState
                 return const SizedBox.shrink();
               }
 
-              return UpcomingEventsCardStackUI(events: events);
+              return UpcomingEventWidget(events: events);
             }
 
             if (state.eventsError != null) {

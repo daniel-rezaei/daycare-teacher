@@ -67,7 +67,7 @@ class _TimeInScreenState extends State<TimeInScreen> {
           // After successful Time-In registration, redirect to Home page
           if (mounted) {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const MyHomePage()),
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
               (_) => false,
             );
           }

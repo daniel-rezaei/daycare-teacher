@@ -60,7 +60,7 @@ class MessagesScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SelectChildsScreen(),
+                                    builder: (context) => SelectChildrenScreen(),
                                   ),
                                 );
                               },

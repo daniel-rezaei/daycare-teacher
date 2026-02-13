@@ -18,7 +18,7 @@ class LessenList extends StatelessWidget {
     ];
     for (var title in titles) {
       cards.add(
-        LessenCardCollapse(
+        LessonCardCollapseWidget(
           title: title,
           date: dateFormat.format(sampleDate),
           category: "Art",

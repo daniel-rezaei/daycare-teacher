@@ -17,17 +17,17 @@ import 'package:teacher_app/features/session/domain/entity/staff_class_session_e
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/time_screen.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
   static ValueNotifier<int> pageIndex = ValueNotifier(0);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeScreenState extends State<HomeScreen> {
   DateTime? _lastBackPressTime;
-  bool _hasLoadedData = false;
+  bool _isInitialDataLoaded = false;
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _loadHomeData() async {
-    if (_hasLoadedData) return;
+    if (_isInitialDataLoaded) return;
 
     final prefs = await SharedPreferences.getInstance();
     final classId = prefs.getString(AppConstants.classIdKey);
@@ -54,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context.read<HomeBloc>().add(
         LoadHomeDataEvent(classId: classId, contactId: contactId),
       );
-      _hasLoadedData = true;
+      _isInitialDataLoaded = true;
     }
   }
 
@@ -105,14 +105,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // نگه داشتن صفحات برای جلوگیری از rebuild و درخواست مجدد API
   // استفاده از late final و ساخت در build برای دسترسی به context
-  late final List<Widget> _pages = [
+  late final List<Widget> _homeTabPages = [
     Stack(
       children: [
         BackgroundWidget(),
         SafeArea(
           child: SingleChildScrollView(
             child: Column(
-              children: [AppbarWidget(), ProfileSectionWidget(), CardWidget()],
+              children: [AppBarWidget(), ProfileSectionWidget(), CardWidget()],
             ),
           ),
         ),
@@ -199,12 +199,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
               // در غیر این صورت، محتوای عادی را نمایش بده
               return ValueListenableBuilder(
-                valueListenable: MyHomePage.pageIndex,
+                valueListenable: HomeScreen.pageIndex,
                 builder: (context, value, child) {
                   // استفاده از IndexedStack برای نگه داشتن تمام صفحات
                   // این باعث می‌شود که initState فقط یک بار صدا زده شود
-                  final index = value.clamp(0, _pages.length - 1);
-                  return IndexedStack(index: index, children: _pages);
+                  final index = value.clamp(0, _homeTabPages.length - 1);
+                  return IndexedStack(index: index, children: _homeTabPages);
                 },
               );
             },

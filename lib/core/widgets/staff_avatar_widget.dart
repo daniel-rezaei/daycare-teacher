@@ -2,11 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class StaffAvatar extends StatelessWidget {
+class StaffAvatarWidget extends StatelessWidget {
   final String? photoId;
   final double size;
 
-  const StaffAvatar({super.key, required this.photoId, this.size = 48});
+  const StaffAvatarWidget({super.key, required this.photoId, this.size = 48});
 
   @override
   Widget build(BuildContext context) {

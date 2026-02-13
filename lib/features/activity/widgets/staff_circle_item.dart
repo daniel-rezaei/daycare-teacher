@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/core/palette.dart';
 
 class StaffCircleItem extends StatelessWidget {
   final String image;

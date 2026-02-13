@@ -23,16 +23,16 @@ import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class ContentOverview extends StatefulWidget {
+class ContentOverviewWidget extends StatefulWidget {
   final String childId;
 
-  const ContentOverview({super.key, required this.childId});
+  const ContentOverviewWidget({super.key, required this.childId});
 
   @override
-  State<ContentOverview> createState() => _ContentOverviewState();
+  State<ContentOverviewWidget> createState() => _ContentOverviewWidgetState();
 }
 
-class _ContentOverviewState extends State<ContentOverview> {
+class _ContentOverviewWidgetState extends State<ContentOverviewWidget> {
   String? _lastRequestedChildId;
   String? _lastRequestedPickupChildId;
   bool _hasRequestedGuardians = false;

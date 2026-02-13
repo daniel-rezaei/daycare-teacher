@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/core/palette.dart';
 
-class LessenCardCollapse extends StatefulWidget {
+class LessonCardCollapseWidget extends StatefulWidget {
   final String date;
   final String title;
   final String category;
   final String ageBand;
   final String room;
 
-  const LessenCardCollapse({
+  const LessonCardCollapseWidget({
     super.key,
     required this.date,
     required this.category,
@@ -19,10 +19,10 @@ class LessenCardCollapse extends StatefulWidget {
   });
 
   @override
-  State<LessenCardCollapse> createState() => _LessenCardCollapseState();
+  State<LessonCardCollapseWidget> createState() => _LessonCardCollapseWidgetState();
 }
 
-class _LessenCardCollapseState extends State<LessenCardCollapse> {
+class _LessonCardCollapseWidgetState extends State<LessonCardCollapseWidget> {
   bool _expanded = false;
 
   @override

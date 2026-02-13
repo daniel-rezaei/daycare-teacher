@@ -16,7 +16,7 @@ import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class SelectChildsScreen extends StatefulWidget {
+class SelectChildrenScreen extends StatefulWidget {
   /// If true, returns selected children when back button is pressed
   /// If false (default), works as before for Chat flow
   final bool returnSelectedChildren;
@@ -27,7 +27,7 @@ class SelectChildsScreen extends StatefulWidget {
   /// Activity type: 'meal' or 'drink' (only used when returnSelectedChildren is true)
   final String? activityType;
 
-  const SelectChildsScreen({
+  const SelectChildrenScreen({
     super.key,
     this.returnSelectedChildren = false,
     this.classId,
@@ -35,10 +35,10 @@ class SelectChildsScreen extends StatefulWidget {
   });
 
   @override
-  State<SelectChildsScreen> createState() => _SelectChildsScreenState();
+  State<SelectChildrenScreen> createState() => _SelectChildrenScreenState();
 }
 
-class _SelectChildsScreenState extends State<SelectChildsScreen> {
+class _SelectChildrenScreenState extends State<SelectChildrenScreen> {
   /// آیتم‌های انتخاب شده (Child IDs)
   Set<String> selectedChildIds = {};
 

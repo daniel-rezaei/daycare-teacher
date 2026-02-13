@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
-import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/core/palette.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';

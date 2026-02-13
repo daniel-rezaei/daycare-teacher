@@ -733,7 +733,7 @@ class _AccidentActivityBottomSheetState
   }
 }
 
-// Custom Staff Circle Item that uses StaffAvatar instead of AssetImage
+// Custom Staff Circle Item that uses StaffAvatarWidget instead of AssetImage
 class _StaffCircleItem extends StatelessWidget {
   final String? photoId;
   final String name;
@@ -771,7 +771,7 @@ class _StaffCircleItem extends StatelessWidget {
               ),
 
               // Avatar
-              StaffAvatar(photoId: photoId, size: 72),
+              StaffAvatarWidget(photoId: photoId, size: 72),
 
               // Check Badge
               if (isSelected)

@@ -5,14 +5,14 @@ import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class AppbarWidget extends StatefulWidget {
-  const AppbarWidget({super.key});
+class AppBarWidget extends StatefulWidget {
+  const AppBarWidget({super.key});
 
   @override
-  State<AppbarWidget> createState() => _AppbarWidgetState();
+  State<AppBarWidget> createState() => _AppBarWidgetState();
 }
 
-class _AppbarWidgetState extends State<AppbarWidget> {
+class _AppBarWidgetState extends State<AppBarWidget> {
   String? classId;
 
   @override

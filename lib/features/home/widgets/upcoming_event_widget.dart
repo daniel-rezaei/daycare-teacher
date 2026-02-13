@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class UpcomingEventsCardStackUI extends StatefulWidget {
+class UpcomingEventWidget extends StatefulWidget {
   final List<EventUiModel> events;
 
-  const UpcomingEventsCardStackUI({super.key, required this.events});
+  const UpcomingEventWidget({super.key, required this.events});
 
   @override
-  State<UpcomingEventsCardStackUI> createState() =>
-      _UpcomingEventsCardStackUIState();
+  State<UpcomingEventWidget> createState() =>
+      _UpcomingEventWidgetState();
 }
 
-class _UpcomingEventsCardStackUIState extends State<UpcomingEventsCardStackUI> {
+class _UpcomingEventWidgetState extends State<UpcomingEventWidget> {
   int selectedIndex = 0;
 
   final double smallCardWidth = 60.0;

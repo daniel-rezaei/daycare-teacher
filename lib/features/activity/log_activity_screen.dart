@@ -129,7 +129,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SelectChildsScreen(
+            builder: (context) => SelectChildrenScreen(
               returnSelectedChildren: true,
               classId: _classId,
               activityType: activityType,

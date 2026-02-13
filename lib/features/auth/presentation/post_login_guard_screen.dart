@@ -60,7 +60,7 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
     if (!mounted) return;
     Navigator.of(
       context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const MyHomePage()));
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
   }
 
   @override

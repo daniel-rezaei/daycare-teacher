@@ -1178,3 +1178,54 @@ void main() {
 /// [ ] اجرای tests در CI/CD
 /// 
 /// ============================================================================
+/// ✅ فایل‌های تکمیل شده در مرحله 2 (استانداردسازی نام‌گذاری)
+/// ============================================================================
+/// 
+/// فایل‌های core:
+/// - core/palette.dart (تغییر نام از pallete.dart)
+/// - core/widgets/staff_avatar_widget.dart (تغییر StaffAvatar به StaffAvatarWidget)
+/// 
+/// فایل‌های features/home:
+/// - features/home/my_home_page.dart (تغییر MyHomePage به HomeScreen، _pages به _homeTabPages، _hasLoadedData به _isInitialDataLoaded)
+/// - features/home/widgets/appbar_widget.dart (تغییر AppbarWidget به AppBarWidget)
+/// - features/home/widgets/upcoming_event_widget.dart (تغییر UpcomingEventsCardStackUI به UpcomingEventWidget)
+/// - features/home/widgets/bottom_navigation_bar_widget.dart (به‌روزرسانی استفاده از HomeScreen)
+/// - features/home/widgets/upcoming_events_header_widget.dart (به‌روزرسانی استفاده از UpcomingEventWidget)
+/// 
+/// فایل‌های features/activity:
+/// - features/activity/widgets/lessen_card_colaps.dart (تغییر LessenCardCollapse به LessonCardCollapseWidget)
+/// - features/activity/lessen_list.dart (به‌روزرسانی استفاده از LessonCardCollapseWidget)
+/// - features/activity/widgets/accident_activity_bottom_sheet.dart (تغییر StaffAvatar به StaffAvatarWidget)
+/// - features/activity/widgets/incident_activity_bottom_sheet.dart (تغییر StaffAvatar به StaffAvatarWidget)
+/// 
+/// فایل‌های features/auth:
+/// - features/auth/presentation/welcome_back_screen.dart (تغییر StaffAvatar به StaffAvatarWidget)
+/// - features/auth/presentation/select_your_profile.dart (تغییر StaffAvatar به StaffAvatarWidget)
+/// - features/auth/presentation/post_login_guard_screen.dart (به‌روزرسانی استفاده از HomeScreen)
+/// - features/auth/presentation/time_in_screen.dart (به‌روزرسانی استفاده از HomeScreen)
+/// 
+/// فایل‌های به‌روزرسانی شده برای import palette:
+/// - features/activity/select_child_bottom_sheet.dart
+/// - features/activity/widgets/staff_circle_item.dart
+/// - features/activity/select_photo_bottom_sheet.dart
+/// - features/activity/lessen.dart
+/// - features/activity/history_meal_screen.dart
+/// - features/activity/create_new_lessen_bottom_sheet.dart
+/// - features/activity/widgets/tag_selector.dart
+/// - features/activity/widgets/lessen_card_colaps.dart
+/// - features/activity/lessen_plan.dart
+/// 
+/// فایل‌های features/messages:
+/// - features/messages/select_childs_screen.dart (تغییر SelectChildsScreen به SelectChildrenScreen)
+/// - features/messages/messages_screen.dart (به‌روزرسانی استفاده از SelectChildrenScreen)
+/// 
+/// فایل‌های features/activity (ادامه):
+/// - features/activity/history_meal_screen.dart (به‌روزرسانی استفاده از SelectChildrenScreen)
+/// - features/activity/log_activity_screen.dart (به‌روزرسانی استفاده از SelectChildrenScreen)
+/// 
+/// فایل‌های features/child_profile:
+/// - features/child_profile/widgets/content_overview.dart (تغییر ContentOverview به ContentOverviewWidget)
+/// - features/child_profile/widgets/content_activity.dart (تغییر ContentActivity به ContentActivityWidget)
+/// - features/child_profile/child_profile_screen.dart (به‌روزرسانی استفاده از ContentOverviewWidget و ContentActivityWidget)
+/// 
+/// ============================================================================

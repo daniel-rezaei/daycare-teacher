@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/core/palette.dart';
 
 import 'lessen_list.dart';
 

@@ -86,9 +86,9 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                     builder: (context, value, child) {
                       return value == 0
                           ? SingleChildScrollView(
-                              child: ContentOverview(childId: widget.childId),
+                              child: ContentOverviewWidget(childId: widget.childId),
                             )
-                          : ContentActivity(childId: widget.childId);
+                          : ContentActivityWidget(childId: widget.childId);
                     },
                   ),
                 ),

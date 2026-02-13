@@ -32,16 +32,16 @@ class _ActivityItem {
   });
 }
 
-class ContentActivity extends StatefulWidget {
+class ContentActivityWidget extends StatefulWidget {
   final String childId; // contactId
 
-  const ContentActivity({super.key, required this.childId});
+  const ContentActivityWidget({super.key, required this.childId});
 
   @override
-  State<ContentActivity> createState() => _ContentActivityState();
+  State<ContentActivityWidget> createState() => _ContentActivityWidgetState();
 }
 
-class _ContentActivityState extends State<ContentActivity> {
+class _ContentActivityWidgetState extends State<ContentActivityWidget> {
   DateTime _selectedDate = DateTime.now();
   String? _actualChildId;
   String? _classId;

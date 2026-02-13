@@ -164,7 +164,7 @@ class InfoCardSelectProfile extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          StaffAvatar(photoId: staff.photoId, size: 48),
+          StaffAvatarWidget(photoId: staff.photoId, size: 48),
           const SizedBox(height: 8),
           Text(
             '${staff.firstName} ${staff.lastName}',

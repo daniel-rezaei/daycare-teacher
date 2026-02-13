@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:teacher_app/core/pallete.dart';
+import 'package:teacher_app/core/palette.dart';
 import 'package:teacher_app/features/activity/widgets/staff_circle_item.dart';
 
 Future<Map<String, String>?> showFilterBottomSheetAccident(

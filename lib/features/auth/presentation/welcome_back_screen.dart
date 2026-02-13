@@ -158,7 +158,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 40),
                           child: Row(
                             children: [
-                              StaffAvatar(photoId: staff.photoId, size: 48),
+                              StaffAvatarWidget(photoId: staff.photoId, size: 48),
                               const SizedBox(width: 8),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

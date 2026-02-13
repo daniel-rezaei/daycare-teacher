@@ -24,12 +24,12 @@ class BottomNavigationBarWidget extends StatelessWidget {
       ),
       padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
       child: ValueListenableBuilder(
-        valueListenable: MyHomePage.pageIndex,
+        valueListenable: HomeScreen.pageIndex,
         builder: (context, value, child) {
           return Row(
             children: [
               TabBottomNavigationBar(
-                onTap: () => MyHomePage.pageIndex.value = 0,
+                onTap: () => HomeScreen.pageIndex.value = 0,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: value == 0
@@ -39,7 +39,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 isActive: value == 0 ? true : false,
               ),
               TabBottomNavigationBar(
-                onTap: () => MyHomePage.pageIndex.value = 1,
+                onTap: () => HomeScreen.pageIndex.value = 1,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: value == 1
@@ -49,7 +49,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 isActive: value == 1 ? true : false,
               ),
               TabBottomNavigationBar(
-                onTap: () => MyHomePage.pageIndex.value = 2,
+                onTap: () => HomeScreen.pageIndex.value = 2,
                 icon: value == 2
                     ? Padding(
                         padding: const EdgeInsets.all(12),
@@ -59,7 +59,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 isActive: value == 2 ? true : false,
               ),
               TabBottomNavigationBar(
-                onTap: () => MyHomePage.pageIndex.value = 3,
+                onTap: () => HomeScreen.pageIndex.value = 3,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: value == 3
@@ -69,7 +69,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 isActive: value == 3 ? true : false,
               ),
               TabBottomNavigationBar(
-                onTap: () => MyHomePage.pageIndex.value = 4,
+                onTap: () => HomeScreen.pageIndex.value = 4,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Assets.images.aIconNSvg.svg(),
