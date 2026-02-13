@@ -117,11 +117,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
 
     if (widget.classId.isEmpty || _staffId == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: Required information for Check In not found'),
-          ),
-        );
+        CustomSnackbar.showError(context, 'Error: Required information for Check In not found');
       }
       return false;
     }
@@ -197,9 +193,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
             _isSubmitting = false;
           });
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error uploading image ${i + 1}')),
-            );
+            CustomSnackbar.showError(context, 'Error uploading image ${i + 1}');
           }
           throw Exception('Failed to upload image ${i + 1}');
         }
@@ -221,9 +215,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
         _isSubmitting = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: attendanceId not found')),
-        );
+        CustomSnackbar.showError(context, 'Error: attendanceId not found');
       }
       return;
     }
@@ -253,9 +245,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
             _noteSubmitted = false;
           });
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error: attendance not found')),
-            );
+            CustomSnackbar.showError(context, 'Error: attendance not found');
           }
           return;
         }
@@ -338,9 +328,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
         _isSubmitting = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: attendanceId not found')),
-        );
+        CustomSnackbar.showError(context, 'Error: attendanceId not found');
       }
       return;
     }

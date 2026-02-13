@@ -8,6 +8,7 @@ import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_observation_api.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
@@ -196,33 +197,23 @@ class _ObservationActivityBottomSheetState
     }
 
     if (widget.selectedChildren.length > 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select only one child for observation'),
-        ),
-      );
+      CustomSnackbar.showWarning(context, 'Please select only one child for observation');
       return;
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Class ID not found. Please try again.')),
-      );
+      CustomSnackbar.showError(context, 'Class ID not found. Please try again.');
       return;
     }
 
     if (_selectedCategoryModel == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      CustomSnackbar.showWarning(context, 'Please select a category');
       return;
     }
 
     // Domain ID is automatically set from selected category value
     if (_selectedDomainId == null || _selectedDomainId!.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      CustomSnackbar.showWarning(context, 'Please select a category');
       return;
     }
 
@@ -241,9 +232,7 @@ class _ObservationActivityBottomSheetState
       final startAtUtc = widget.dateTime.toUtc().toIso8601String();
       final child = widget.selectedChildren.first;
       if (child.id == null || child.id!.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid child selected')));
+        CustomSnackbar.showError(context, 'Invalid child selected');
         return;
       }
 
@@ -287,11 +276,7 @@ class _ObservationActivityBottomSheetState
             context,
             MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Observation activity created successfully'),
-            ),
-          );
+          CustomSnackbar.showSuccess(context, 'Observation activity created successfully');
         }
       } catch (e) {
         if (mounted) {

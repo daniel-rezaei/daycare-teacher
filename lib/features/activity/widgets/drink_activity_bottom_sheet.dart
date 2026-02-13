@@ -9,6 +9,7 @@ import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
@@ -190,23 +191,17 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
   Future<void> _handleAdd() async {
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one child')),
-      );
+        CustomSnackbar.showWarning(context, 'Please select at least one child');
       return;
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Class ID not found. Please try again.')),
-      );
+        CustomSnackbar.showError(context, 'Class ID not found. Please try again.');
       return;
     }
 
     if (_selectedDrinkType == null || _selectedDrinkType!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a drink type')),
-      );
+      CustomSnackbar.showWarning(context, 'Please select a drink type');
       return;
     }
 
@@ -279,19 +274,14 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
             context,
             MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                failureCount > 0
-                    ? 'Created $successCount drink activities ($failureCount failed)'
-                    : 'Drink activities created successfully',
-              ),
-            ),
+          CustomSnackbar.showSuccess(
+            context,
+            failureCount > 0
+                ? 'Created $successCount drink activities ($failureCount failed)'
+                : 'Drink activities created successfully',
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to create drink activities')),
-          );
+          CustomSnackbar.showError(context, 'Failed to create drink activities');
         }
       }
     } catch (e) {

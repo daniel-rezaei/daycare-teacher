@@ -1337,7 +1337,12 @@ void main() {
 /// فایل‌های به‌روزرسانی شده (جایگزینی کدهای تکراری):
 /// - features/activity/widgets/play_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
 /// - features/activity/widgets/sleep_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
-/// - features/child_status/widgets/add_note_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/mood_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/observation_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/meal_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/drink_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/bathroom_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/child_status/widgets/add_note_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar - تمام موارد)
 /// 
 /// ============================================================================
 /// ✅ مرحله 3 تکمیل شد!
