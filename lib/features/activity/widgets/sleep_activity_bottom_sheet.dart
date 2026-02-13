@@ -9,6 +9,7 @@ import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
@@ -248,30 +249,22 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   Future<void> _handleAdd() async {
     // Validation
     if (widget.selectedChildren.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one child')),
-      );
+      CustomSnackbar.showWarning(context, 'Please select at least one child');
       return;
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Class ID not found. Please try again.')),
-      );
+      CustomSnackbar.showError(context, 'Class ID not found. Please try again.');
       return;
     }
 
     if (_selectedType == null || _selectedType!.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a type')));
+      CustomSnackbar.showWarning(context, 'Please select a type');
       return;
     }
 
     if (!_isTimeValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('End time cannot be before start time')),
-      );
+      CustomSnackbar.showWarning(context, 'End time cannot be before start time');
       return;
     }
 
@@ -338,19 +331,14 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
             context,
             MaterialPageRoute(builder: (context) => const LogActivityScreen()),
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                failureCount > 0
-                    ? 'Created $successCount sleep activities ($failureCount failed)'
-                    : 'Sleep activities created successfully',
-              ),
-            ),
+          CustomSnackbar.showSuccess(
+            context,
+            failureCount > 0
+                ? 'Created $successCount sleep activities ($failureCount failed)'
+                : 'Sleep activities created successfully',
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to create sleep activities')),
-          );
+          CustomSnackbar.showError(context, 'Failed to create sleep activities');
         }
       }
     } catch (e) {
@@ -358,9 +346,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        CustomSnackbar.showError(context, 'Error: $e');
       }
     }
   }

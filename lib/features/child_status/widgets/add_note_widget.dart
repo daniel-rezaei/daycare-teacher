@@ -9,6 +9,7 @@ import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
@@ -430,9 +431,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
             _noteSubmitted = false;
           });
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            CustomSnackbar.showError(context, state.message);
           }
         } else if (state is UpdateAttendanceFailure) {
           setState(() {
@@ -440,9 +439,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
             _noteSubmitted = false;
           });
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+            CustomSnackbar.showError(context, state.message);
           }
         }
       },
