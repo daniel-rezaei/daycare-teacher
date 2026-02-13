@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/palette.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
@@ -119,27 +120,19 @@ class _CreateNewLessenBottomSheetState
   Future<void> _handleAdd() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a lesson title')),
-      );
+      CustomSnackbar.showWarning(context, 'Please enter a lesson title');
       return;
     }
     if (_selectedCategoryId == null || _selectedCategoryId!.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      CustomSnackbar.showWarning(context, 'Please select a category');
       return;
     }
     if (_startDate == null || _endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select start and end date')),
-      );
+      CustomSnackbar.showWarning(context, 'Please select start and end date');
       return;
     }
     if (_endDate!.isBefore(_startDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('End date must be after start date')),
-      );
+      CustomSnackbar.showWarning(context, 'End date must be after start date');
       return;
     }
 
@@ -163,9 +156,7 @@ class _CreateNewLessenBottomSheetState
       if (!mounted) return;
       setState(() => _isSubmitting = false);
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Learning plan created successfully')),
-      );
+      CustomSnackbar.showSuccess(context, 'Learning plan created successfully');
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);

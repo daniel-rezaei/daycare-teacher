@@ -6,6 +6,7 @@ import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
@@ -70,21 +71,13 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
 
     // Prevent duplicate requests
     if (_existingRequest != null && _existingRequest!.status == 'pending') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('A transfer request is currently under review'),
-        ),
-      );
+      CustomSnackbar.showWarning(context, 'A transfer request is currently under review');
       return;
     }
 
     // Check if staffId is available
     if (_staffId == null || _staffId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error: Staff ID not found'),
-        ),
-      );
+      CustomSnackbar.showError(context, 'Error: Staff ID not found');
       return;
     }
 
@@ -112,12 +105,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
           });
           // If there's a pending request, show a message
           if (state.request != null && state.request!.status == 'pending') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('A transfer request is currently under review'),
-                duration: Duration(seconds: 2),
-              ),
-            );
+            CustomSnackbar.showWarning(context, 'A transfer request is currently under review');
           }
         } else if (state is CreateTransferRequestSuccess) {
           setState(() {
@@ -130,20 +118,12 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
                 GetTransferRequestsByClassIdEvent(classId: widget.currentClassId),
               );
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Transfer request submitted successfully'),
-            ),
-          );
+          CustomSnackbar.showSuccess(context, 'Transfer request submitted successfully');
         } else if (state is CreateTransferRequestFailure) {
           setState(() {
             _isSubmitting = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-            ),
-          );
+          CustomSnackbar.showError(context, state.message);
         }
       },
       child: BlocBuilder<HomeBloc, HomeState>(

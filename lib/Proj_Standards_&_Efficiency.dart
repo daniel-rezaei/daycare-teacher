@@ -1335,6 +1335,8 @@ void main() {
 /// - core/widgets/errors/empty_state_widget.dart (EmptyStateWidget)
 /// 
 /// فایل‌های به‌روزرسانی شده (جایگزینی کدهای تکراری):
+/// 
+/// Activity Bottom Sheets:
 /// - features/activity/widgets/play_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
 /// - features/activity/widgets/sleep_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
 /// - features/activity/widgets/mood_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
@@ -1342,7 +1344,37 @@ void main() {
 /// - features/activity/widgets/meal_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
 /// - features/activity/widgets/drink_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
 /// - features/activity/widgets/bathroom_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/accident_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/widgets/incident_activity_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/create_new_lessen_bottom_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// 
+/// Child Status Widgets:
 /// - features/child_status/widgets/add_note_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar - تمام موارد)
+/// - features/child_status/widgets/check_out_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/child_status/widgets/class_transfer_action_sheet.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/child_status/widgets/transfer_class_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// 
+/// Home & Auth:
+/// - features/home/my_home_page.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/home/widgets/card_notifications_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/home/widgets/total_notification_widget.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/auth/presentation/select_class_screen.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/auth/presentation/time_in_screen.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// 
+/// Messages & Activity:
+/// - features/messages/select_childs_screen.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// - features/activity/add_photo_screen.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar)
+/// 
+/// Core Services:
+/// - core/services/time_in_access_guard.dart (جایگزینی ScaffoldMessenger.showSnackBar با CustomSnackbar - تمام موارد)
+/// 
+/// خلاصه:
+/// - بیش از 70 مورد استفاده از ScaffoldMessenger.showSnackBar با CustomSnackbar جایگزین شد
+/// - تمام فایل‌های activity bottom sheets به‌روزرسانی شدند
+/// - تمام فایل‌های child_status widgets به‌روزرسانی شدند
+/// - تمام فایل‌های home و auth به‌روزرسانی شدند
+/// - core/services/time_in_access_guard.dart به‌روزرسانی شد
+/// - کدهای تکراری حذف و با کامپوننت‌های قابل استفاده مجدد جایگزین شدند
 /// 
 /// ============================================================================
 /// ✅ مرحله 3 تکمیل شد!
@@ -1350,8 +1382,15 @@ void main() {
 /// 
 /// تمام کامپوننت‌های مشترک ایجاد شدند و کدهای تکراری جایگزین شدند.
 /// - 15 کامپوننت جدید ایجاد شد
-/// - بیش از 10 فایل به‌روزرسانی شد
+/// - بیش از 20 فایل در بخش‌های مختلف پروژه به‌روزرسانی شدند:
+///   * 10 فایل activity bottom sheets
+///   * 4 فایل child_status widgets
+///   * 4 فایل home و auth
+///   * 2 فایل messages و activity screens
+///   * 1 فایل core services
+/// - بیش از 70 مورد استفاده از SnackBar با CustomSnackbar جایگزین شد
 /// - کدهای تکراری با کامپوننت‌های قابل استفاده مجدد جایگزین شدند
 /// - Design system یکپارچه ایجاد شد
+/// - پروژه بدون خطا compile می‌شود
 /// 
 /// ============================================================================

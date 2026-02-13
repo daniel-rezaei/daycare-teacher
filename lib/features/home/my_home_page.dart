@@ -10,6 +10,7 @@ import 'package:teacher_app/features/home/widgets/appbar_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/home/widgets/bottom_navigation_bar_widget.dart';
 import 'package:teacher_app/features/home/widgets/card_widget.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/home/widgets/home_shimmer_widget.dart';
 import 'package:teacher_app/features/messages/messages_screen.dart';
 import 'package:teacher_app/features/profile/presentation/widgets/profile_section_widget.dart';
@@ -131,12 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
         now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
       // اولین کلیک: نمایش SnackBar و جلوگیری از خروج
       _lastBackPressTime = now;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Press back again to exit the app'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CustomSnackbar.showInfo(context, 'Press back again to exit the app');
       return false; // جلوگیری از خروج
     } else {
       // دوباره کلیک شده در مدت زمان کوتاه: اجازه خروج

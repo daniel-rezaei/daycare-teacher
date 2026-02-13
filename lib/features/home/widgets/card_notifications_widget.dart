@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/services/time_in_access_guard.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/class_transfer_action_sheet.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -114,14 +115,7 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
       if (!hasTimeIn) {
         // Block check-in and show message
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'You must Time In first before starting the class.',
-              ),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          CustomSnackbar.showWarning(context, 'You must Time In first before starting the class.');
         }
         return;
       }

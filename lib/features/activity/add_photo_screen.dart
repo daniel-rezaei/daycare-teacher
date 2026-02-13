@@ -10,6 +10,7 @@ import 'package:teacher_app/core/photo_cache_service.dart';
 import 'package:teacher_app/core/services/image_processing_service.dart';
 import 'package:teacher_app/features/activity/choose_photo_screen.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -297,12 +298,7 @@ class ButtonsInfoCardPhotoWidget extends StatelessWidget {
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: ${e.toString()}'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                CustomSnackbar.showError(context, 'Error: ${e.toString()}');
               }
             },
           ),

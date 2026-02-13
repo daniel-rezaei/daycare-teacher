@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/services/attendance_session_store.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 
 /// Centralized access guard for Time-In protected features
@@ -75,12 +76,7 @@ class TimeInAccessGuard {
     // If the user HAS already checked in and has NOT checked out yet,
     // the message must NOT be shown and all buttons must work normally.
     if (!hasActive) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You must check in first'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CustomSnackbar.showWarning(context, 'You must check in first');
       return false;
     }
 
@@ -120,12 +116,7 @@ class TimeInAccessGuard {
       final staffId = prefs.getString(AppConstants.staffIdKey);
 
       if (staffId == null || staffId.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You must check in first'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CustomSnackbar.showWarning(context, 'You must check in first');
         return false;
       }
 
@@ -140,12 +131,7 @@ class TimeInAccessGuard {
 
       return guardAction(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You must check in first'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CustomSnackbar.showWarning(context, 'You must check in first');
       return false;
     }
   }

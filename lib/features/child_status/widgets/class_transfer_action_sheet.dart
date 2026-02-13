@@ -10,6 +10,7 @@ import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
 import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
@@ -116,9 +117,7 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
     // Check if staffId is available (needed for time out and transfer requests)
     if ((_timeOutEnabled || _isClassChanged) &&
         (_staffId == null || _staffId!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Staff ID not found')),
-      );
+      CustomSnackbar.showError(context, 'Error: Staff ID not found');
       return;
     }
 
@@ -128,11 +127,7 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
         widget.studentId!.isNotEmpty &&
         _existingRequest != null &&
         _existingRequest!.status == 'pending') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('A transfer request is currently under review'),
-        ),
-      );
+      CustomSnackbar.showWarning(context, 'A transfer request is currently under review');
       return;
     }
 
@@ -188,14 +183,11 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
             _isSubmitting = false;
           });
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                _timeOutEnabled
-                    ? 'Time out and check out completed successfully'
-                    : 'Check out completed successfully',
-              ),
-            ),
+          CustomSnackbar.showSuccess(
+            context,
+            _timeOutEnabled
+                ? 'Time out and check out completed successfully'
+                : 'Check out completed successfully',
           );
         }
         return; // Exit early - no logout, no navigation
@@ -355,14 +347,7 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
               });
               // If there's a pending request, show a message
               if (state.request != null && state.request!.status == 'pending') {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'A transfer request is currently under review',
-                    ),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                CustomSnackbar.showWarning(context, 'A transfer request is currently under review');
               }
             } else if (state is CreateTransferRequestSuccess) {
               // Transfer request created - navigation will happen via AuthBloc listener
@@ -411,11 +396,7 @@ class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionShee
                 _isSubmitting = false;
               });
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Transfer completed successfully'),
-                ),
-              );
+              CustomSnackbar.showSuccess(context, 'Transfer completed successfully');
             }
           },
         ),

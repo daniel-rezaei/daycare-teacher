@@ -11,6 +11,7 @@ import 'package:teacher_app/features/activity/widgets/observation_activity_botto
 import 'package:teacher_app/features/activity/widgets/play_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/sleep_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
@@ -127,13 +128,7 @@ class _SelectChildrenScreenState extends State<SelectChildrenScreen> {
     // For accident: only one child allowed
     if (activityType == 'accident') {
       if (selectedChildIds.length != 1) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Please select exactly one child for Accident Activity',
-            ),
-          ),
-        );
+        CustomSnackbar.showWarning(context, 'Please select exactly one child for Accident Activity');
         return;
       }
 
@@ -160,13 +155,7 @@ class _SelectChildrenScreenState extends State<SelectChildrenScreen> {
     // For incident: only one child allowed
     if (activityType == 'incident') {
       if (selectedChildIds.length != 1) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Please select exactly one child for Incident Activity',
-            ),
-          ),
-        );
+        CustomSnackbar.showWarning(context, 'Please select exactly one child for Incident Activity');
         return;
       }
 
@@ -509,13 +498,7 @@ class _SelectChildrenScreenState extends State<SelectChildrenScreen> {
                           : widget.activityType == 'incident'
                           ? 'Incident'
                           : 'Observation';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Only one child can be selected for $activityName Activity',
-                          ),
-                        ),
-                      );
+                      CustomSnackbar.showWarning(context, 'Only one child can be selected for $activityName Activity');
                       return;
                     }
                     setState(() {

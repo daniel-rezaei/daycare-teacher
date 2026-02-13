@@ -283,11 +283,7 @@ class _BathroomActivityBottomSheetState
                 : 'Bathroom activities created successfully',
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to create bathroom activities'),
-            ),
-          );
+          CustomSnackbar.showError(context, 'Failed to create bathroom activities');
         }
       }
     } catch (e) {

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
@@ -170,12 +171,7 @@ class _SelectClassScreenState extends State<SelectClassScreen> {
       _lastBackPressTime = now;
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Press back again to exit the app'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CustomSnackbar.showInfo(context, 'Press back again to exit the app');
       }
     } else {
       // Second press within 2 seconds - exit app

@@ -9,6 +9,7 @@ import 'package:teacher_app/features/attendance/domain/entity/attendance_child_e
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/child_status/services/local_absent_storage_service.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_status/child_status.dart';
@@ -331,26 +332,14 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                           // Validation priority for Student List access:
                           // 1) First check: If Time In is NOT done → Block and show "You must Time In first."
                           if (!hasTimeIn) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('You must Time In first.'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
+                            CustomSnackbar.showWarning(context, 'You must Time In first.');
                             return;
                           }
 
                           // 2) Second check (only if Time In IS done):
                           //    If Class Check-In is NOT done → Block and show "You must Check-In the class before opening the Student List."
                           if (!isClassCheckedIn) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'You must Check-In the class before opening the Student List.',
-                                ),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
+                            CustomSnackbar.showWarning(context, 'You must Check-In the class before opening the Student List.');
                             return;
                           }
 

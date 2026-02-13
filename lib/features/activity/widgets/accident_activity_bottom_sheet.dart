@@ -9,6 +9,7 @@ import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_accident_api.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
@@ -220,16 +221,12 @@ class _AccidentActivityBottomSheetState
   Future<void> _handleAdd() async {
     // Validation
     if (widget.selectedChild.id == null || widget.selectedChild.id!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Child ID not found. Please try again.')),
-      );
+      CustomSnackbar.showError(context, 'Child ID not found. Please try again.');
       return;
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Class ID not found. Please try again.')),
-      );
+      CustomSnackbar.showError(context, 'Class ID not found. Please try again.');
       return;
     }
 
@@ -293,11 +290,7 @@ class _AccidentActivityBottomSheetState
           context,
           MaterialPageRoute(builder: (context) => const LogActivityScreen()),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Accident activity created successfully'),
-          ),
-        );
+        CustomSnackbar.showSuccess(context, 'Accident activity created successfully');
       }
     } catch (e) {
       if (mounted) {

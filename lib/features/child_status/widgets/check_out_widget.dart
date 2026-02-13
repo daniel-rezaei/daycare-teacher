@@ -11,6 +11,7 @@ import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
@@ -102,11 +103,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
 
     if (_selectedPickupAuthorizationId == null ||
         _selectedPickupAuthorizationId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the person picking up the child'),
-        ),
-      );
+      CustomSnackbar.showWarning(context, 'Please select the person picking up the child');
       return;
     }
 
@@ -134,9 +131,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
             await GalleryService.saveImageToGallery(imageFile);
           } else {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error uploading image ${i + 1}')),
-              );
+              CustomSnackbar.showError(context, 'Error uploading image ${i + 1}');
             }
             setState(() {
               _isSubmitting = false;

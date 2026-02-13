@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -41,11 +42,7 @@ class _TimeInScreenState extends State<TimeInScreen> {
 
   void _handleTimeIn() {
     if (_staffId == null || _staffId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Staff ID not found. Please log in again.'),
-        ),
-      );
+      CustomSnackbar.showError(context, 'Staff ID not found. Please log in again.');
       return;
     }
 
@@ -73,11 +70,7 @@ class _TimeInScreenState extends State<TimeInScreen> {
           }
         } else if (state is CreateStaffAttendanceFailure) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to register Time-In: ${state.message}'),
-              ),
-            );
+            CustomSnackbar.showError(context, 'Failed to register Time-In: ${state.message}');
           }
         }
       },
