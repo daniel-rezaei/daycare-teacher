@@ -304,9 +304,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
-      // Get all accident records without query parameters
+      // Get all accident records; request contact_id expanded for Staff involved names
       print('🔵 [_loadAccidentActivities] Fetching all accident records...');
-      final response = await getIt<Dio>().get('/items/Child_Accident_Report');
+      final response = await getIt<Dio>().get(
+        '/items/Child_Accident_Report',
+        queryParameters: {
+          'fields': '*,contact_id.first_name,contact_id.last_name',
+        },
+      );
 
       var allData = response.data['data'] as List<dynamic>;
       print(
@@ -484,9 +489,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
-      // Get all incident records without query parameters
+      // Get all incident records; request contact_id expanded for Staff involved names
       print('🟢 [_loadIncidentActivities] Fetching all incident records...');
-      final response = await getIt<Dio>().get('/items/Child_Incident_Report');
+      final response = await getIt<Dio>().get(
+        '/items/Child_Incident_Report',
+        queryParameters: {
+          'fields': '*,contact_id.first_name,contact_id.last_name',
+        },
+      );
 
       var allData = response.data['data'] as List<dynamic>;
       print(
@@ -653,6 +663,47 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         return <String>[];
       }
 
+      // Format date/time for display
+      String? formatDateTime(dynamic dateTime) {
+        if (dateTime == null) return null;
+        try {
+          final dt = DateTime.parse(dateTime.toString());
+          return DateFormat('yyyy-MM-dd HH:mm').format(dt.toLocal());
+        } catch (e) {
+          return dateTime.toString();
+        }
+      }
+
+      // Extract staff display names from contact_id (object, list, or raw ID)
+      List<String> staffDisplayFromContactId(dynamic contactId) {
+        if (contactId == null) return <String>[];
+        if (contactId is Map) {
+          final first = (contactId['first_name']?.toString().trim() ?? '')
+              .toString();
+          final last = (contactId['last_name']?.toString().trim() ?? '')
+              .toString();
+          final name = '$first $last'.trim();
+          return name.isEmpty ? <String>[] : [name];
+        }
+        if (contactId is List) {
+          final list = <String>[];
+          for (final e in contactId) {
+            if (e is Map) {
+              final first = (e['first_name']?.toString().trim() ?? '')
+                  .toString();
+              final last = (e['last_name']?.toString().trim() ?? '').toString();
+              final name = '$first $last'.trim();
+              if (name.isNotEmpty) list.add(name);
+            } else if (e != null && e.toString().trim().isNotEmpty) {
+              list.add(e.toString().trim());
+            }
+          }
+          return list;
+        }
+        final s = contactId.toString().trim();
+        return s.isEmpty ? <String>[] : [s];
+      }
+
       // Store accident fields separately with their titles
       final natureOfInjury = convertArrayField(detail['nature_of_injury']);
       final injuredBodyType = convertArrayField(detail['injured_body_type']);
@@ -676,6 +727,40 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         'Child Reaction': childReaction,
         'Notify By': notifyBy,
       };
+
+      // Staff involved
+      final staffInvolved = staffDisplayFromContactId(detail['contact_id']);
+      if (staffInvolved.isNotEmpty) {
+        accidentFields['Staff involved'] = staffInvolved;
+      }
+      // Date notified
+      final dateNotified = detail['date_time_notified'];
+      if (dateNotified != null && dateNotified.toString().trim().isNotEmpty) {
+        accidentFields['Date notified'] = [
+          formatDateTime(dateNotified) ?? dateNotified.toString(),
+        ];
+      }
+      // Medical follow up
+      final medicalFollowUp = detail['medical_follow_up_required'];
+      if (medicalFollowUp != null) {
+        accidentFields['Medical follow up'] = [
+          medicalFollowUp == true ? 'Yes' : 'No',
+        ];
+      }
+      // Incident reported to authority
+      final reportedToAuthority = detail['incident_reported_to_authority'];
+      if (reportedToAuthority != null) {
+        accidentFields['Incident reported to authority'] = [
+          reportedToAuthority == true ? 'Yes' : 'No',
+        ];
+      }
+      // Parent notified
+      final parentNotified = detail['parent_notified'];
+      if (parentNotified != null) {
+        accidentFields['Parent notified'] = [
+          parentNotified == true ? 'Yes' : 'No',
+        ];
+      }
 
       print('🟡 [_getAccidentDetails] accidentFields map: $accidentFields');
       print(
@@ -767,8 +852,44 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         }
       }
 
+      // Extract staff display names from contact_id (object, list, or raw ID)
+      List<String> staffDisplayFromContactId(dynamic contactId) {
+        if (contactId == null) return <String>[];
+        if (contactId is Map) {
+          final first = (contactId['first_name']?.toString().trim() ?? '')
+              .toString();
+          final last = (contactId['last_name']?.toString().trim() ?? '')
+              .toString();
+          final name = '$first $last'.trim();
+          return name.isEmpty ? <String>[] : [name];
+        }
+        if (contactId is List) {
+          final list = <String>[];
+          for (final e in contactId) {
+            if (e is Map) {
+              final first = (e['first_name']?.toString().trim() ?? '')
+                  .toString();
+              final last = (e['last_name']?.toString().trim() ?? '').toString();
+              final name = '$first $last'.trim();
+              if (name.isNotEmpty) list.add(name);
+            } else if (e != null && e.toString().trim().isNotEmpty) {
+              list.add(e.toString().trim());
+            }
+          }
+          return list;
+        }
+        final s = contactId.toString().trim();
+        return s.isEmpty ? <String>[] : [s];
+      }
+
       // Store incident fields separately with their titles
       final incidentFields = <String, List<String>>{};
+
+      // Staff involved
+      final staffInvolved = staffDisplayFromContactId(detail['contact_id']);
+      if (staffInvolved.isNotEmpty) {
+        incidentFields['Staff involved'] = staffInvolved;
+      }
 
       // Add array fields
       final natureOfIncident = convertArrayField(detail['nature_of_incident']);
