@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/services/time_in_access_guard.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_accident_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_bathroom_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart';
@@ -14,9 +17,11 @@ import 'package:teacher_app/features/activity/data/data_source/activity_play_api
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
 import 'package:teacher_app/features/activity/create_new_lessen_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/history_meal_screen.dart';
+import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
 import 'package:teacher_app/features/child_status/child_status.dart';
+import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class LogActivityScreen extends StatefulWidget {
@@ -45,6 +50,14 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
         _classId = savedClassId;
       });
     }
+  }
+
+  /// Returns true if class is checked in (session started, not ended)
+  bool _isClassCheckedIn(StaffClassSessionEntity? session) {
+    if (session == null) return false;
+    return session.startAt != null &&
+        session.startAt!.isNotEmpty &&
+        (session.endAt == null || session.endAt!.isEmpty);
   }
 
   /// Check if history exists for the given activity type
@@ -358,10 +371,34 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               icon: Assets.images.attendance.image(height: 48),
                               title: 'Attendance',
                               onTap: () {
+                                final hasTimeIn =
+                                    TimeInAccessGuard.checkActiveTimeInFromContext(
+                                  context,
+                                );
+                                final session =
+                                    context.read<HomeBloc>().state.session;
+                                final isClassCheckedIn =
+                                    _isClassCheckedIn(session);
+
+                                if (!hasTimeIn) {
+                                  CustomSnackbar.showWarning(
+                                    context,
+                                    'You must Time In first.',
+                                  );
+                                  return;
+                                }
+                                if (!isClassCheckedIn) {
+                                  CustomSnackbar.showWarning(
+                                    context,
+                                    'You must Check-In the class before opening Attendance.',
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ChildStatusScreen(),
+                                    builder: (context) =>
+                                        const ChildStatusScreen(),
                                   ),
                                 );
                               },
