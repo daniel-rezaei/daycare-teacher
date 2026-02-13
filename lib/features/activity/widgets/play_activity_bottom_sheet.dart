@@ -44,9 +44,9 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   String? _selectedType;
   final List<String> _tags = [];
 
-  // Time range state
-  late DateTime _startTime;
-  late DateTime _endTime;
+  // Time range state (no defaults - user must set both)
+  DateTime? _startTime;
+  DateTime? _endTime;
 
   // Options loaded from backend
   List<String> _typeOptions = [];
@@ -63,16 +63,16 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Initialize time range: start = widget.dateTime, end = start + 30 minutes
-    _startTime = widget.dateTime;
-    _endTime = _startTime.add(const Duration(minutes: 30));
+    // No default times - user must select both Start and End
+    _startTime = null;
+    _endTime = null;
 
-    // Load classId and play options
     _loadClassId();
     _loadAllOptions();
   }
 
-  bool get _isTimeValid => _endTime.isAfter(_startTime);
+  bool get _isTimeValid =>
+      _startTime != null && _endTime != null && _endTime!.isAfter(_startTime!);
 
   Future<void> _loadClassId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -130,13 +130,12 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   }
 
   Future<void> _selectStartTime() async {
-    DateTime selectedTime = _startTime;
+    DateTime selectedTime = _startTime ?? widget.dateTime;
 
     await showModalBottomSheet(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
-          // Check if selected time is valid
           final newStartTime = DateTime(
             widget.dateTime.year,
             widget.dateTime.month,
@@ -144,7 +143,7 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
             selectedTime.hour,
             selectedTime.minute,
           );
-          final isValid = _endTime.isAfter(newStartTime);
+          final isValid = _endTime == null || _endTime!.isAfter(newStartTime);
 
           return SizedBox(
             height: 250,
@@ -173,12 +172,10 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                 Expanded(
                   child: CupertinoDatePicker(
                     mode: CupertinoDatePickerMode.time,
-                    initialDateTime: _startTime,
+                    initialDateTime: selectedTime,
                     onDateTimeChanged: (DateTime newTime) {
                       selectedTime = newTime;
-                      setModalState(
-                        () {},
-                      ); // Trigger rebuild to update Done button state
+                      setModalState(() {});
                     },
                   ),
                 ),
@@ -191,25 +188,26 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   }
 
   void _toggleStartAmPm() {
+    if (_startTime == null) return;
     setState(() {
-      if (_startTime.hour < 12) {
-        // AM -> PM: add 12 hours
-        _startTime = _startTime.add(const Duration(hours: 12));
+      if (_startTime!.hour < 12) {
+        _startTime = _startTime!.add(const Duration(hours: 12));
       } else {
-        // PM -> AM: subtract 12 hours
-        _startTime = _startTime.subtract(const Duration(hours: 12));
+        _startTime = _startTime!.subtract(const Duration(hours: 12));
       }
     });
   }
 
   Future<void> _selectEndTime() async {
-    DateTime selectedTime = _endTime;
+    DateTime selectedTime =
+        _endTime ??
+        _startTime?.add(const Duration(minutes: 30)) ??
+        widget.dateTime.add(const Duration(minutes: 30));
 
     await showModalBottomSheet(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
-          // Check if selected time is valid
           final newEndTime = DateTime(
             widget.dateTime.year,
             widget.dateTime.month,
@@ -217,7 +215,7 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
             selectedTime.hour,
             selectedTime.minute,
           );
-          final isValid = newEndTime.isAfter(_startTime);
+          final isValid = _startTime == null || newEndTime.isAfter(_startTime!);
 
           return SizedBox(
             height: 250,
@@ -246,12 +244,10 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                 Expanded(
                   child: CupertinoDatePicker(
                     mode: CupertinoDatePickerMode.time,
-                    initialDateTime: _endTime,
+                    initialDateTime: selectedTime,
                     onDateTimeChanged: (DateTime newTime) {
                       selectedTime = newTime;
-                      setModalState(
-                        () {},
-                      ); // Trigger rebuild to update Done button state
+                      setModalState(() {});
                     },
                   ),
                 ),
@@ -264,13 +260,12 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
   }
 
   void _toggleEndAmPm() {
+    if (_endTime == null) return;
     setState(() {
-      if (_endTime.hour < 12) {
-        // AM -> PM: add 12 hours
-        _endTime = _endTime.add(const Duration(hours: 12));
+      if (_endTime!.hour < 12) {
+        _endTime = _endTime!.add(const Duration(hours: 12));
       } else {
-        // PM -> AM: subtract 12 hours
-        _endTime = _endTime.subtract(const Duration(hours: 12));
+        _endTime = _endTime!.subtract(const Duration(hours: 12));
       }
     });
   }
@@ -359,8 +354,8 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
       }
 
       // Format start_at and end_at in UTC ISO 8601 format
-      final startAtUtc = _startTime.toUtc().toIso8601String();
-      final endAtUtc = _endTime.toUtc().toIso8601String();
+      final startAtUtc = _startTime!.toUtc().toIso8601String();
+      final endAtUtc = _endTime!.toUtc().toIso8601String();
 
       // Two-step flow: Create activity (parent) then play details (child) for EACH child
       int successCount = 0;
@@ -667,7 +662,7 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
 
 class _TimeColumn extends StatelessWidget {
   final String label;
-  final DateTime time;
+  final DateTime? time;
   final VoidCallback? onTimeTap;
   final VoidCallback? onAmPmTap;
   final bool enabled;
@@ -690,6 +685,7 @@ class _TimeColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasValue = time != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -709,40 +705,46 @@ class _TimeColumn extends StatelessWidget {
               GestureDetector(
                 onTap: enabled ? onTimeTap : null,
                 child: Text(
-                  _formatTimeForDisplay(time),
+                  hasValue ? _formatTimeForDisplay(time!) : 'Select',
                   style: TextStyle(
-                    color: enabled
-                        ? AppColors.textPrimary
+                    color: hasValue
+                        ? (enabled
+                              ? AppColors.textPrimary
+                              : AppColors.textTertiary)
                         : AppColors.textTertiary,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: enabled ? onAmPmTap : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: enabled ? AppColors.primaryLight : AppColors.divider,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    _getAmPm(time),
-                    style: TextStyle(
+              if (hasValue) ...[
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: enabled ? onAmPmTap : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
                       color: enabled
-                          ? AppColors.primary
-                          : AppColors.textTertiary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                          ? AppColors.primaryLight
+                          : AppColors.divider,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      _getAmPm(time!),
+                      style: TextStyle(
+                        color: enabled
+                            ? AppColors.primary
+                            : AppColors.textTertiary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

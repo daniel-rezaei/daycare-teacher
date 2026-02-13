@@ -44,9 +44,9 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   String? _selectedType;
   final List<String> _tags = [];
 
-  // Time range state
+  // Time range state (End has no default - user must set it)
   late DateTime _startTime;
-  late DateTime _endTime;
+  DateTime? _endTime;
 
   // Options loaded from backend
   List<String> _typeOptions = [];
@@ -63,16 +63,15 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Initialize time range: start = widget.dateTime, end = start + 30 minutes
     _startTime = widget.dateTime;
-    _endTime = _startTime.add(const Duration(minutes: 30));
+    // End time has no default - user must select it
+    _endTime = null;
 
-    // Load classId and sleep options
     _loadClassId();
     _loadAllOptions();
   }
 
-  bool get _isTimeValid => _endTime.isAfter(_startTime);
+  bool get _isTimeValid => _endTime != null && _endTime!.isAfter(_startTime);
 
   Future<void> _loadClassId() async {
     final prefs = await SharedPreferences.getInstance();
@@ -130,13 +129,14 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   }
 
   Future<void> _selectEndTime() async {
-    DateTime selectedTime = _endTime;
+    // Picker initial value: existing end or start + 30 min (only for picker display)
+    DateTime selectedTime =
+        _endTime ?? _startTime.add(const Duration(minutes: 30));
 
     await showModalBottomSheet(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
-          // Check if selected time is valid
           final newEndTime = DateTime(
             widget.dateTime.year,
             widget.dateTime.month,
@@ -173,12 +173,10 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
                 Expanded(
                   child: CupertinoDatePicker(
                     mode: CupertinoDatePickerMode.time,
-                    initialDateTime: _endTime,
+                    initialDateTime: selectedTime,
                     onDateTimeChanged: (DateTime newTime) {
                       selectedTime = newTime;
-                      setModalState(
-                        () {},
-                      ); // Trigger rebuild to update Done button state
+                      setModalState(() {});
                     },
                   ),
                 ),
@@ -191,13 +189,12 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
   }
 
   void _toggleEndAmPm() {
+    if (_endTime == null) return;
     setState(() {
-      if (_endTime.hour < 12) {
-        // AM -> PM: add 12 hours
-        _endTime = _endTime.add(const Duration(hours: 12));
+      if (_endTime!.hour < 12) {
+        _endTime = _endTime!.add(const Duration(hours: 12));
       } else {
-        // PM -> AM: subtract 12 hours
-        _endTime = _endTime.subtract(const Duration(hours: 12));
+        _endTime = _endTime!.subtract(const Duration(hours: 12));
       }
     });
   }
@@ -254,7 +251,10 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      CustomSnackbar.showError(context, 'Class ID not found. Please try again.');
+      CustomSnackbar.showError(
+        context,
+        'Class ID not found. Please try again.',
+      );
       return;
     }
 
@@ -263,8 +263,16 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
       return;
     }
 
+    if (_endTime == null) {
+      CustomSnackbar.showWarning(context, 'Please select end time');
+      return;
+    }
+
     if (!_isTimeValid) {
-      CustomSnackbar.showWarning(context, 'End time cannot be before start time');
+      CustomSnackbar.showWarning(
+        context,
+        'End time cannot be before start time',
+      );
       return;
     }
 
@@ -281,7 +289,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
 
       // Format start_at and end_at in UTC ISO 8601 format
       final startAtUtc = _startTime.toUtc().toIso8601String();
-      final endAtUtc = _endTime.toUtc().toIso8601String();
+      final endAtUtc = _endTime!.toUtc().toIso8601String();
 
       // Two-step flow: Create activity (parent) then sleep details (child) for EACH child
       int successCount = 0;
@@ -338,7 +346,10 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
                 : 'Sleep activities created successfully',
           );
         } else {
-          CustomSnackbar.showError(context, 'Failed to create sleep activities');
+          CustomSnackbar.showError(
+            context,
+            'Failed to create sleep activities',
+          );
         }
       }
     } catch (e) {
@@ -588,7 +599,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
 
 class _TimeColumn extends StatelessWidget {
   final String label;
-  final DateTime time;
+  final DateTime? time;
   final VoidCallback? onTimeTap;
   final VoidCallback? onAmPmTap;
   final bool enabled;
@@ -611,6 +622,7 @@ class _TimeColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasValue = time != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -630,40 +642,46 @@ class _TimeColumn extends StatelessWidget {
               GestureDetector(
                 onTap: enabled ? onTimeTap : null,
                 child: Text(
-                  _formatTimeForDisplay(time),
+                  hasValue ? _formatTimeForDisplay(time!) : 'Select',
                   style: TextStyle(
-                    color: enabled
-                        ? AppColors.textPrimary
+                    color: hasValue
+                        ? (enabled
+                              ? AppColors.textPrimary
+                              : AppColors.textTertiary)
                         : AppColors.textTertiary,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: enabled ? onAmPmTap : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: enabled ? AppColors.primaryLight : AppColors.divider,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    _getAmPm(time),
-                    style: TextStyle(
+              if (hasValue) ...[
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: enabled ? onAmPmTap : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
                       color: enabled
-                          ? AppColors.primary
-                          : AppColors.textTertiary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                          ? AppColors.primaryLight
+                          : AppColors.divider,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      _getAmPm(time!),
+                      style: TextStyle(
+                        color: enabled
+                            ? AppColors.primary
+                            : AppColors.textTertiary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
