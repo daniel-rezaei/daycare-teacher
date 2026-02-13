@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
@@ -69,14 +70,54 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
           MaterialPageRoute(builder: (_) => const PostLoginGuardScreen()),
           (_) => false,
         );
+      } else {
+        // اگر لاگین موفق نبود اما خطایی هم throw نشد
+        if (mounted) {
+          CustomSnackbar.showError(
+            context,
+            'Login failed. Please check your password and try again.',
+          );
+        }
       }
     } on AuthError catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
+
+      // تبدیل پیام خطا به پیام کاربرپسند
+      String errorMessage = _getErrorMessage(e);
+      CustomSnackbar.showError(context, errorMessage);
+    } catch (e) {
+      // برای خطاهای غیرمنتظره
+      if (!mounted) return;
+      CustomSnackbar.showError(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+        'An unexpected error occurred. Please try again.',
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  /// تبدیل پیام خطای AuthError به پیام کاربرپسند
+  String _getErrorMessage(AuthError error) {
+    final message = error.message.toLowerCase();
+
+    // بررسی انواع خطاهای رایج
+    if (message.contains('password') ||
+        message.contains('incorrect') ||
+        message.contains('invalid')) {
+      return 'Incorrect password. Please try again.';
+    } else if (message.contains('network') ||
+        message.contains('connection') ||
+        message.contains('timeout')) {
+      return 'Network error. Please check your internet connection and try again.';
+    } else if (message.contains('too many') || message.contains('rate limit')) {
+      return 'Too many login attempts. Please wait a moment and try again.';
+    } else if (error.message.isNotEmpty) {
+      // اگر پیام خطا وجود دارد، از آن استفاده کن
+      return error.message;
+    } else {
+      // پیام پیش‌فرض
+      return 'Login failed. Please check your password and try again.';
     }
   }
 
@@ -158,7 +199,10 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 40),
                           child: Row(
                             children: [
-                              StaffAvatarWidget(photoId: staff.photoId, size: 48),
+                              StaffAvatarWidget(
+                                photoId: staff.photoId,
+                                size: 48,
+                              ),
                               const SizedBox(width: 8),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

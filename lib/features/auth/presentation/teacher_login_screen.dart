@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
+import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/auth/domain/usecase/auth_usecase.dart';
 import 'package:teacher_app/features/auth/presentation/post_login_guard_screen.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -109,14 +110,56 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
           MaterialPageRoute(builder: (_) => const PostLoginGuardScreen()),
           (_) => false,
         );
+      } else {
+        // اگر لاگین موفق نبود اما خطایی هم throw نشد
+        if (mounted) {
+          CustomSnackbar.showError(
+            context,
+            'Login failed. Please check your credentials and try again.',
+          );
+        }
       }
     } on AuthError catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
+
+      // تبدیل پیام خطا به پیام کاربرپسند
+      String errorMessage = _getErrorMessage(e);
+      CustomSnackbar.showError(context, errorMessage);
+    } catch (e) {
+      // برای خطاهای غیرمنتظره
+      if (!mounted) return;
+      CustomSnackbar.showError(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+        'An unexpected error occurred. Please try again.',
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  /// تبدیل پیام خطای AuthError به پیام کاربرپسند
+  String _getErrorMessage(AuthError error) {
+    final message = error.message.toLowerCase();
+
+    // بررسی انواع خطاهای رایج
+    if (message.contains('password') ||
+        message.contains('incorrect') ||
+        message.contains('invalid')) {
+      return 'Incorrect email or password. Please try again.';
+    } else if (message.contains('network') ||
+        message.contains('connection') ||
+        message.contains('timeout')) {
+      return 'Network error. Please check your internet connection and try again.';
+    } else if (message.contains('user') && message.contains('not found')) {
+      return 'User not found. Please check your email address.';
+    } else if (message.contains('too many') || message.contains('rate limit')) {
+      return 'Too many login attempts. Please wait a moment and try again.';
+    } else if (error.message.isNotEmpty) {
+      // اگر پیام خطا وجود دارد، از آن استفاده کن
+      return error.message;
+    } else {
+      // پیام پیش‌فرض
+      return 'Login failed. Please check your credentials and try again.';
     }
   }
 
