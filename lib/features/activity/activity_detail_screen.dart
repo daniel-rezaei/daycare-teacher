@@ -231,6 +231,24 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           print(
             '🟣 [_loadActivitiesForDate] Details: type=${details['type']}, description=${details['description']}, tags=${details['tags']}',
           );
+
+          // Convert observationFields to proper type (similar to accident/incident)
+          Map<String, List<String>>? observationFieldsMap;
+          if (details['observationFields'] != null) {
+            final rawMap = details['observationFields'] as Map;
+            observationFieldsMap = <String, List<String>>{};
+            rawMap.forEach((key, value) {
+              if (value is List) {
+                observationFieldsMap![key.toString()] = value
+                    .map<String>((e) => e.toString())
+                    .toList();
+              }
+            });
+            print(
+              '🟣 [_loadActivitiesForDate] observationFieldsMap: $observationFieldsMap',
+            );
+          }
+
           items.add(
             _ActivityDetailItem(
               activityId: activityId,
@@ -243,6 +261,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               subType: details['subType'],
               startAtTime: details['startAtTime'],
               endAtTime: details['endAtTime'],
+              observationFields: observationFieldsMap,
             ),
           );
         } else {
@@ -1147,13 +1166,44 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           }
         }
 
-        // Add skill_observed to tags if not empty
-        if (skillObserved.isNotEmpty) {
-          tags.addAll(skillObserved);
-          print(
-            '🟣 [_getActivityDetails] Added skill_observed to tags. Tags now: $tags',
-          );
+        // Create observationFields map (similar to accidentFields and incidentFields)
+        final observationFields = <String, List<String>>{};
+
+        // Add Category
+        if (resolvedType != null && resolvedType.isNotEmpty) {
+          observationFields['Category'] = [resolvedType];
         }
+
+        // Add Development Area (skill_observed)
+        if (skillObserved.isNotEmpty) {
+          observationFields['Development Area'] = skillObserved;
+        }
+
+        print('🟣 [_getActivityDetails] observationFields: $observationFields');
+
+        final result = {
+          'type':
+              resolvedType ??
+              (typeField != null ? detail[typeField]?.toString() : null),
+          'quantity': quantityField != null
+              ? detail[quantityField]?.toString()
+              : null,
+          'subType': subTypeField != null
+              ? detail[subTypeField]?.toString()
+              : null,
+          'description': detail['description']?.toString(),
+          'tags':
+              tags, // Keep tags empty for observation - we use observationFields instead
+          'photo': photoId,
+          'startAtTime': hasTimeFields ? detail['start_at']?.toString() : null,
+          'endAtTime': hasTimeFields ? detail['end_at']?.toString() : null,
+          'observationFields': observationFields,
+        };
+
+        print(
+          '🟣 [_getActivityDetails] Returning result with observationFields: ${result['observationFields']}',
+        );
+        return result;
       }
 
       final result = {
@@ -1295,6 +1345,8 @@ class _ActivityDetailItem {
   accidentFields; // For accident-specific fields
   final Map<String, List<String>>?
   incidentFields; // For incident-specific fields
+  final Map<String, List<String>>?
+  observationFields; // For observation-specific fields
 
   _ActivityDetailItem({
     required this.activityId,
@@ -1309,6 +1361,7 @@ class _ActivityDetailItem {
     this.endAtTime,
     this.accidentFields,
     this.incidentFields,
+    this.observationFields,
   });
 }
 
@@ -1530,9 +1583,31 @@ class _ActivityDetailSection extends StatelessWidget {
               },
             ),
           ],
-          // Tags (read-only) - only for non-accident and non-incident activities
+          // Observation-specific fields (displayed with separate titles)
+          if (activityType == 'observation') ...[
+            Builder(
+              builder: (context) {
+                if (activity.observationFields != null &&
+                    activity.observationFields!.isNotEmpty) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: activity.observationFields!.entries.map((entry) {
+                      if (entry.value.isEmpty) return const SizedBox.shrink();
+                      return _ReadOnlyMultiSelectTypeSelector(
+                        title: entry.key,
+                        selectedValues: entry.value,
+                      );
+                    }).toList(),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+          // Tags (read-only) - only for non-accident, non-incident, and non-observation activities
           if (activityType != 'accident' &&
               activityType != 'incident' &&
+              activityType != 'observation' &&
               activity.tags.isNotEmpty) ...[
             const Text(
               'Tag',
