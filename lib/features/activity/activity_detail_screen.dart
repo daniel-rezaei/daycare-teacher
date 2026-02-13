@@ -156,7 +156,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   Future<void> _loadActivitiesForDate(DateTime date) async {
+    print(
+      '🟣 [_loadActivitiesForDate] Starting - Date: $date, Type: ${widget.activityType}, ChildId: ${widget.childId}',
+    );
     if (widget.classId == null || widget.classId!.isEmpty) {
+      print('🔴 [_loadActivitiesForDate] classId is null or empty');
       setState(() {
         _isLoading = false;
       });
@@ -170,18 +174,27 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     try {
       // Handle accident and incident differently - query directly from their tables
       if (widget.activityType == 'accident') {
+        print('🟣 [_loadActivitiesForDate] Calling _loadAccidentActivities');
         await _loadAccidentActivities(date);
         return;
       }
       if (widget.activityType == 'incident') {
+        print('🟣 [_loadActivitiesForDate] Calling _loadIncidentActivities');
         await _loadIncidentActivities(date);
         return;
       }
 
+      print(
+        '🟣 [_loadActivitiesForDate] Getting activity type ID for: ${widget.activityType}',
+      );
       final activityTypeId = await _getActivityTypeId(widget.activityType);
+      print('🟣 [_loadActivitiesForDate] Activity type ID: $activityTypeId');
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
+      print(
+        '🟣 [_loadActivitiesForDate] Querying /items/activities with filters',
+      );
       final response = await getIt<Dio>().get(
         '/items/activities',
         queryParameters: {
@@ -197,15 +210,27 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       );
 
       final activities = response.data['data'] as List<dynamic>;
+      print(
+        '🟣 [_loadActivitiesForDate] Found ${activities.length} activities',
+      );
       final List<_ActivityDetailItem> items = [];
 
       for (final activity in activities) {
         final activityId = activity['id'] as String;
         final startAt = activity['start_at'] as String?;
+        print(
+          '🟣 [_loadActivitiesForDate] Processing activity: $activityId, startAt: $startAt',
+        );
 
         // Get activity details based on type
         final details = await _getActivityDetails(activityId);
+        print(
+          '🟣 [_loadActivitiesForDate] Details received: ${details != null}',
+        );
         if (details != null) {
+          print(
+            '🟣 [_loadActivitiesForDate] Details: type=${details['type']}, description=${details['description']}, tags=${details['tags']}',
+          );
           items.add(
             _ActivityDetailItem(
               activityId: activityId,
@@ -220,14 +245,24 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               endAtTime: details['endAtTime'],
             ),
           );
+        } else {
+          print(
+            '🔴 [_loadActivitiesForDate] Details is null for activityId: $activityId',
+          );
         }
       }
 
+      print('🟣 [_loadActivitiesForDate] Total items created: ${items.length}');
       setState(() {
         _activities = items;
         _isLoading = false;
       });
-    } catch (e) {
+      print(
+        '🟣 [_loadActivitiesForDate] State updated with ${_activities.length} activities',
+      );
+    } catch (e, stackTrace) {
+      print('🔴 [_loadActivitiesForDate] Error: $e');
+      print('🔴 [_loadActivitiesForDate] StackTrace: $stackTrace');
       setState(() {
         _isLoading = false;
       });
@@ -849,11 +884,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   Future<Map<String, dynamic>?> _getActivityDetails(String activityId) async {
     try {
+      print(
+        '🟣 [_getActivityDetails] Starting for activityId: $activityId, type: ${widget.activityType}',
+      );
       String endpoint;
       String? typeField;
       String? quantityField;
       String? subTypeField;
       bool hasTimeFields = false;
+      bool needsResolveId = false;
+      String? resolveEndpoint;
 
       switch (widget.activityType) {
         case 'meal':
@@ -891,6 +931,18 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           subTypeField = null;
           hasTimeFields = true;
           break;
+        case 'observation':
+          endpoint = '/items/Observation_Record';
+          typeField = 'category_id';
+          quantityField = null;
+          subTypeField = null;
+          hasTimeFields = false;
+          needsResolveId = true;
+          resolveEndpoint = '/items/observation_category';
+          print(
+            '🟣 [_getActivityDetails] Observation case - needsResolveId: true',
+          );
+          break;
         case 'accident':
           endpoint = '/items/Child_Accident_Report';
           typeField = null;
@@ -906,8 +958,15 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           hasTimeFields = false;
           break;
         default:
+          print(
+            '🔴 [_getActivityDetails] Unknown activity type: ${widget.activityType}',
+          );
           return null;
       }
+
+      print(
+        '🟣 [_getActivityDetails] Endpoint: $endpoint, typeField: $typeField',
+      );
 
       final fields = <String>['id'];
       if (typeField != null) fields.add(typeField);
@@ -921,19 +980,58 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       fields.add('tag');
       fields.add('photo');
 
-      final response = await getIt<Dio>().get(
-        endpoint,
-        queryParameters: {
-          'filter[activity_id][_eq]': activityId,
-          'fields': fields.join(','),
-          'limit': 1,
-        },
+      // For observation, also fetch skill_observed and activity_id (needed for filtering)
+      if (widget.activityType == 'observation') {
+        fields.add('skill_observed');
+        fields.add('activity_id'); // Needed for client-side filtering
+      }
+
+      print('🟣 [_getActivityDetails] Fields: ${fields.join(',')}');
+      print(
+        '🟣 [_getActivityDetails] Querying endpoint: $endpoint with activityId: $activityId',
       );
 
-      final data = response.data['data'] as List<dynamic>;
-      if (data.isEmpty) return null;
+      // For observation, try fetching all records first (like accident/incident)
+      // because query parameters might cause 403 error
+      final response = widget.activityType == 'observation'
+          ? await getIt<Dio>().get(endpoint)
+          : await getIt<Dio>().get(
+              endpoint,
+              queryParameters: {
+                'filter[activity_id][_eq]': activityId,
+                'fields': fields.join(','),
+                'limit': 1,
+              },
+            );
+
+      print('🟣 [_getActivityDetails] Response received');
+      var data = response.data['data'] as List<dynamic>;
+      print('🟣 [_getActivityDetails] Data length: ${data.length}');
+
+      // For observation, filter by activity_id on client side
+      if (widget.activityType == 'observation') {
+        print(
+          '🟣 [_getActivityDetails] Filtering observation records by activity_id: $activityId',
+        );
+        data = data.where((record) {
+          final recordActivityId = record['activity_id']?.toString();
+          print(
+            '🟣 [_getActivityDetails] Comparing: $recordActivityId == $activityId',
+          );
+          return recordActivityId == activityId;
+        }).toList();
+        print('🟣 [_getActivityDetails] Filtered data length: ${data.length}');
+      }
+
+      if (data.isEmpty) {
+        print(
+          '🔴 [_getActivityDetails] No data found for activityId: $activityId',
+        );
+        return null;
+      }
 
       final detail = data[0] as Map<String, dynamic>;
+      print('🟣 [_getActivityDetails] Detail keys: ${detail.keys.toList()}');
 
       // Handle photo - could be nested
       String? photoId;
@@ -990,8 +1088,78 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         }
       }
 
-      return {
-        'type': typeField != null ? detail[typeField]?.toString() : null,
+      // Handle observation-specific fields
+      String? resolvedType;
+      List<String> skillObserved = [];
+
+      if (widget.activityType == 'observation') {
+        print(
+          '🟣 [_getActivityDetails] Processing observation-specific fields',
+        );
+
+        // Resolve category_id to category name
+        if (needsResolveId && typeField != null && detail[typeField] != null) {
+          final categoryId = detail[typeField].toString();
+          print('🟣 [_getActivityDetails] Resolving category_id: $categoryId');
+          try {
+            if (resolveEndpoint != null) {
+              final resolveResponse = await getIt<Dio>().get(
+                resolveEndpoint,
+                queryParameters: {
+                  'filter[id][_eq]': categoryId,
+                  'fields': 'id,name',
+                  'limit': 1,
+                },
+              );
+              final resolveData = resolveResponse.data['data'] as List<dynamic>;
+              if (resolveData.isNotEmpty) {
+                resolvedType = resolveData[0]['name']?.toString();
+                print(
+                  '🟣 [_getActivityDetails] Resolved category name: $resolvedType',
+                );
+              } else {
+                print(
+                  '🟠 [_getActivityDetails] Category not found for id: $categoryId',
+                );
+                resolvedType = categoryId; // Fallback to ID
+              }
+            }
+          } catch (e) {
+            print('🔴 [_getActivityDetails] Error resolving category: $e');
+            resolvedType = categoryId; // Fallback to ID
+          }
+        }
+
+        // Handle skill_observed array
+        if (detail['skill_observed'] != null) {
+          if (detail['skill_observed'] is List) {
+            skillObserved = (detail['skill_observed'] as List)
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            print('🟣 [_getActivityDetails] skill_observed: $skillObserved');
+          } else if (detail['skill_observed'] is String) {
+            final skillStr = detail['skill_observed'] as String;
+            skillObserved = [skillStr.trim()];
+            print(
+              '🟣 [_getActivityDetails] skill_observed (string): $skillObserved',
+            );
+          }
+        }
+
+        // Add skill_observed to tags if not empty
+        if (skillObserved.isNotEmpty) {
+          tags.addAll(skillObserved);
+          print(
+            '🟣 [_getActivityDetails] Added skill_observed to tags. Tags now: $tags',
+          );
+        }
+      }
+
+      final result = {
+        'type':
+            resolvedType ??
+            (typeField != null ? detail[typeField]?.toString() : null),
         'quantity': quantityField != null
             ? detail[quantityField]?.toString()
             : null,
@@ -1004,7 +1172,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         'startAtTime': hasTimeFields ? detail['start_at']?.toString() : null,
         'endAtTime': hasTimeFields ? detail['end_at']?.toString() : null,
       };
-    } catch (e) {
+
+      print(
+        '🟣 [_getActivityDetails] Returning result: type=${result['type']}, tags=${result['tags']}, description=${result['description']}',
+      );
+      return result;
+    } catch (e, stackTrace) {
+      print('🔴 [_getActivityDetails] Error: $e');
+      print('🔴 [_getActivityDetails] StackTrace: $stackTrace');
       return null;
     }
   }
