@@ -129,6 +129,79 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
     return DateFormat('h:mm a').format(dateTime);
   }
 
+  Future<void> _selectStartTime() async {
+    DateTime selectedTime = _startTime;
+
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          // Check if selected time is valid
+          final newStartTime = DateTime(
+            widget.dateTime.year,
+            widget.dateTime.month,
+            widget.dateTime.day,
+            selectedTime.hour,
+            selectedTime.minute,
+          );
+          final isValid = _endTime.isAfter(newStartTime);
+
+          return SizedBox(
+            height: 250,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: isValid
+                          ? () {
+                              Navigator.pop(context);
+                              setState(() {
+                                _startTime = newStartTime;
+                              });
+                            }
+                          : null,
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    initialDateTime: _startTime,
+                    onDateTimeChanged: (DateTime newTime) {
+                      selectedTime = newTime;
+                      setModalState(
+                        () {},
+                      ); // Trigger rebuild to update Done button state
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _toggleStartAmPm() {
+    setState(() {
+      if (_startTime.hour < 12) {
+        // AM -> PM: add 12 hours
+        _startTime = _startTime.add(const Duration(hours: 12));
+      } else {
+        // PM -> AM: subtract 12 hours
+        _startTime = _startTime.subtract(const Duration(hours: 12));
+      }
+    });
+  }
+
   Future<void> _selectEndTime() async {
     DateTime selectedTime = _endTime;
 
@@ -254,7 +327,10 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
     }
 
     if (_classId == null || _classId!.isEmpty) {
-      CustomSnackbar.showError(context, 'Class ID not found. Please try again.');
+      CustomSnackbar.showError(
+        context,
+        'Class ID not found. Please try again.',
+      );
       return;
     }
 
@@ -264,7 +340,10 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
     }
 
     if (!_isTimeValid) {
-      CustomSnackbar.showWarning(context, 'End time cannot be before start time');
+      CustomSnackbar.showWarning(
+        context,
+        'End time cannot be before start time',
+      );
       return;
     }
 
@@ -426,9 +505,9 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
                           child: _TimeColumn(
                             label: 'Start',
                             time: _startTime,
-                            onTimeTap: null,
-                            onAmPmTap: null,
-                            enabled: false,
+                            onTimeTap: _selectStartTime,
+                            onAmPmTap: _toggleStartAmPm,
+                            enabled: true,
                           ),
                         ),
                         Expanded(
