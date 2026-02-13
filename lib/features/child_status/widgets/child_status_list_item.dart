@@ -13,7 +13,7 @@ import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/class_transfer_request/domain/entity/class_transfer_request_entity.dart';
 
-class ChildStatusListItem extends StatelessWidget {
+class ChildStatusListItemWidget extends StatelessWidget {
   final ChildEntity child;
   final ContactEntity? contact;
   final ChildAttendanceStatus status;
@@ -27,7 +27,7 @@ class ChildStatusListItem extends StatelessWidget {
   final VoidCallback? onAcceptTransfer;
   final VoidCallback? onDeclineTransfer;
 
-  const ChildStatusListItem({
+  const ChildStatusListItemWidget({
     super.key,
     required this.child,
     this.contact,
@@ -156,7 +156,7 @@ class ChildStatusListItem extends StatelessWidget {
                   )
                 else
                   // Only show attendance badge if no pending transfer request
-                  ChildStatusBadge(
+                  ChildStatusBadgeWidget(
                     status: status,
                     hasNote: attendance?.notes != null && attendance!.notes!.isNotEmpty,
                   ),
@@ -183,7 +183,7 @@ class ChildStatusListItem extends StatelessWidget {
             )
           // Show normal actions if no transfer request or not destination teacher
           else if (!_hasPendingTransferFromCurrentClass)
-            ChildStatusActions(
+            ChildStatusActionsWidget(
               status: status,
               checkOutAt: attendance?.checkOutAt,
               onPresentTap: onPresentTap,

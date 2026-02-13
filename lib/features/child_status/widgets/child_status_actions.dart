@@ -3,7 +3,7 @@ import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class ChildStatusActions extends StatelessWidget {
+class ChildStatusActionsWidget extends StatelessWidget {
   final ChildAttendanceStatus status;
   final String? checkOutAt; // زمان check-out برای نمایش
   final VoidCallback onPresentTap;
@@ -14,7 +14,7 @@ class ChildStatusActions extends StatelessWidget {
   final String? childName;
   final String? childPhoto;
 
-  const ChildStatusActions({
+  const ChildStatusActionsWidget({
     super.key,
     required this.status,
     this.checkOutAt,

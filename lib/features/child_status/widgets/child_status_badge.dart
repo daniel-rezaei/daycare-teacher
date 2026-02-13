@@ -3,11 +3,11 @@ import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class ChildStatusBadge extends StatelessWidget {
+class ChildStatusBadgeWidget extends StatelessWidget {
   final ChildAttendanceStatus status;
   final bool hasNote; // آیا Note ثبت شده است یا نه
 
-  const ChildStatusBadge({
+  const ChildStatusBadgeWidget({
     super.key,
     required this.status,
     this.hasNote = false,

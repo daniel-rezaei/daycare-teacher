@@ -466,7 +466,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
                                                     .id]
                                               : null;
 
-                                          return ChildStatusListItem(
+                                          return ChildStatusListItemWidget(
                                             child: child,
                                             contact: contact,
                                             status: status,

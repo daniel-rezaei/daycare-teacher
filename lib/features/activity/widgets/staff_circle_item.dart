@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:teacher_app/core/palette.dart';
 
-class StaffCircleItem extends StatelessWidget {
+class StaffCircleItemWidget extends StatelessWidget {
   final String image;
   final String name;
   final String subTitle;
   final bool isSelected;
 
-  const StaffCircleItem({
+  const StaffCircleItemWidget({
     super.key,
     required this.image,
     required this.name,
