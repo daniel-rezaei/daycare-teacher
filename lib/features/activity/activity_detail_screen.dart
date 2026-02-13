@@ -252,17 +252,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       // If no results and we're looking for accidents, also try filtering by date_created
       // (some records might not have date_time_notified set)
       if (data.isEmpty && widget.activityType == 'accident') {
-        response = await getIt<Dio>().get(
-          endpoint,
-          queryParameters: {
-            'filter[child_id][_eq]': widget.childId,
-            'filter[date_created][_gte]': dateStart.toUtc().toIso8601String(),
-            'filter[date_created][_lt]': dateEnd.toUtc().toIso8601String(),
-            'fields':
-                'id,date_created,date_time_notified,description,photo,activity_id',
-            'sort': '-date_created',
-          },
-        );
+        response = await getIt<Dio>().get(endpoint);
         data = response.data['data'] as List<dynamic>;
       }
       final List<_ActivityDetailItem> items = [];
