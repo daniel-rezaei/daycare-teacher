@@ -236,73 +236,134 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   Future<void> _loadAccidentActivities(DateTime date) async {
     try {
+      print('🔵 [_loadAccidentActivities] Starting - Date: $date, ChildId: ${widget.childId}');
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
-      // Query directly from accident table with date filter
-      var response = await getIt<Dio>().get(
-        '/items/Child_Accident_Report',
-        queryParameters: {
-          'filter[child_id][_eq]': widget.childId,
-          'filter[date_time_notified][_gte]': dateStart.toUtc().toIso8601String(),
-          'filter[date_time_notified][_lt]': dateEnd.toUtc().toIso8601String(),
-          'fields': 'id,date_created,date_time_notified,description,photo,activity_id',
-          'sort': '-date_time_notified',
-        },
-      );
+      // Get all accident records without query parameters
+      print('🔵 [_loadAccidentActivities] Fetching all accident records...');
+      final response = await getIt<Dio>().get('/items/Child_Accident_Report');
 
-      var data = response.data['data'] as List<dynamic>;
+      var allData = response.data['data'] as List<dynamic>;
+      print('🔵 [_loadAccidentActivities] Total records received: ${allData.length}');
 
-      // If no results, try filtering by date_created as fallback
-      if (data.isEmpty) {
-        response = await getIt<Dio>().get(
-          '/items/Child_Accident_Report',
-          queryParameters: {
-            'filter[child_id][_eq]': widget.childId,
-            'filter[date_created][_gte]': dateStart.toUtc().toIso8601String(),
-            'filter[date_created][_lt]': dateEnd.toUtc().toIso8601String(),
-            'fields': 'id,date_created,date_time_notified,description,photo,activity_id',
-            'sort': '-date_created',
-          },
-        );
-        data = response.data['data'] as List<dynamic>;
-      }
+      // Filter by child_id and date on client side
+      final filteredData = allData.where((record) {
+        final childId = record['child_id'] as String?;
+        if (childId != widget.childId) return false;
+
+        // Try filtering by date_time_notified first
+        final dateTimeNotified = record['date_time_notified'] as String?;
+        if (dateTimeNotified != null) {
+          try {
+            final recordDate = DateTime.parse(dateTimeNotified).toUtc();
+            if (recordDate.isAfter(dateStart.toUtc().subtract(const Duration(seconds: 1))) &&
+                recordDate.isBefore(dateEnd.toUtc())) {
+              return true;
+            }
+          } catch (e) {
+            // If parsing fails, try date_created
+          }
+        }
+
+        // Fallback to date_created
+        final dateCreated = record['date_created'] as String?;
+        if (dateCreated != null) {
+          try {
+            final recordDate = DateTime.parse(dateCreated).toUtc();
+            if (recordDate.isAfter(dateStart.toUtc().subtract(const Duration(seconds: 1))) &&
+                recordDate.isBefore(dateEnd.toUtc())) {
+              return true;
+            }
+          } catch (e) {
+            return false;
+          }
+        }
+
+        return false;
+      }).toList();
+
+      print('🔵 [_loadAccidentActivities] Filtered records: ${filteredData.length}');
+
+      // Sort by date_time_notified or date_created (descending)
+      filteredData.sort((a, b) {
+        final dateA = a['date_time_notified'] as String? ?? a['date_created'] as String? ?? '';
+        final dateB = b['date_time_notified'] as String? ?? b['date_created'] as String? ?? '';
+        if (dateA.isEmpty) return 1;
+        if (dateB.isEmpty) return -1;
+        try {
+          return DateTime.parse(dateB).compareTo(DateTime.parse(dateA));
+        } catch (e) {
+          return 0;
+        }
+      });
 
       final List<_ActivityDetailItem> items = [];
 
-      for (final record in data) {
+      for (final record in filteredData) {
         final recordId = record['id'];
         final dateTimeNotified = record['date_time_notified'] as String?;
         final dateCreated = record['date_created'] as String?;
         final activityId = record['activity_id'] as String?;
 
-        // Get full accident details
-        final details = await _getAccidentDetails(recordId.toString());
+        print('🔵 [_loadAccidentActivities] Processing record: $recordId');
+
+        // Get full accident details (will use the full record data)
+        final details = await _getAccidentDetails(record);
+        print('🔵 [_loadAccidentActivities] Details received: ${details != null}');
         if (details != null) {
+          print('🔵 [_loadAccidentActivities] accidentFields: ${details['accidentFields']}');
+          print('🔵 [_loadAccidentActivities] accidentFields type: ${details['accidentFields'].runtimeType}');
+          // Convert accidentFields to proper type
+          Map<String, List<String>>? accidentFieldsMap;
+          if (details['accidentFields'] != null) {
+            try {
+              final rawMap = details['accidentFields'] as Map;
+              print('🔵 [_loadAccidentActivities] rawMap type: ${rawMap.runtimeType}');
+              accidentFieldsMap = <String, List<String>>{};
+              rawMap.forEach((key, value) {
+                print('🔵 [_loadAccidentActivities] Processing key: $key, value type: ${value.runtimeType}');
+                if (value is List) {
+                  final stringList = value.map<String>((e) => e.toString()).toList();
+                  print('🔵 [_loadAccidentActivities] stringList: $stringList, type: ${stringList.runtimeType}');
+                  accidentFieldsMap![key.toString()] = stringList;
+                }
+              });
+              print('🔵 [_loadAccidentActivities] accidentFieldsMap after conversion: $accidentFieldsMap');
+            } catch (e) {
+              print('🔴 [_loadAccidentActivities] Error converting accidentFields: $e');
+            }
+          }
+          print('🔵 [_loadAccidentActivities] accidentFieldsMap type: ${accidentFieldsMap.runtimeType}');
           items.add(
             _ActivityDetailItem(
               activityId: activityId ?? recordId.toString(),
               startAt: dateTimeNotified ?? dateCreated ?? '',
-              type: details['type'],
-              quantity: details['quantity'],
-              description: details['description'],
-              tags: details['tags'],
-              photo: details['photo'],
-              subType: details['subType'],
-              startAtTime: details['startAtTime'],
-              endAtTime: details['endAtTime'],
+              type: details['type'] as String?,
+              quantity: details['quantity'] as String?,
+              description: details['description'] as String?,
+              tags: (details['tags'] as List<dynamic>?)?.cast<String>() ?? <String>[],
+              photo: details['photo'] as String?,
+              subType: details['subType'] as String?,
+              startAtTime: details['startAtTime'] as String?,
+              endAtTime: details['endAtTime'] as String?,
               // Accident-specific fields
-              accidentFields: details['accidentFields'],
+              accidentFields: accidentFieldsMap,
             ),
           );
         }
       }
 
+      print('🔵 [_loadAccidentActivities] Total items created: ${items.length}');
+      print('🔵 [_loadAccidentActivities] First item accidentFields: ${items.isNotEmpty ? items[0].accidentFields : null}');
+
       setState(() {
         _activities = items;
         _isLoading = false;
       });
+      print('🔵 [_loadAccidentActivities] State updated with ${_activities.length} activities');
     } catch (e) {
+      print('🔴 [_loadAccidentActivities] Error: $e');
       setState(() {
         _isLoading = false;
       });
@@ -311,78 +372,126 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   Future<void> _loadIncidentActivities(DateTime date) async {
     try {
+      print('🟢 [_loadIncidentActivities] Starting - Date: $date, ChildId: ${widget.childId}');
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
-      // Query directly from incident table with date filter
-      var response = await getIt<Dio>().get(
-        '/items/Child_Incident_Report',
-        queryParameters: {
-          'filter[child_id][_eq]': widget.childId,
-          'filter[date_created][_gte]': dateStart.toUtc().toIso8601String(),
-          'filter[date_created][_lt]': dateEnd.toUtc().toIso8601String(),
-          'fields': 'id,date_created,description,photo,activity_id',
-          'sort': '-date_created',
-        },
-      );
+      // Get all incident records without query parameters
+      print('🟢 [_loadIncidentActivities] Fetching all incident records...');
+      final response = await getIt<Dio>().get('/items/Child_Incident_Report');
 
-      var data = response.data['data'] as List<dynamic>;
+      var allData = response.data['data'] as List<dynamic>;
+      print('🟢 [_loadIncidentActivities] Total records received: ${allData.length}');
+
+      // Filter by child_id and date on client side
+      final filteredData = allData.where((record) {
+        final childId = record['child_id'] as String?;
+        if (childId != widget.childId) return false;
+
+        final dateCreated = record['date_created'] as String?;
+        if (dateCreated != null) {
+          try {
+            final recordDate = DateTime.parse(dateCreated).toUtc();
+            if (recordDate.isAfter(dateStart.toUtc().subtract(const Duration(seconds: 1))) &&
+                recordDate.isBefore(dateEnd.toUtc())) {
+              return true;
+            }
+          } catch (e) {
+            return false;
+          }
+        }
+
+        return false;
+      }).toList();
+
+      print('🟢 [_loadIncidentActivities] Filtered records: ${filteredData.length}');
+
+      // Sort by date_created (descending)
+      filteredData.sort((a, b) {
+        final dateA = a['date_created'] as String? ?? '';
+        final dateB = b['date_created'] as String? ?? '';
+        if (dateA.isEmpty) return 1;
+        if (dateB.isEmpty) return -1;
+        try {
+          return DateTime.parse(dateB).compareTo(DateTime.parse(dateA));
+        } catch (e) {
+          return 0;
+        }
+      });
 
       final List<_ActivityDetailItem> items = [];
 
-      for (final record in data) {
+      for (final record in filteredData) {
         final recordId = record['id'];
         final dateCreated = record['date_created'] as String?;
         final activityId = record['activity_id'] as String?;
 
-        // Get full incident details
-        final details = await _getIncidentDetails(recordId.toString());
+        print('🟢 [_loadIncidentActivities] Processing record: $recordId');
+
+        // Get full incident details (will use the full record data)
+        final details = await _getIncidentDetails(record);
+        print('🟢 [_loadIncidentActivities] Details received: ${details != null}');
         if (details != null) {
+          print('🟢 [_loadIncidentActivities] incidentFields: ${details['incidentFields']}');
+          // Convert incidentFields to proper type
+          Map<String, List<String>>? incidentFieldsMap;
+          if (details['incidentFields'] != null) {
+            final rawMap = details['incidentFields'] as Map;
+            incidentFieldsMap = <String, List<String>>{};
+            rawMap.forEach((key, value) {
+              if (value is List) {
+                incidentFieldsMap![key.toString()] = value
+                    .map<String>((e) => e.toString())
+                    .toList();
+              }
+            });
+          }
+          print('🟢 [_loadIncidentActivities] incidentFieldsMap type: ${incidentFieldsMap.runtimeType}');
           items.add(
             _ActivityDetailItem(
               activityId: activityId ?? recordId.toString(),
               startAt: dateCreated ?? '',
-              type: details['type'],
-              quantity: details['quantity'],
-              description: details['description'],
-              tags: details['tags'],
-              photo: details['photo'],
-              subType: details['subType'],
-              startAtTime: details['startAtTime'],
-              endAtTime: details['endAtTime'],
+              type: details['type'] as String?,
+              quantity: details['quantity'] as String?,
+              description: details['description'] as String?,
+              tags: (details['tags'] as List<dynamic>?)?.cast<String>() ?? <String>[],
+              photo: details['photo'] as String?,
+              subType: details['subType'] as String?,
+              startAtTime: details['startAtTime'] as String?,
+              endAtTime: details['endAtTime'] as String?,
+              // Incident-specific fields
+              incidentFields: incidentFieldsMap,
             ),
           );
         }
       }
 
+      print('🟢 [_loadIncidentActivities] Total items created: ${items.length}');
+      print('🟢 [_loadIncidentActivities] First item incidentFields: ${items.isNotEmpty ? items[0].incidentFields : null}');
+
       setState(() {
         _activities = items;
         _isLoading = false;
       });
+      print('🟢 [_loadIncidentActivities] State updated with ${_activities.length} activities');
     } catch (e) {
+      print('🔴 [_loadIncidentActivities] Error: $e');
       setState(() {
         _isLoading = false;
       });
     }
   }
 
-  Future<Map<String, dynamic>?> _getAccidentDetails(String recordId) async {
+  Future<Map<String, dynamic>?> _getAccidentDetails(dynamic record) async {
     try {
-      // Get all relevant fields for accident
-      final response = await getIt<Dio>().get(
-        '/items/Child_Accident_Report',
-        queryParameters: {
-          'filter[id][_eq]': recordId,
-          'fields':
-              'id,description,photo,nature_of_injury,injured_body_type,location,first_aid_provided,child_reaction,notify_by',
-          'limit': 1,
-        },
-      );
-
-      final data = response.data['data'] as List<dynamic>;
-      if (data.isEmpty) return null;
-
-      final detail = data[0] as Map<String, dynamic>;
+      print('🟡 [_getAccidentDetails] Starting');
+      // Use the record data directly (already fetched in _loadAccidentActivities)
+      final detail = record is Map<String, dynamic> ? record : null;
+      if (detail == null) {
+        print('🟡 [_getAccidentDetails] Record is null or not a Map');
+        return null;
+      }
+      print('🟡 [_getAccidentDetails] Record ID: ${detail['id']}');
 
       // Handle photo
       String? photoId;
@@ -402,58 +511,75 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
       // Convert array fields to lists of strings
       List<String> convertArrayField(dynamic field) {
-        if (field == null) return [];
+        if (field == null) return <String>[];
         if (field is List) {
           return field
-              .map((e) => e?.toString().trim() ?? '')
+              .map<String>((e) => e?.toString().trim() ?? '')
               .where((e) => e.isNotEmpty)
               .toList();
         }
-        return [];
+        return <String>[];
       }
 
       // Store accident fields separately with their titles
+      final natureOfInjury = convertArrayField(detail['nature_of_injury']);
+      final injuredBodyType = convertArrayField(detail['injured_body_type']);
+      final location = convertArrayField(detail['location']);
+      final firstAidProvided = convertArrayField(detail['first_aid_provided']);
+      final childReaction = convertArrayField(detail['child_reaction']);
+      final notifyBy = convertArrayField(detail['notify_by']);
+
+      print('🟡 [_getAccidentDetails] nature_of_injury: $natureOfInjury');
+      print('🟡 [_getAccidentDetails] injured_body_type: $injuredBodyType');
+      print('🟡 [_getAccidentDetails] location: $location');
+      print('🟡 [_getAccidentDetails] first_aid_provided: $firstAidProvided');
+      print('🟡 [_getAccidentDetails] child_reaction: $childReaction');
+      print('🟡 [_getAccidentDetails] notify_by: $notifyBy');
+
       final accidentFields = <String, List<String>>{
-        'Nature of Injury': convertArrayField(detail['nature_of_injury']),
-        'Injured Body Part': convertArrayField(detail['injured_body_type']),
-        'Location': convertArrayField(detail['location']),
-        'First Aid Provided': convertArrayField(detail['first_aid_provided']),
-        'Child Reaction': convertArrayField(detail['child_reaction']),
-        'Notify By': convertArrayField(detail['notify_by']),
+        'Nature of Injury': natureOfInjury,
+        'Injured Body Part': injuredBodyType,
+        'Location': location,
+        'First Aid Provided': firstAidProvided,
+        'Child Reaction': childReaction,
+        'Notify By': notifyBy,
       };
 
-      return {
+      print('🟡 [_getAccidentDetails] accidentFields map: $accidentFields');
+      print('🟡 [_getAccidentDetails] accidentFields isEmpty: ${accidentFields.isEmpty}');
+      print('🟡 [_getAccidentDetails] accidentFields entries: ${accidentFields.entries.length}');
+
+      final result = <String, dynamic>{
         'type': null,
         'quantity': null,
         'subType': null,
         'description': detail['description']?.toString(),
-        'tags': [], // Empty tags for accidents - we use accidentFields instead
+        'tags': <String>[], // Empty tags for accidents - we use accidentFields instead
         'photo': photoId,
         'startAtTime': null,
         'endAtTime': null,
         'accidentFields': accidentFields,
       };
+
+      print('🟡 [_getAccidentDetails] Returning result with accidentFields: ${result['accidentFields']}');
+      print('🟡 [_getAccidentDetails] accidentFields runtimeType: ${(result['accidentFields'] as Map).runtimeType}');
+      return result;
     } catch (e) {
+      print('🔴 [_getAccidentDetails] Error: $e');
       return null;
     }
   }
 
-  Future<Map<String, dynamic>?> _getIncidentDetails(String recordId) async {
+  Future<Map<String, dynamic>?> _getIncidentDetails(dynamic record) async {
     try {
-      // Get all relevant fields for incident
-      final response = await getIt<Dio>().get(
-        '/items/Child_Incident_Report',
-        queryParameters: {
-          'filter[id][_eq]': recordId,
-          'fields': 'id,description,photo',
-          'limit': 1,
-        },
-      );
-
-      final data = response.data['data'] as List<dynamic>;
-      if (data.isEmpty) return null;
-
-      final detail = data[0] as Map<String, dynamic>;
+      print('🟠 [_getIncidentDetails] Starting');
+      // Use the record data directly (already fetched in _loadIncidentActivities)
+      final detail = record is Map<String, dynamic> ? record : null;
+      if (detail == null) {
+        print('🟠 [_getIncidentDetails] Record is null or not a Map');
+        return null;
+      }
+      print('🟠 [_getIncidentDetails] Record ID: ${detail['id']}');
 
       // Handle photo
       String? photoId;
@@ -471,17 +597,155 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         }
       }
 
-      return {
+      // Convert array fields to lists of strings
+      List<String> convertArrayField(dynamic field) {
+        if (field == null) return <String>[];
+        if (field is List) {
+          return field
+              .map<String>((e) => e?.toString().trim() ?? '')
+              .where((e) => e.isNotEmpty)
+              .toList();
+        }
+        return <String>[];
+      }
+
+      // Format date time for display
+      String? formatDateTime(dynamic dateTime) {
+        if (dateTime == null) return null;
+        try {
+          final dt = DateTime.parse(dateTime.toString());
+          return DateFormat('yyyy-MM-dd HH:mm').format(dt.toLocal());
+        } catch (e) {
+          return dateTime.toString();
+        }
+      }
+
+      // Store incident fields separately with their titles
+      final incidentFields = <String, List<String>>{};
+
+      // Add array fields
+      final natureOfIncident = convertArrayField(detail['nature_of_incident']);
+      if (natureOfIncident.isNotEmpty) {
+        incidentFields['Nature of Incident'] = natureOfIncident;
+      }
+
+      final location = convertArrayField(detail['location']);
+      if (location.isNotEmpty) {
+        incidentFields['Location'] = location;
+      }
+
+      final notifyParentBy = convertArrayField(detail['notify_parent_by']);
+      if (notifyParentBy.isNotEmpty) {
+        final dateTime = formatDateTime(detail['notify_parent_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Parent By'] = [
+            ...notifyParentBy,
+            'Date: $dateTime',
+          ];
+        } else {
+          incidentFields['Notify Parent By'] = notifyParentBy;
+        }
+      } else if (detail['notify_parent_date_time'] != null) {
+        final dateTime = formatDateTime(detail['notify_parent_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Parent'] = ['Date: $dateTime'];
+        }
+      }
+
+      final notifyMinistryBy = convertArrayField(detail['notify_ministry_by']);
+      if (notifyMinistryBy.isNotEmpty) {
+        final dateTime = formatDateTime(detail['notify_ministry_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Ministry By'] = [
+            ...notifyMinistryBy,
+            'Date: $dateTime',
+          ];
+        } else {
+          incidentFields['Notify Ministry By'] = notifyMinistryBy;
+        }
+      } else if (detail['notify_ministry_date_time'] != null) {
+        final dateTime = formatDateTime(detail['notify_ministry_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Ministry'] = ['Date: $dateTime'];
+        }
+      }
+
+      final notifySupervisorBy =
+          convertArrayField(detail['notify_supervisor_by']);
+      if (notifySupervisorBy.isNotEmpty) {
+        final dateTime = formatDateTime(detail['notify_supervisor_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Supervisor By'] = [
+            ...notifySupervisorBy,
+            'Date: $dateTime',
+          ];
+        } else {
+          incidentFields['Notify Supervisor By'] = notifySupervisorBy;
+        }
+      } else if (detail['notify_supervisor_date_time'] != null) {
+        final dateTime = formatDateTime(detail['notify_supervisor_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Supervisor'] = ['Date: $dateTime'];
+        }
+      }
+
+      final notifyCasBy = convertArrayField(detail['notify_cas_by']);
+      if (notifyCasBy.isNotEmpty) {
+        final dateTime = formatDateTime(detail['notify_cas_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify CAS By'] = [
+            ...notifyCasBy,
+            'Date: $dateTime',
+          ];
+        } else {
+          incidentFields['Notify CAS By'] = notifyCasBy;
+        }
+      } else if (detail['notify_cas_date_time'] != null) {
+        final dateTime = formatDateTime(detail['notify_cas_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify CAS'] = ['Date: $dateTime'];
+        }
+      }
+
+      final notifyPoliceBy = convertArrayField(detail['notify_police_by']);
+      if (notifyPoliceBy.isNotEmpty) {
+        final dateTime = formatDateTime(detail['notify_police_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Police By'] = [
+            ...notifyPoliceBy,
+            'Date: $dateTime',
+          ];
+        } else {
+          incidentFields['Notify Police By'] = notifyPoliceBy;
+        }
+      } else if (detail['notify_police_date_time'] != null) {
+        final dateTime = formatDateTime(detail['notify_police_date_time']);
+        if (dateTime != null) {
+          incidentFields['Notify Police'] = ['Date: $dateTime'];
+        }
+      }
+
+      print('🟠 [_getIncidentDetails] incidentFields map: $incidentFields');
+      print('🟠 [_getIncidentDetails] incidentFields isEmpty: ${incidentFields.isEmpty}');
+      print('🟠 [_getIncidentDetails] incidentFields entries: ${incidentFields.entries.length}');
+
+      final result = <String, dynamic>{
         'type': null,
         'quantity': null,
         'subType': null,
         'description': detail['description']?.toString(),
-        'tags': [],
+        'tags': <String>[], // Empty tags for incidents - we use incidentFields instead
         'photo': photoId,
         'startAtTime': null,
         'endAtTime': null,
+        'incidentFields': incidentFields,
       };
+
+      print('🟠 [_getIncidentDetails] Returning result with incidentFields: ${result['incidentFields']}');
+      print('🟠 [_getIncidentDetails] incidentFields runtimeType: ${(result['incidentFields'] as Map).runtimeType}');
+      return result;
     } catch (e) {
+      print('🔴 [_getIncidentDetails] Error: $e');
       return null;
     }
   }
@@ -766,7 +1030,10 @@ class _ActivityDetailItem {
   final String? subType;
   final String? startAtTime;
   final String? endAtTime;
-  final Map<String, List<String>>? accidentFields; // For accident-specific fields
+  final Map<String, List<String>>?
+      accidentFields; // For accident-specific fields
+  final Map<String, List<String>>?
+      incidentFields; // For incident-specific fields
 
   _ActivityDetailItem({
     required this.activityId,
@@ -780,6 +1047,7 @@ class _ActivityDetailItem {
     this.startAtTime,
     this.endAtTime,
     this.accidentFields,
+    this.incidentFields,
   });
 }
 
@@ -961,12 +1229,20 @@ class _ActivityDetailSection extends StatelessWidget {
             const SizedBox(height: 16),
           ],
           // Accident-specific fields (displayed with separate titles)
-          if (activityType == 'accident' &&
-              activity.accidentFields != null &&
-              activity.accidentFields!.isNotEmpty) ...[
-            ...activity.accidentFields!.entries.map((entry) {
-              if (entry.value.isEmpty) return const SizedBox.shrink();
-              return Column(
+          if (activityType == 'accident') ...[
+            Builder(
+              builder: (context) {
+                print('🟣 [BUILD] Accident - accidentFields: ${activity.accidentFields}');
+                print('🟣 [BUILD] Accident - accidentFields isNull: ${activity.accidentFields == null}');
+                print('🟣 [BUILD] Accident - accidentFields isEmpty: ${activity.accidentFields?.isEmpty ?? true}');
+                if (activity.accidentFields != null &&
+                    activity.accidentFields!.isNotEmpty) {
+                  print('🟣 [BUILD] Accident - Showing ${activity.accidentFields!.length} fields');
+                  return Column(
+                    children: activity.accidentFields!.entries.map((entry) {
+                      print('🟣 [BUILD] Accident - Entry: ${entry.key} = ${entry.value}');
+                      if (entry.value.isEmpty) return const SizedBox.shrink();
+                      return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -998,13 +1274,76 @@ class _ActivityDetailSection extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
-                ],
-              );
-            }),
+                        const SizedBox(height: 16),
+                      ],
+                    );
+                    }).toList(),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ],
-          // Tags (read-only) - only for non-accident activities
-          if (activityType != 'accident' && activity.tags.isNotEmpty) ...[
+          // Incident-specific fields (displayed with separate titles)
+          if (activityType == 'incident') ...[
+            Builder(
+              builder: (context) {
+                print('🟣 [BUILD] Incident - incidentFields: ${activity.incidentFields}');
+                print('🟣 [BUILD] Incident - incidentFields isNull: ${activity.incidentFields == null}');
+                print('🟣 [BUILD] Incident - incidentFields isEmpty: ${activity.incidentFields?.isEmpty ?? true}');
+                if (activity.incidentFields != null &&
+                    activity.incidentFields!.isNotEmpty) {
+                  print('🟣 [BUILD] Incident - Showing ${activity.incidentFields!.length} fields');
+                  return Column(
+                    children: activity.incidentFields!.entries.map((entry) {
+                      print('🟣 [BUILD] Incident - Entry: ${entry.key} = ${entry.value}');
+                      if (entry.value.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.key,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: entry.value.map((value) {
+                              return Chip(
+                                label: Text(
+                                  value,
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                backgroundColor: AppColors.primaryLight,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      );
+                    }).toList(),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+          // Tags (read-only) - only for non-accident and non-incident activities
+          if (activityType != 'accident' &&
+              activityType != 'incident' &&
+              activity.tags.isNotEmpty) ...[
             const Text(
               'Tag',
               style: TextStyle(
