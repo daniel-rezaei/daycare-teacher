@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class HeaderCheckOut extends StatelessWidget {
+class HeaderCheckOutWidget extends StatelessWidget {
   final bool isIcon;
   final String title;
-  const HeaderCheckOut({super.key, required this.isIcon, required this.title});
+  const HeaderCheckOutWidget({super.key, required this.isIcon, required this.title});
 
   @override
   Widget build(BuildContext context) {

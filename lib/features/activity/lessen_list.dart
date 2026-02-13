@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/features/activity/widgets/lessen_card_colaps.dart';
 
-class LessenList extends StatelessWidget {
-  const LessenList({super.key});
+class LessenListWidget extends StatelessWidget {
+  const LessenListWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

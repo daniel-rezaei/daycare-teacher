@@ -4,11 +4,11 @@ import 'package:teacher_app/features/child_profile/widgets/phone_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class EmergencyContacts extends StatelessWidget {
+class EmergencyContactsWidget extends StatelessWidget {
   final List<ChildEmergencyContactEntity> emergencyContacts;
   final List<ContactEntity> contacts;
 
-  const EmergencyContacts({
+  const EmergencyContactsWidget({
     super.key,
     required this.emergencyContacts,
     required this.contacts,

@@ -142,16 +142,16 @@ class _ProfilesGrid extends StatelessWidget {
       children: staffClasses.map((staff) {
         return GestureDetector(
           onTap: () => onProfileTap(staff),
-          child: InfoCardSelectProfile(staff: staff),
+          child: InfoCardSelectProfileWidget(staff: staff),
         );
       }).toList(),
     );
   }
 }
 
-class InfoCardSelectProfile extends StatelessWidget {
+class InfoCardSelectProfileWidget extends StatelessWidget {
   final StaffClassEntity staff;
-  const InfoCardSelectProfile({super.key, required this.staff});
+  const InfoCardSelectProfileWidget({super.key, required this.staff});
 
   @override
   Widget build(BuildContext context) {

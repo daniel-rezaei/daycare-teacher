@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class AppBarChild extends StatelessWidget {
-  const AppBarChild({super.key});
+class AppBarChildWidget extends StatelessWidget {
+  const AppBarChildWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

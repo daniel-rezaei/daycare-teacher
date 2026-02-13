@@ -374,7 +374,7 @@ class _PlayActivityBottomSheetState extends State<PlayActivityBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Play Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Play Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:teacher_app/core/palette.dart';
 
-class TagSelector extends StatefulWidget {
+class TagSelectorWidget extends StatefulWidget {
   final List<String> initialTags;
   final List<String> suggestions;
   final bool hasBackground;
   final bool showSuggestions;
 
-  const TagSelector({
+  const TagSelectorWidget({
     super.key,
     required this.initialTags,
     this.suggestions = const [],
@@ -17,10 +17,10 @@ class TagSelector extends StatefulWidget {
   });
 
   @override
-  State<TagSelector> createState() => _TagSelectorState();
+  State<TagSelectorWidget> createState() => _TagSelectorWidgetState();
 }
 
-class _TagSelectorState extends State<TagSelector> {
+class _TagSelectorWidgetState extends State<TagSelectorWidget> {
   late List<String> selectedTags;
 
   @override

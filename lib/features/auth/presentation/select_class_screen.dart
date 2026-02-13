@@ -106,7 +106,7 @@ class _SelectClassScreenState extends State<SelectClassScreen> {
 
               const SizedBox(height: 48),
 
-              TransferClassList(
+              TransferClassListWidget(
                 rooms: rooms,
                 selectedClassId: selectedClassId,
                 onClassSelected: (classId) {

@@ -317,7 +317,7 @@ class _MealActivityBottomSheetState extends State<MealActivityBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Meal Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Meal Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

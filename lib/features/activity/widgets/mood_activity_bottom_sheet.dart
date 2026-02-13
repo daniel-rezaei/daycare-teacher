@@ -301,7 +301,7 @@ class _MoodActivityBottomSheetState extends State<MoodActivityBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Mood Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Mood Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

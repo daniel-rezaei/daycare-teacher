@@ -621,7 +621,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                                   itemCount: _filteredItems.length,
                                   itemBuilder: (context, index) {
                                     final item = _filteredItems[index];
-                                    return HistoryMealCard(
+                                    return HistoryMealCardWidget(
                                       name: _getChildName(item),
                                       date: _formatDate(item.activityDate),
                                       type: item.type ?? '',
@@ -648,7 +648,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
   }
 }
 
-class HistoryMealCard extends StatelessWidget {
+class HistoryMealCardWidget extends StatelessWidget {
   final String name;
   final String date;
   final String type;
@@ -659,7 +659,7 @@ class HistoryMealCard extends StatelessWidget {
   final String activityType;
   final String? classId;
 
-  const HistoryMealCard({
+  const HistoryMealCardWidget({
     super.key,
     required this.name,
     required this.date,

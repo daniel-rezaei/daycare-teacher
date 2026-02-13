@@ -259,7 +259,7 @@ class _CreateNewLessenBottomSheetState
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Create New Lesson'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Create New Lesson'),
             const Divider(height: 1, color: AppColors.dividerDark),
             Padding(
               padding: const EdgeInsets.all(20),

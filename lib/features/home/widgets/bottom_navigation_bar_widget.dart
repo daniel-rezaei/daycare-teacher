@@ -28,7 +28,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
         builder: (context, value, child) {
           return Row(
             children: [
-              TabBottomNavigationBar(
+              TabBottomNavigationBarWidget(
                 onTap: () => HomeScreen.pageIndex.value = 0,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -38,7 +38,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 ),
                 isActive: value == 0 ? true : false,
               ),
-              TabBottomNavigationBar(
+              TabBottomNavigationBarWidget(
                 onTap: () => HomeScreen.pageIndex.value = 1,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -48,7 +48,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 ),
                 isActive: value == 1 ? true : false,
               ),
-              TabBottomNavigationBar(
+              TabBottomNavigationBarWidget(
                 onTap: () => HomeScreen.pageIndex.value = 2,
                 icon: value == 2
                     ? Padding(
@@ -58,7 +58,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                     : Assets.images.group.image(),
                 isActive: value == 2 ? true : false,
               ),
-              TabBottomNavigationBar(
+              TabBottomNavigationBarWidget(
                 onTap: () => HomeScreen.pageIndex.value = 3,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -68,7 +68,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 ),
                 isActive: value == 3 ? true : false,
               ),
-              TabBottomNavigationBar(
+              TabBottomNavigationBarWidget(
                 onTap: () => HomeScreen.pageIndex.value = 4,
                 icon: Padding(
                   padding: const EdgeInsets.all(12.0),

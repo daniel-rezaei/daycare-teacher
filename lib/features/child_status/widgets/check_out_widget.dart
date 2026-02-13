@@ -237,7 +237,7 @@ class _CheckOutWidgetState extends State<CheckOutWidget> {
           controller: _scrollController,
           child: Column(
             children: [
-              const HeaderCheckOut(isIcon: true, title: 'Check Out'),
+              const HeaderCheckOutWidget(isIcon: true, title: 'Check Out'),
               const Divider(color: AppColors.divider),
               Padding(
                 padding: const EdgeInsets.all(20.0),

@@ -1228,4 +1228,57 @@ void main() {
 /// - features/child_profile/widgets/content_activity.dart (تغییر ContentActivity به ContentActivityWidget)
 /// - features/child_profile/child_profile_screen.dart (به‌روزرسانی استفاده از ContentOverviewWidget و ContentActivityWidget)
 /// 
+/// فایل‌های features/child_status:
+/// - features/child_status/child_status.dart (تغییر ChildStatus به ChildStatusScreen)
+/// - features/child_status/widgets/appbar_child.dart (تغییر AppBarChild به AppBarChildWidget)
+/// - features/child_status/widgets/bottom_navigation_bar_child.dart (تغییر BottomNavigationBarChild به BottomNavigationBarChildWidget)
+/// - features/activity/log_activity_screen.dart (به‌روزرسانی استفاده از ChildStatusScreen)
+/// - features/home/widgets/total_notification_widget.dart (به‌روزرسانی استفاده از ChildStatusScreen)
+/// 
+/// فایل‌های features/activity/widgets:
+/// - features/activity/widgets/tag_selector.dart (تغییر TagSelector به TagSelectorWidget)
+/// - features/activity/lessen.dart (به‌روزرسانی استفاده از TagSelectorWidget)
+/// - features/activity/select_photo_bottom_sheet.dart (به‌روزرسانی استفاده از TagSelectorWidget)
+/// 
+/// فایل‌های features/activity/widgets (ادامه):
+/// - features/activity/widgets/recording_widget.dart (تغییر RippleAnimation به RippleAnimationWidget)
+/// 
+/// فایل‌های features/activity (ادامه):
+/// - features/activity/lessen_list.dart (تغییر LessenList به LessenListWidget)
+/// - features/activity/lessen_plan.dart (به‌روزرسانی استفاده از LessenListWidget)
+/// - features/activity/log_activity_screen.dart (تغییر InfoCardLogActivity به InfoCardLogActivityWidget)
+/// - features/activity/add_photo_screen.dart (تغییر ButtonsInfoCardPhoto به ButtonsInfoCardPhotoWidget، InfoCardPhoto به InfoCardPhotoWidget)
+/// - features/activity/history_meal_screen.dart (تغییر HistoryMealCard به HistoryMealCardWidget)
+/// 
+/// فایل‌های features/child_profile/widgets (ادامه):
+/// - features/child_profile/widgets/tabs_widget.dart (تغییر SmoothTabs به SmoothTabsWidget)
+/// - features/child_profile/widgets/info_card_overview.dart (تغییر InfoCardOverview به InfoCardOverviewWidget)
+/// - features/child_profile/widgets/emergency_contacts.dart (تغییر EmergencyContacts به EmergencyContactsWidget)
+/// - features/child_profile/child_profile_screen.dart (به‌روزرسانی استفاده از SmoothTabsWidget)
+/// - features/child_profile/widgets/content_overview.dart (به‌روزرسانی استفاده از InfoCardOverviewWidget و EmergencyContactsWidget)
+/// 
+/// فایل‌های features/child_status/widgets (ادامه):
+/// - features/child_status/widgets/header_check_out_widget.dart (تغییر HeaderCheckOut به HeaderCheckOutWidget)
+/// - features/child_status/widgets/class_transfer_action_sheet.dart (تغییر ClassTransferActionSheet به ClassTransferActionSheetWidget)
+/// - features/child_status/widgets/transfer_class_widget.dart (تغییر TransferClassList به TransferClassListWidget)
+/// - features/child_status/widgets/check_out_widget.dart (به‌روزرسانی استفاده از HeaderCheckOutWidget)
+/// - features/child_status/widgets/add_note_widget.dart (به‌روزرسانی استفاده از HeaderCheckOutWidget)
+/// - features/child_status/widgets/more_details_widget.dart (به‌روزرسانی استفاده از HeaderCheckOutWidget)
+/// - features/child_status/widgets/transfer_class_widget.dart (به‌روزرسانی استفاده از HeaderCheckOutWidget و TransferClassListWidget)
+/// - features/child_status/widgets/class_transfer_action_sheet.dart (به‌روزرسانی استفاده از HeaderCheckOutWidget و TransferClassListWidget)
+/// - features/home/widgets/card_notifications_widget.dart (به‌روزرسانی استفاده از ClassTransferActionSheetWidget)
+/// - features/auth/presentation/select_class_screen.dart (به‌روزرسانی استفاده از TransferClassListWidget)
+/// - تمام فایل‌های activity bottom sheets (به‌روزرسانی استفاده از HeaderCheckOutWidget)
+/// - features/activity/widgets/edit_record_widget.dart (به‌روزرسانی استفاده از HeaderCheckOutWidget)
+/// 
+/// فایل‌های features/auth/presentation:
+/// - features/auth/presentation/welcome_screen.dart (تغییر InfoCardWelcome به InfoCardWelcomeWidget)
+/// - features/auth/presentation/select_your_profile.dart (تغییر InfoCardSelectProfile به InfoCardSelectProfileWidget)
+/// - features/auth/presentation/teacher_login_screen.dart (تغییر MailTextField به MailTextFieldWidget، PassTextField به PassTextFieldWidget)
+/// - features/auth/presentation/welcome_back_screen.dart (به‌روزرسانی استفاده از PassTextFieldWidget)
+/// 
+/// فایل‌های features/home/widgets (ادامه):
+/// - features/home/widgets/tab_bottom_navigation_bar.dart (تغییر TabBottomNavigationBar به TabBottomNavigationBarWidget)
+/// - features/home/widgets/bottom_navigation_bar_widget.dart (به‌روزرسانی استفاده از TabBottomNavigationBarWidget)
+/// 
 /// ============================================================================

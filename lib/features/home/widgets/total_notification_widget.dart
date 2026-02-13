@@ -374,7 +374,7 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ChildStatus(),
+                                builder: (context) => const ChildStatusScreen(),
                               ),
                             );
                           }

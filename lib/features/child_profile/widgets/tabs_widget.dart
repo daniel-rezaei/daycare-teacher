@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-class SmoothTabs extends StatefulWidget {
+class SmoothTabsWidget extends StatefulWidget {
   final ValueChanged<int>? onChange; // اضافه شد
 
-  const SmoothTabs({super.key, this.onChange});
+  const SmoothTabsWidget({super.key, this.onChange});
 
   @override
-  State<SmoothTabs> createState() => _SmoothTabsState();
+  State<SmoothTabsWidget> createState() => _SmoothTabsWidgetState();
 }
 
-class _SmoothTabsState extends State<SmoothTabs> {
+class _SmoothTabsWidgetState extends State<SmoothTabsWidget> {
   int current = 0;
 
   void _setTab(int index) {

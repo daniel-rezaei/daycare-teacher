@@ -74,7 +74,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                   childId: widget.childId,
                 ),
                 SizedBox(height: 20),
-                SmoothTabs(
+                SmoothTabsWidget(
                   onChange: (index) {
                     tabIndex.value = index;
                   },

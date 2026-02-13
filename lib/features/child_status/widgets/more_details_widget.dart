@@ -35,7 +35,7 @@ class MoreDetailsWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const HeaderCheckOut(isIcon: false, title: 'More Details'),
+          const HeaderCheckOutWidget(isIcon: false, title: 'More Details'),
           const Divider(color: AppColors.divider),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),

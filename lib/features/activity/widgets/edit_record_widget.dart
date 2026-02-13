@@ -61,7 +61,7 @@ class _EditRecordWidgetState extends State<EditRecordWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HeaderCheckOut(isIcon: false, title: 'Edit Record'),
+            HeaderCheckOutWidget(isIcon: false, title: 'Edit Record'),
             Divider(color: Color(0xffDBDADD)),
             Padding(
               padding: const EdgeInsets.all(20.0),

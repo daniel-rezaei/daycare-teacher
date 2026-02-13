@@ -324,7 +324,7 @@ class _ObservationActivityBottomSheetState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Observation Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Observation Activity'),
             const Divider(color: AppColors.divider),
 
             Padding(

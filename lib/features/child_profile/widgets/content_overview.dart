@@ -284,7 +284,7 @@ class _ContentOverviewWidgetState extends State<ContentOverviewWidget> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         if (parents.isNotEmpty)
-                                          InfoCardOverview(
+                                          InfoCardOverviewWidget(
                                             guardian: parents[0],
                                             contact: _getContactById(
                                               parents[0].contactId,
@@ -294,7 +294,7 @@ class _ContentOverviewWidgetState extends State<ContentOverviewWidget> {
                                         if (parents.isNotEmpty)
                                           SizedBox(width: 12),
                                         if (parents.length >= 2)
-                                          InfoCardOverview(
+                                          InfoCardOverviewWidget(
                                             guardian: parents[1],
                                             contact: _getContactById(
                                               parents[1].contactId,
@@ -307,7 +307,7 @@ class _ContentOverviewWidgetState extends State<ContentOverviewWidget> {
                                     ),
                                   if (parents.isNotEmpty) SizedBox(height: 12),
                                   // نمایش شماره‌های اضطراری
-                                  EmergencyContacts(
+                                  EmergencyContactsWidget(
                                     emergencyContacts: emergencyContacts,
                                     contacts: contacts,
                                   ),

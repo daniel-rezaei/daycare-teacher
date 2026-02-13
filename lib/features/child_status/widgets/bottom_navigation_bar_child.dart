@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/constants/app_colors.dart';
 
-class BottomNavigationBarChild extends StatelessWidget {
-  const BottomNavigationBarChild({super.key});
+class BottomNavigationBarChildWidget extends StatelessWidget {
+  const BottomNavigationBarChildWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

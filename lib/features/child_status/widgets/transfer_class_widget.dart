@@ -155,7 +155,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const HeaderCheckOut(isIcon: false, title: 'Transfer Class'),
+                const HeaderCheckOutWidget(isIcon: false, title: 'Transfer Class'),
                 const Divider(color: AppColors.divider),
                 Padding(
                   padding: const EdgeInsets.all(20),
@@ -225,7 +225,7 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
                               ),
                             ),
                           ),
-                        TransferClassList(
+                        TransferClassListWidget(
                           rooms: classes,
                           selectedClassId: selectedClassId,
                           currentClassId: widget.currentClassId,
@@ -271,13 +271,13 @@ class _TransferClassWidgetState extends State<TransferClassWidget> {
 }
 
 
-class TransferClassList extends StatelessWidget {
+class TransferClassListWidget extends StatelessWidget {
   final List<ClassRoomEntity> rooms;
   final String? selectedClassId;
   final String? currentClassId; // Optional - only used when transferring
   final ValueChanged<String> onClassSelected;
 
-  const TransferClassList({
+  const TransferClassListWidget({
     super.key,
     required this.rooms,
     required this.selectedClassId,

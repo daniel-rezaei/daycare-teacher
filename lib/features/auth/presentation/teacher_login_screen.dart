@@ -169,9 +169,9 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
                         ),
                         const SizedBox(height: 48),
 
-                        MailTextField(controller: emailController),
+                        MailTextFieldWidget(controller: emailController),
                         const SizedBox(height: 16),
-                        PassTextField(controller: passwordController),
+                        PassTextFieldWidget(controller: passwordController),
                         const SizedBox(height: 32),
 
                         RememberMeWidget(
@@ -267,9 +267,9 @@ class RememberMeWidget extends StatelessWidget {
   }
 }
 
-class MailTextField extends StatelessWidget {
+class MailTextFieldWidget extends StatelessWidget {
   final TextEditingController controller;
-  const MailTextField({super.key, required this.controller});
+  const MailTextFieldWidget({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -295,15 +295,15 @@ class MailTextField extends StatelessWidget {
   }
 }
 
-class PassTextField extends StatefulWidget {
+class PassTextFieldWidget extends StatefulWidget {
   final TextEditingController controller;
-  const PassTextField({super.key, required this.controller});
+  const PassTextFieldWidget({super.key, required this.controller});
 
   @override
-  State<PassTextField> createState() => _PassTextFieldState();
+  State<PassTextFieldWidget> createState() => _PassTextFieldWidgetState();
 }
 
-class _PassTextFieldState extends State<PassTextField> {
+class _PassTextFieldWidgetState extends State<PassTextFieldWidget> {
   bool isObscureText = true;
 
   @override

@@ -28,23 +28,23 @@ import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_at
 /// - NO side effects on switch toggle or class selection
 /// - All actions execute ONLY when Save is explicitly tapped
 /// - Execution order: Check Out → Time Out → Transfer Request (if studentId provided) → Logout → Navigate
-class ClassTransferActionSheet extends StatefulWidget {
+class ClassTransferActionSheetWidget extends StatefulWidget {
   final String?
   studentId; // Optional: only needed for student transfer requests
   final String currentClassId;
 
-  const ClassTransferActionSheet({
+  const ClassTransferActionSheetWidget({
     super.key,
     this.studentId, // Optional for class-level transfer (no student)
     required this.currentClassId,
   });
 
   @override
-  State<ClassTransferActionSheet> createState() =>
-      _ClassTransferActionSheetState();
+  State<ClassTransferActionSheetWidget> createState() =>
+      _ClassTransferActionSheetWidgetState();
 }
 
-class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
+class _ClassTransferActionSheetWidgetState extends State<ClassTransferActionSheetWidget> {
   String? selectedClassId;
   bool _isSubmitting = false;
   ClassTransferRequestEntity? _existingRequest;
@@ -429,7 +429,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const HeaderCheckOut(isIcon: false, title: 'Transfer Class'),
+                const HeaderCheckOutWidget(isIcon: false, title: 'Transfer Class'),
                 const Divider(color: AppColors.divider),
                 Padding(
                   padding: const EdgeInsets.all(20),
@@ -502,7 +502,7 @@ class _ClassTransferActionSheetState extends State<ClassTransferActionSheet> {
                             ),
                           ),
                         // Reuse TransferClassList from legacy widget (read-only component)
-                        TransferClassList(
+                        TransferClassListWidget(
                           rooms: classes,
                           selectedClassId: selectedClassId,
                           currentClassId: widget.currentClassId,

@@ -205,7 +205,7 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
                               useSafeArea: true,
-                              builder: (context) => ClassTransferActionSheet(
+                              builder: (context) => ClassTransferActionSheetWidget(
                                 studentId:
                                     null, // Class-level transfer (no student)
                                 currentClassId: classId ?? '',

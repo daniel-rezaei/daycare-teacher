@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class TabBottomNavigationBar extends StatelessWidget {
+class TabBottomNavigationBarWidget extends StatelessWidget {
   final Widget icon;
   final Function()? onTap;
   final bool isActive;
-  const TabBottomNavigationBar({
+  const TabBottomNavigationBarWidget({
     super.key,
     required this.icon,
     this.onTap,

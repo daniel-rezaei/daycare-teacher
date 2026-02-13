@@ -70,7 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       const SizedBox(height: 24),
 
                       /// 🔹 Shared Mode
-                      InfoCardWelcome(
+                      InfoCardWelcomeWidget(
                         icon: isSharedReady
                             ? Assets.images.sharedMode.svg()
                             : const CupertinoActivityIndicator(),
@@ -92,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       const SizedBox(height: 24),
 
                       /// 🔹 Individual Mode
-                      InfoCardWelcome(
+                      InfoCardWelcomeWidget(
                         icon: Assets.images.individualMode.svg(),
                         title: 'Individual Mode',
                         onTap: () {
@@ -116,12 +116,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-class InfoCardWelcome extends StatelessWidget {
+class InfoCardWelcomeWidget extends StatelessWidget {
   final Widget icon;
   final String title;
   final VoidCallback? onTap;
 
-  const InfoCardWelcome({
+  const InfoCardWelcomeWidget({
     super.key,
     required this.icon,
     required this.title,

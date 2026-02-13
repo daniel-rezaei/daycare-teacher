@@ -451,7 +451,7 @@ class _AddNoteWidgetState extends State<AddNoteWidget> {
           controller: _scrollController,
           child: Column(
             children: [
-              const HeaderCheckOut(isIcon: false, title: 'Add Note'),
+              const HeaderCheckOutWidget(isIcon: false, title: 'Add Note'),
               const Divider(color: AppColors.divider),
               Padding(
                 padding: const EdgeInsets.all(20),

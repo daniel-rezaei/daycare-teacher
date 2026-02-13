@@ -174,7 +174,7 @@ class _AddPhotoScreenState extends State<AddPhotoScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: ButtonsInfoCardPhoto(),
+      bottomNavigationBar: ButtonsInfoCardPhotoWidget(),
     );
   }
 }
@@ -200,8 +200,8 @@ Future<void> _saveAndProcessImageInBackground(String cameraFilePath) async {
   );
 }
 
-class ButtonsInfoCardPhoto extends StatelessWidget {
-  const ButtonsInfoCardPhoto({super.key});
+class ButtonsInfoCardPhotoWidget extends StatelessWidget {
+  const ButtonsInfoCardPhotoWidget({super.key});
 
   BuildContext? showLoadingDialog(BuildContext context) {
     showDialog(
@@ -251,7 +251,7 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          InfoCardPhoto(
+          InfoCardPhotoWidget(
             title: 'Take Photo',
             icon: Assets.images.photo2.image(height: 68),
             onTap: () async {
@@ -307,7 +307,7 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
             },
           ),
           SizedBox(height: 16),
-          InfoCardPhoto(
+          InfoCardPhotoWidget(
             title: 'Choose From library',
             icon: Assets.images.gallery.image(height: 68),
             onTap: () {
@@ -323,11 +323,11 @@ class ButtonsInfoCardPhoto extends StatelessWidget {
   }
 }
 
-class InfoCardPhoto extends StatelessWidget {
+class InfoCardPhotoWidget extends StatelessWidget {
   final String title;
   final Widget icon;
   final Function() onTap;
-  const InfoCardPhoto({
+  const InfoCardPhotoWidget({
     super.key,
     required this.title,
     required this.icon,

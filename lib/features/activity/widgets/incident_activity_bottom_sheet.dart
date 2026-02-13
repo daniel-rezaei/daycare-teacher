@@ -349,7 +349,7 @@ class _IncidentActivityBottomSheetState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Incident Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Incident Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

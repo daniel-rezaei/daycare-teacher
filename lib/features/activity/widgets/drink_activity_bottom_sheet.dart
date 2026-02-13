@@ -315,7 +315,7 @@ class _DrinkActivityBottomSheetState extends State<DrinkActivityBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Drink Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Drink Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

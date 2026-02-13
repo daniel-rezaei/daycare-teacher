@@ -155,7 +155,7 @@ class _LessenScreenState extends State<LessenScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          TagSelector(
+                          TagSelectorWidget(
                             initialTags: ["Story", "Lunch"],
                             hasBackground: false,
                             showSuggestions: false,

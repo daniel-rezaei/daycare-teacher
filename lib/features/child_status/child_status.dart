@@ -22,14 +22,14 @@ import 'package:teacher_app/features/class_transfer_request/presentation/bloc/cl
 import 'package:teacher_app/features/class_transfer_request/domain/entity/class_transfer_request_entity.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 
-class ChildStatus extends StatefulWidget {
-  const ChildStatus({super.key});
+class ChildStatusScreen extends StatefulWidget {
+  const ChildStatusScreen({super.key});
 
   @override
-  State<ChildStatus> createState() => _ChildStatusState();
+  State<ChildStatusScreen> createState() => _ChildStatusScreenState();
 }
 
-class _ChildStatusState extends State<ChildStatus> {
+class _ChildStatusScreenState extends State<ChildStatusScreen> {
   String? classId;
   String? staffId;
   bool _hasRequestedData = false;
@@ -278,7 +278,7 @@ class _ChildStatusState extends State<ChildStatus> {
             SafeArea(
               child: Column(
                 children: [
-                  AppBarChild(),
+                  AppBarChildWidget(),
                   Expanded(
                     child: Container(
                       width: double.infinity,
@@ -556,7 +556,7 @@ class _ChildStatusState extends State<ChildStatus> {
             ),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBarChild(),
+        bottomNavigationBar: BottomNavigationBarChildWidget(),
       ),
     );
   }

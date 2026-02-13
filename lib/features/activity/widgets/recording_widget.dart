@@ -40,7 +40,7 @@ class _RecordingWidgetState extends State<RecordingWidget> {
                   ? SizedBox(
                       width: 212, // فضای بزرگ‌تر برای موج‌ها
                       height: 212,
-                      child: RippleAnimation(
+                      child: RippleAnimationWidget(
                         child: GestureDetector(
                           onTap: () {
                             RecordingWidget.isRecording.value = false;
@@ -80,15 +80,15 @@ class _RecordingWidgetState extends State<RecordingWidget> {
   }
 }
 
-class RippleAnimation extends StatefulWidget {
+class RippleAnimationWidget extends StatefulWidget {
   final Widget child;
-  const RippleAnimation({super.key, required this.child});
+  const RippleAnimationWidget({super.key, required this.child});
 
   @override
-  State<RippleAnimation> createState() => _RippleAnimationState();
+  State<RippleAnimationWidget> createState() => _RippleAnimationWidgetState();
 }
 
-class _RippleAnimationState extends State<RippleAnimation>
+class _RippleAnimationWidgetState extends State<RippleAnimationWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scale;

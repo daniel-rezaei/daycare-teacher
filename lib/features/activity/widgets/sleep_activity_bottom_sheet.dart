@@ -374,7 +374,7 @@ class _SleepActivityBottomSheetState extends State<SleepActivityBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Sleep Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Sleep Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

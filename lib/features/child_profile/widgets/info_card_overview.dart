@@ -7,11 +7,11 @@ import 'package:teacher_app/features/child_profile/widgets/phone_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
-class InfoCardOverview extends StatelessWidget {
+class InfoCardOverviewWidget extends StatelessWidget {
   final ChildGuardianEntity guardian;
   final ContactEntity? contact;
 
-  const InfoCardOverview({
+  const InfoCardOverviewWidget({
     super.key,
     required this.guardian,
     this.contact,

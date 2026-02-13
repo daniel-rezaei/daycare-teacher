@@ -246,7 +246,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                         children: [
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.lunchPng.image(height: 48),
                               title: 'Meal',
                               isLoading: _loadingStates['meal'] ?? false,
@@ -257,7 +257,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.drink.image(height: 48),
                               title: 'Drink',
                               isLoading: _loadingStates['drink'] ?? false,
@@ -268,7 +268,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.learn.image(height: 48),
                               title: 'Learn',
                               onTap: () {
@@ -285,7 +285,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.bathroom.image(height: 48),
                               title: 'Bathroom',
                               isLoading: _loadingStates['bathroom'] ?? false,
@@ -296,7 +296,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.play.image(height: 48),
                               title: 'Play',
                               isLoading: _loadingStates['play'] ?? false,
@@ -307,7 +307,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.sleep.image(height: 48),
                               title: 'Sleep',
                               isLoading: _loadingStates['sleep'] ?? false,
@@ -318,7 +318,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.observation.image(height: 48),
                               title: 'Observation',
                               isLoading: _loadingStates['observation'] ?? false,
@@ -330,7 +330,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.incident.image(height: 48),
                               title: 'Incident',
                               isLoading: _loadingStates['incident'] ?? false,
@@ -342,7 +342,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.accident.image(height: 48),
                               title: 'Accident',
                               isLoading: _loadingStates['accident'] ?? false,
@@ -354,14 +354,14 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.attendance.image(height: 48),
                               title: 'Attendance',
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ChildStatus(),
+                                    builder: (context) => const ChildStatusScreen(),
                                   ),
                                 );
                               },
@@ -372,7 +372,7 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                           /// ⭐⭐⭐ آیتم آخر – تمام عرض ⭐⭐⭐
                           SizedBox(
                             width: double.infinity,
-                            child: InfoCardLogActivity(
+                            child: InfoCardLogActivityWidget(
                               icon: Assets.images.mood.image(height: 48),
                               title: 'Mood',
                               isLoading: _loadingStates['mood'] ?? false,
@@ -396,14 +396,14 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
   }
 }
 
-class InfoCardLogActivity extends StatelessWidget {
+class InfoCardLogActivityWidget extends StatelessWidget {
   final Widget icon;
   final String title;
   final Function()? onTap;
   final bool isLoading;
   final bool isDisabled;
 
-  const InfoCardLogActivity({
+  const InfoCardLogActivityWidget({
     super.key,
     required this.icon,
     required this.title,

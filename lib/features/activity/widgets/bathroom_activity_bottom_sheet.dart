@@ -319,7 +319,7 @@ class _BathroomActivityBottomSheetState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const HeaderCheckOut(isIcon: false, title: 'Bathroom Activity'),
+            const HeaderCheckOutWidget(isIcon: false, title: 'Bathroom Activity'),
             const Divider(color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.all(20),

@@ -221,7 +221,7 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TagSelector(
+                  TagSelectorWidget(
                     initialTags: ["Story", "Lunch"],
                     suggestions: ["Lunch"],
                     hasBackground: true,

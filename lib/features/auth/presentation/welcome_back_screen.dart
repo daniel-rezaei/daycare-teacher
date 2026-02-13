@@ -190,7 +190,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
                       const SizedBox(height: 16),
 
                       /// 🔹 Password
-                      PassTextField(controller: passwordController),
+                      PassTextFieldWidget(controller: passwordController),
 
                       const SizedBox(height: 32),
 

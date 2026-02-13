@@ -106,7 +106,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                         topRight: Radius.circular(24),
                       ),
                     ),
-                    child: const Expanded(child: LessenList()),
+                    child: const Expanded(child: LessenListWidget()),
                   ),
                 ),
               ],
