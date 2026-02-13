@@ -253,7 +253,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           break;
         case 'drink':
           endpoint = '/items/activity_drinks';
-          typeField = 'drink_type';
+          typeField = 'type';
           quantityField = 'quantity';
           subTypeField = null;
           hasTimeFields = false;

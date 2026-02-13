@@ -389,7 +389,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
       case 'drink':
         return {
           'endpoint': '/items/activity_drinks',
-          'typeField': 'drink_type',
+          'typeField': 'type',
           'quantityField': 'quantity',
           'needsResolveId': false,
         };
