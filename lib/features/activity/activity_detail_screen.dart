@@ -722,48 +722,36 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       print('🟡 [_getAccidentDetails] child_reaction: $childReaction');
       print('🟡 [_getAccidentDetails] notify_by: $notifyBy');
 
-      final accidentFields = <String, List<String>>{
-        'Nature of Injury': natureOfInjury,
-        'Injured Body Part': injuredBodyType,
-        'Location': location,
-        'First Aid Provided': firstAidProvided,
-        'Child Reaction': childReaction,
-        'Notify By': notifyBy,
-      };
-
       // Staff involved
       final staffInvolved = staffDisplayFromContactId(detail['contact_id']);
-      if (staffInvolved.isNotEmpty) {
-        accidentFields['Staff involved'] = staffInvolved;
-      }
-      // Date notified
       final dateNotified = detail['date_time_notified'];
-      if (dateNotified != null && dateNotified.toString().trim().isNotEmpty) {
-        accidentFields['Date notified'] = [
-          formatDateTime(dateNotified) ?? dateNotified.toString(),
-        ];
-      }
-      // Medical follow up
+      final dateNotifiedStr = dateNotified != null && dateNotified.toString().trim().isNotEmpty
+          ? (formatDateTime(dateNotified) ?? dateNotified.toString())
+          : null;
       final medicalFollowUp = detail['medical_follow_up_required'];
-      if (medicalFollowUp != null) {
-        accidentFields['Medical follow up'] = [
-          medicalFollowUp == true ? 'Yes' : 'No',
-        ];
-      }
-      // Incident reported to authority
       final reportedToAuthority = detail['incident_reported_to_authority'];
-      if (reportedToAuthority != null) {
-        accidentFields['Incident reported to authority'] = [
-          reportedToAuthority == true ? 'Yes' : 'No',
-        ];
-      }
-      // Parent notified
       final parentNotified = detail['parent_notified'];
-      if (parentNotified != null) {
-        accidentFields['Parent notified'] = [
-          parentNotified == true ? 'Yes' : 'No',
-        ];
-      }
+
+      // All accident fields in fixed order with form labels; always present for consistent display
+      final accidentFields = <String, List<String>>{
+        'Nature of Injury': natureOfInjury.isNotEmpty ? natureOfInjury : ['—'],
+        'Injured Body Part': injuredBodyType.isNotEmpty ? injuredBodyType : ['—'],
+        'Location': location.isNotEmpty ? location : ['—'],
+        'First Aid Provided': firstAidProvided.isNotEmpty ? firstAidProvided : ['—'],
+        "Child's Reaction": childReaction.isNotEmpty ? childReaction : ['—'],
+        'Staff Involved': staffInvolved.isNotEmpty ? staffInvolved : ['—'],
+        'Date Notified': dateNotifiedStr != null ? [dateNotifiedStr] : ['—'],
+        'Medical Follow-Up required': [
+          medicalFollowUp == true ? 'Yes' : (medicalFollowUp == false ? 'No' : '—'),
+        ],
+        'Incident Reported to Authority': [
+          reportedToAuthority == true ? 'Yes' : (reportedToAuthority == false ? 'No' : '—'),
+        ],
+        'Parent Notified': [
+          parentNotified == true ? 'Yes' : (parentNotified == false ? 'No' : '—'),
+        ],
+        'How to Notify': notifyBy.isNotEmpty ? notifyBy : ['—'],
+      };
 
       print('🟡 [_getAccidentDetails] accidentFields map: $accidentFields');
       print(
@@ -1754,23 +1742,103 @@ class _ActivityDetailSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
           ],
-          // Accident-specific fields (displayed with separate titles)
+          // Accident-specific fields (same order and style as Accident form)
           if (activityType == 'accident') ...[
             Builder(
               builder: (context) {
-                if (activity.accidentFields != null &&
-                    activity.accidentFields!.isNotEmpty) {
-                  return Column(
-                    children: activity.accidentFields!.entries.map((entry) {
-                      if (entry.value.isEmpty) return const SizedBox.shrink();
-                      return _ReadOnlyMultiSelectTypeSelector(
-                        title: entry.key,
-                        selectedValues: entry.value,
+                if (activity.accidentFields == null) {
+                  return const SizedBox.shrink();
+                }
+                const accidentFieldOrder = [
+                  'Nature of Injury',
+                  'Injured Body Part',
+                  'Location',
+                  'First Aid Provided',
+                  "Child's Reaction",
+                  'Staff Involved',
+                  'Date Notified',
+                  'Medical Follow-Up required',
+                  'Incident Reported to Authority',
+                  'Parent Notified',
+                  'How to Notify',
+                ];
+                final children = <Widget>[];
+                const booleanKeys = {
+                  'Medical Follow-Up required',
+                  'Incident Reported to Authority',
+                  'Parent Notified',
+                };
+                for (final key in accidentFieldOrder) {
+                  final values = activity.accidentFields![key];
+                  if (values != null && values.isNotEmpty) {
+                    if (booleanKeys.contains(key)) {
+                      children.add(
+                        _ReadOnlySwitchRow(
+                          title: key,
+                          value: values.first,
+                        ),
                       );
-                    }).toList(),
+                    } else {
+                      children.add(
+                        _ReadOnlyMultiSelectTypeSelector(
+                          title: key,
+                          selectedValues: values,
+                        ),
+                      );
+                    }
+                  }
+                }
+                // Description (form label: Description)
+                children.add(
+                  _ReadOnlyNoteWidget(
+                    title: 'Description',
+                    text: (activity.description != null &&
+                            activity.description!.isNotEmpty)
+                        ? activity.description!
+                        : '—',
+                  ),
+                );
+                children.add(const SizedBox(height: 16));
+                // Attach Photo (form label: Attach Photo)
+                children.add(
+                  const Text(
+                    'Attach Photo',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+                children.add(const SizedBox(height: 12));
+                if (activity.photo != null && activity.photo!.isNotEmpty) {
+                  children.add(_ReadOnlyPhotoWidget(photoId: activity.photo!));
+                } else {
+                  children.add(
+                    Container(
+                      height: 124,
+                      width: 124,
+                      decoration: BoxDecoration(
+                        color: const Color(0xffF0E7FF),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '—',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 }
-                return const SizedBox.shrink();
+                children.add(const SizedBox(height: 16));
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: children,
+                );
               },
             ),
           ],
@@ -1852,20 +1920,19 @@ class _ActivityDetailSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
           ],
-          // Description (read-only)
-          if (activity.description != null &&
+          // Description (read-only) — skipped for accident (shown inside accident block)
+          if (activityType != 'accident' &&
+              activity.description != null &&
               activity.description!.isNotEmpty) ...[
             _ReadOnlyNoteWidget(
-              title: 'Decription',
+              title: 'Description',
               text: activity.description!,
             ),
             const SizedBox(height: 16),
           ],
-          // Photo (read-only)
+          // Photo (read-only) — skipped for accident (shown inside accident block)
           ...() {
-            print(
-              '📷 [UI] activityId=${activity.activityId} activity.photo=${activity.photo} (show photo: ${activity.photo != null && activity.photo!.isNotEmpty})',
-            );
+            if (activityType == 'accident') return <Widget>[];
             if (activity.photo != null && activity.photo!.isNotEmpty) {
               return [
                 const Text(
@@ -2068,6 +2135,41 @@ class _ReadOnlyMultiSelectTypeSelector extends StatelessWidget {
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+/// Read-only row matching Accident form switch row: title left, value (Yes/No/—) right.
+class _ReadOnlySwitchRow extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const _ReadOnlySwitchRow({required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
