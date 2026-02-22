@@ -9,6 +9,7 @@ import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/core/utils/photo_utils.dart';
 import 'package:teacher_app/core/widgets/back_title_widget.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
+import 'package:teacher_app/core/widgets/staff_avatar_widget.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_bathroom_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_drinks_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
@@ -307,12 +308,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       final dateStart = DateTime(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
-      // Get all accident records; request contact_id expanded for Staff involved names
+      // Get all accident records; request contact_id expanded for Staff (name + photo)
       print('🔵 [_loadAccidentActivities] Fetching all accident records...');
       final response = await getIt<Dio>().get(
         '/items/Child_Accident_Report',
         queryParameters: {
-          'fields': '*,contact_id.first_name,contact_id.last_name',
+          'fields':
+              '*,contact_id.first_name,contact_id.last_name,contact_id.photo',
         },
       );
 
@@ -457,6 +459,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               endAtTime: details['endAtTime'] as String?,
               // Accident-specific fields
               accidentFields: accidentFieldsMap,
+              accidentStaffInvolved:
+                  (details['accidentStaffInvolved'] as List<Map<String, String?>>?),
             ),
           );
         }
@@ -707,6 +711,41 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         return s.isEmpty ? <String>[] : [s];
       }
 
+      // Extract staff with name and photo from contact_id for display
+      List<Map<String, String?>> _staffDetailsFromContactId(dynamic contactId) {
+        if (contactId == null) return [];
+        String? photoIdFrom(dynamic photo) {
+          if (photo == null) return null;
+          if (photo is String && photo.trim().isNotEmpty) return photo.trim();
+          if (photo is Map) {
+            final id = photo['id'];
+            return id?.toString().trim();
+          }
+          return null;
+        }
+        if (contactId is Map) {
+          final first = (contactId['first_name']?.toString().trim() ?? '').toString();
+          final last = (contactId['last_name']?.toString().trim() ?? '').toString();
+          final name = '$first $last'.trim();
+          final photo = photoIdFrom(contactId['photo']);
+          return [{'name': name.isEmpty ? null : name, 'photoId': photo}];
+        }
+        if (contactId is List) {
+          final list = <Map<String, String?>>[];
+          for (final e in contactId) {
+            if (e is Map) {
+              final first = (e['first_name']?.toString().trim() ?? '').toString();
+              final last = (e['last_name']?.toString().trim() ?? '').toString();
+              final name = '$first $last'.trim();
+              final photo = photoIdFrom(e['photo']);
+              list.add({'name': name.isEmpty ? null : name, 'photoId': photo});
+            }
+          }
+          return list;
+        }
+        return [];
+      }
+
       // Store accident fields separately with their titles
       final natureOfInjury = convertArrayField(detail['nature_of_injury']);
       final injuredBodyType = convertArrayField(detail['injured_body_type']);
@@ -722,8 +761,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       print('🟡 [_getAccidentDetails] child_reaction: $childReaction');
       print('🟡 [_getAccidentDetails] notify_by: $notifyBy');
 
-      // Staff involved
+      // Staff involved (names for chips; full details with photo for UI)
       final staffInvolved = staffDisplayFromContactId(detail['contact_id']);
+      final staffDetails = _staffDetailsFromContactId(detail['contact_id']);
       final dateNotified = detail['date_time_notified'];
       final dateNotifiedStr = dateNotified != null && dateNotified.toString().trim().isNotEmpty
           ? (formatDateTime(dateNotified) ?? dateNotified.toString())
@@ -774,6 +814,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         'startAtTime': null,
         'endAtTime': null,
         'accidentFields': accidentFields,
+        'accidentStaffInvolved': staffDetails,
       };
 
       print(
@@ -1543,6 +1584,8 @@ class _ActivityDetailItem {
   final String? endAtTime;
   final Map<String, List<String>>?
   accidentFields; // For accident-specific fields
+  /// Staff involved with name and photoId for accident detail (from contact_id)
+  final List<Map<String, String?>>? accidentStaffInvolved;
   final Map<String, List<String>>?
   incidentFields; // For incident-specific fields
   final Map<String, List<String>>?
@@ -1560,6 +1603,7 @@ class _ActivityDetailItem {
     this.startAtTime,
     this.endAtTime,
     this.accidentFields,
+    this.accidentStaffInvolved,
     this.incidentFields,
     this.observationFields,
   });
@@ -1776,6 +1820,21 @@ class _ActivityDetailSection extends StatelessWidget {
                         _ReadOnlySwitchRow(
                           title: key,
                           value: values.first,
+                        ),
+                      );
+                    } else if (key == 'Date Notified') {
+                      children.add(
+                        _ReadOnlyFullWidthValueRow(
+                          title: key,
+                          value: values.first,
+                        ),
+                      );
+                    } else if (key == 'Staff Involved' &&
+                        activity.accidentStaffInvolved != null &&
+                        activity.accidentStaffInvolved!.isNotEmpty) {
+                      children.add(
+                        _ReadOnlyStaffInvolved(
+                          staffList: activity.accidentStaffInvolved!,
                         ),
                       );
                     } else {
@@ -2170,6 +2229,112 @@ class _ReadOnlySwitchRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Value row for Date Notified: box only as wide as the date text so it fits without truncation.
+class _ReadOnlyFullWidthValueRow extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const _ReadOnlyFullWidthValueRow({required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+        IntrinsicWidth(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.backgroundLight,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+/// Read-only Staff Involved: horizontal list of avatar + name (like Accident form).
+class _ReadOnlyStaffInvolved extends StatelessWidget {
+  final List<Map<String, String?>> staffList;
+
+  const _ReadOnlyStaffInvolved({required this.staffList});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Staff Involved',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: staffList.length,
+            itemBuilder: (context, index) {
+              final staff = staffList[index];
+              final name = staff['name'] ?? '—';
+              final photoId = staff['photoId'];
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    StaffAvatarWidget(photoId: photoId, size: 72),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 }
