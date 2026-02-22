@@ -666,6 +666,7 @@ class HistoryMealCardWidget extends StatelessWidget {
               activityType: activityType,
               activityDate: activityDate,
               classId: classId,
+              fromHistory: true,
             ),
           ),
         );

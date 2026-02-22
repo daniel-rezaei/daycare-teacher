@@ -27,6 +27,8 @@ class ActivityDetailScreen extends StatefulWidget {
   final String activityType;
   final String activityDate; // ISO date string from activity
   final String? classId;
+  /// When true (e.g. opened from history), the displayed date is fixed to the activity day and date navigation is disabled.
+  final bool fromHistory;
 
   const ActivityDetailScreen({
     super.key,
@@ -36,6 +38,7 @@ class ActivityDetailScreen extends StatefulWidget {
     required this.activityType,
     required this.activityDate,
     this.classId,
+    this.fromHistory = false,
   });
 
   @override
@@ -1483,7 +1486,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     ),
                     child: Column(
                       children: [
-                        DayStripWidget(onDateSelected: _onDateSelected),
+                        DayStripWidget(
+                          initialDate: widget.fromHistory ? _selectedDate : null,
+                          readOnly: widget.fromHistory,
+                          onDateSelected: _onDateSelected,
+                        ),
                         const SizedBox(height: 16),
                         Expanded(
                           child: Container(

@@ -4,11 +4,17 @@ import 'package:teacher_app/gen/assets.gen.dart';
 class DayStripWidget extends StatefulWidget {
   final String? staffId;
   final Function(DateTime)? onDateSelected;
+  /// When set, the strip shows this date as selected initially (e.g. when opened from history).
+  final DateTime? initialDate;
+  /// When true, date cannot be changed (arrows and tap disabled); full widget still visible.
+  final bool readOnly;
 
   const DayStripWidget({
     super.key,
     this.staffId,
     this.onDateSelected,
+    this.initialDate,
+    this.readOnly = false,
   });
 
   @override
@@ -24,15 +30,27 @@ class _DayStripWidgetState extends State<DayStripWidget> {
   @override
   void initState() {
     super.initState();
-    selectedDate = today;
+    selectedDate = widget.initialDate ?? today;
     _generateDates(initial: true);
   }
 
   void _generateDates({bool initial = false}) {
-    // تولید لیست تاریخ‌ها: از 30 روز قبل تا امروز
     final List<DateTime> allDates = [];
-    for (int i = 30; i >= 0; i--) {
-      allDates.add(today.subtract(Duration(days: i)));
+    if (widget.readOnly && widget.initialDate != null) {
+      // Fixed date mode: show a window around the selected date (so widget looks full)
+      final DateTime base = selectedDate;
+      final DateTime upTo = base.isAfter(today) ? base : today;
+      final DateTime start = DateTime(base.year, base.month, base.day - 15);
+      for (int i = 0; i <= 31; i++) {
+        final d = DateTime(start.year, start.month, start.day + i);
+        if (d.isAfter(upTo)) break;
+        allDates.add(d);
+      }
+    } else {
+      // تولید لیست تاریخ‌ها: از 30 روز قبل تا امروز
+      for (int i = 30; i >= 0; i--) {
+        allDates.add(today.subtract(Duration(days: i)));
+      }
     }
 
     int selectedIndex = allDates.indexWhere((d) => isSame(d, selectedDate));
@@ -63,6 +81,7 @@ class _DayStripWidgetState extends State<DayStripWidget> {
   }
 
   void _onPageChanged(int page) {
+    if (widget.readOnly) return;
     DateTime newSelected = dateList[page];
     if (!isSame(newSelected, selectedDate)) {
       setState(() {
@@ -74,6 +93,7 @@ class _DayStripWidgetState extends State<DayStripWidget> {
   }
 
   void goNext() {
+    if (widget.readOnly) return;
     // فقط اگر روز بعدی قبل از امروز یا برابر با امروز باشد
     final nextDate = DateTime(
       selectedDate.year,
@@ -90,6 +110,7 @@ class _DayStripWidgetState extends State<DayStripWidget> {
   }
 
   void goPrev() {
+    if (widget.readOnly) return;
     final prevDate = DateTime(
       selectedDate.year,
       selectedDate.month,
@@ -154,10 +175,13 @@ class _DayStripWidgetState extends State<DayStripWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               InkWell(
-                onTap: goPrev,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Assets.images.altArrowLeft.svg(),
+                onTap: widget.readOnly ? null : goPrev,
+                child: Opacity(
+                  opacity: widget.readOnly ? 0.3 : 1.0,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Assets.images.altArrowLeft.svg(),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -179,27 +203,31 @@ class _DayStripWidgetState extends State<DayStripWidget> {
                 ),
               ),
               InkWell(
-                onTap: _isFutureDate(
-                  DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day + 1,
-                  ),
-                )
+                onTap: widget.readOnly
                     ? null
-                    : goNext,
+                    : (_isFutureDate(
+                          DateTime(
+                            selectedDate.year,
+                            selectedDate.month,
+                            selectedDate.day + 1,
+                          ),
+                        )
+                        ? null
+                        : goNext),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   child: Opacity(
-                    opacity: _isFutureDate(
-                      DateTime(
-                        selectedDate.year,
-                        selectedDate.month,
-                        selectedDate.day + 1,
-                      ),
-                    )
+                    opacity: widget.readOnly
                         ? 0.3
-                        : 1.0,
+                        : (_isFutureDate(
+                              DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day + 1,
+                              ),
+                            )
+                            ? 0.3
+                            : 1.0),
                     child: Assets.images.altArrowRight.svg(),
                   ),
                 ),
@@ -212,6 +240,9 @@ class _DayStripWidgetState extends State<DayStripWidget> {
           child: PageView.builder(
             controller: controller,
             scrollDirection: Axis.horizontal,
+            physics: widget.readOnly
+                ? const NeverScrollableScrollPhysics()
+                : null,
             itemCount: dateList.length,
             onPageChanged: _onPageChanged,
             itemBuilder: (context, index) {
@@ -226,15 +257,17 @@ class _DayStripWidgetState extends State<DayStripWidget> {
                     borderRadius: BorderRadius.circular(9999),
                   ),
                   child: InkWell(
-                    onTap: isFuture
+                    onTap: widget.readOnly
                         ? null
-                        : () {
-                            setState(() {
-                              selectedDate = dt;
-                              _generateDates();
-                            });
-                            widget.onDateSelected?.call(selectedDate);
-                          },
+                        : (isFuture
+                            ? null
+                            : () {
+                                setState(() {
+                                  selectedDate = dt;
+                                  _generateDates();
+                                });
+                                widget.onDateSelected?.call(selectedDate);
+                              }),
                     child: Opacity(
                       opacity: isFuture ? 0.5 : 1.0,
                       child: Column(
