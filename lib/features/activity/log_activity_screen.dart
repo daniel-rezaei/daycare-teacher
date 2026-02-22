@@ -487,19 +487,25 @@ class InfoCardLogActivityWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               icon,
               const SizedBox(height: 8),
-              isLoading
-                  ? const CupertinoActivityIndicator(radius: 8)
-                  : Text(
-                      title,
-                      style: const TextStyle(
-                        color: Color(0xff444349),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+              SizedBox(
+                height: 28,
+                child: Center(
+                  child: isLoading
+                      ? const CupertinoActivityIndicator(radius: 8)
+                      : Text(
+                          title,
+                          style: const TextStyle(
+                            color: Color(0xff444349),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
             ],
           ),
         ),
