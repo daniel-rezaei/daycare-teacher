@@ -18,16 +18,16 @@ import 'package:teacher_app/features/child_status_module/domain/entity/dietary_r
 import 'package:teacher_app/features/child_status_module/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/child_status_module/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/child_status_module/domain/entity/reportable_disease_entity.dart';
-import 'package:teacher_app/features/event/data/models/event_model/event_model.dart';
-import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
 import 'package:teacher_app/features/home/data/data_source/home_api.dart';
+import 'package:teacher_app/features/home/data/models/event_model.dart';
+import 'package:teacher_app/features/home/data/models/notification_model.dart';
+import 'package:teacher_app/features/home/data/models/staff_class_session_model.dart';
+import 'package:teacher_app/features/home/domain/entity/event_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/home/domain/repository/home_repository.dart';
-import 'package:teacher_app/features/notification/data/models/notification_model/notification_model.dart';
-import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
 import 'package:teacher_app/features/profile/data/models/contact_model/contact_model.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
-import 'package:teacher_app/features/session/data/models/staff_class_session_model/staff_class_session_model.dart';
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 
 @Singleton(as: HomeRepository, env: [Env.prod])
 class HomeRepositoryImpl extends HomeRepository {

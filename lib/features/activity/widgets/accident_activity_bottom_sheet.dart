@@ -21,7 +21,7 @@ import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/child_status_module/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
-import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/features/home/data/data_source/home_api.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 

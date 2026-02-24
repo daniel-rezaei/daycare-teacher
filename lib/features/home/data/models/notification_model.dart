@@ -1,4 +1,4 @@
-import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/notification_entity.dart';
 
 class NotificationModel extends NotificationEntity {
   const NotificationModel({
@@ -37,4 +37,3 @@ class NotificationModel extends NotificationEntity {
     );
   }
 }
-

@@ -22,7 +22,7 @@ import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pick
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:get_it/get_it.dart';
 import 'package:teacher_app/core/services/gallery_service.dart';

@@ -6,4 +6,3 @@ abstract class FileUploadRepository {
     String? title,
   });
 }
-

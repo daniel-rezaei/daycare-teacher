@@ -17,7 +17,7 @@ import 'package:teacher_app/features/child_status_module/domain/entity/child_ent
 import 'package:teacher_app/features/child_status_module/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
-import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
 
 class SleepActivityBottomSheet extends StatefulWidget {

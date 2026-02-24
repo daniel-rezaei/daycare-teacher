@@ -18,7 +18,7 @@ import 'package:teacher_app/features/child_status_module/widgets/transfer_class_
 import 'package:teacher_app/features/child_status_module/domain/entity/class_transfer_request_entity.dart';
 import 'package:teacher_app/features/child_status_module/presentation/bloc/class_transfer_request_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 
 /// ISOLATED MODULE: Atomic Class Transfer Action Sheet

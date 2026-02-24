@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
-import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/event_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/upcoming_event_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';

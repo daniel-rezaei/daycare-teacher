@@ -8,7 +8,7 @@ import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_status_module/widgets/class_transfer_action_sheet.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class CardNotificationsWidget extends StatefulWidget {

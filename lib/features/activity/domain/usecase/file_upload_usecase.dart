@@ -1,6 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
-import 'package:teacher_app/features/file_upload/domain/repository/file_upload_repository.dart';
+import 'package:teacher_app/features/activity/domain/repository/file_upload_repository.dart';
 
 @singleton
 class FileUploadUsecase {
@@ -18,4 +18,3 @@ class FileUploadUsecase {
     );
   }
 }
-

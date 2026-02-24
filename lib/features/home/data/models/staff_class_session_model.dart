@@ -1,4 +1,4 @@
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 
 class StaffClassSessionModel extends StaffClassSessionEntity {
   const StaffClassSessionModel({
@@ -19,5 +19,3 @@ class StaffClassSessionModel extends StaffClassSessionEntity {
     );
   }
 }
-
-

@@ -16,7 +16,7 @@ import 'package:teacher_app/features/child_status_module/widgets/attach_photo_wi
 import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
 import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
 import 'package:teacher_app/features/child_status_module/services/local_absent_storage_service.dart';
-import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:get_it/get_it.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';

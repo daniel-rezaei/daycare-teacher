@@ -10,7 +10,7 @@ import 'package:teacher_app/core/services/attendance_session_store.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 

@@ -6,7 +6,6 @@ class FileUploadApi {
   final Dio httpclient;
   FileUploadApi(this.httpclient);
 
-  // آپلود فایل
   Future<Response> uploadFile({
     required String filePath,
     String? title,
@@ -22,4 +21,3 @@ class FileUploadApi {
     );
   }
 }
-

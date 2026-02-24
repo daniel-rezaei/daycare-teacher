@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/core/locator/di.dart';
-import 'package:teacher_app/features/file_upload/data/data_source/file_upload_api.dart';
-import 'package:teacher_app/features/file_upload/domain/repository/file_upload_repository.dart';
+import 'package:teacher_app/features/activity/data/data_source/file_upload_api.dart';
+import 'package:teacher_app/features/activity/domain/repository/file_upload_repository.dart';
 
 @Singleton(as: FileUploadRepository, env: [Env.prod])
 class FileUploadRepositoryImpl extends FileUploadRepository {
@@ -50,4 +50,3 @@ class FileUploadRepositoryImpl extends FileUploadRepository {
     return DataFailed(errorMessage);
   }
 }
-

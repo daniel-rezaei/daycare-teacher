@@ -13,5 +13,3 @@ class StaffClassSessionEntity {
     this.classId,
   });
 }
-
-

@@ -1,4 +1,4 @@
-import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/event_entity.dart';
 
 class EventModel extends EventEntity {
   const EventModel({
@@ -37,4 +37,3 @@ class EventModel extends EventEntity {
     );
   }
 }
-

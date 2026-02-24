@@ -31,4 +31,3 @@ class NotificationEntity {
     this.recipientContactId,
   });
 }
-

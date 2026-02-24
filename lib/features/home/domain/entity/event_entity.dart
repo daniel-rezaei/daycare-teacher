@@ -51,4 +51,3 @@ class EventEntity extends Equatable {
         classId,
       ];
 }
-

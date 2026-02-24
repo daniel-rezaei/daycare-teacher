@@ -14,7 +14,7 @@ import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/home/widgets/home_shimmer_widget.dart';
 import 'package:teacher_app/features/messages/messages_screen.dart';
 import 'package:teacher_app/features/profile/presentation/widgets/profile_section_widget.dart';
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/time_screen.dart';
 

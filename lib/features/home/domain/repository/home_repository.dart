@@ -7,10 +7,10 @@ import 'package:teacher_app/features/child_status_module/domain/entity/dietary_r
 import 'package:teacher_app/features/child_status_module/domain/entity/medication_entity.dart';
 import 'package:teacher_app/features/child_status_module/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/child_status_module/domain/entity/reportable_disease_entity.dart';
-import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
-import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/event_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/notification_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
-import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 
 abstract class HomeRepository {
   // ========== Auth Methods ==========
