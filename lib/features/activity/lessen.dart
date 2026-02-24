@@ -1,46 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:teacher_app/core/palette.dart';
+import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
 class LessenScreen extends StatefulWidget {
-  const LessenScreen({
-    super.key,
-    this.title = 'Music & Movement',
-    this.dateRange = '13 June 2023 - 14 July 2023',
-    this.category = 'Art & Craft',
-    this.ageBand = 'Toddler',
-    this.room = 'Bluebirds',
-  });
+  const LessenScreen({super.key, required this.plan});
 
-  final String title;
-  final String dateRange;
-  final String category;
-  final String ageBand;
-  final String room;
+  /// All display values come from the plan (from API).
+  final LearningPlanItem plan;
 
   @override
   State<LessenScreen> createState() => _LessenScreenState();
 }
 
-final List<String> images = [
-  'assets/images/img1.jpg',
-  'assets/images/img1.jpg',
-  'assets/images/img1.jpg',
-];
-
 class _LessenScreenState extends State<LessenScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  LearningPlanItem get _plan => widget.plan;
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     return Stack(
       children: [
-        // Gradient background
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -76,12 +57,14 @@ class _LessenScreenState extends State<LessenScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          widget.title,
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w600,
-                            color: Palette.textForeground,
+                        Expanded(
+                          child: Text(
+                            _plan.title.isEmpty ? '—' : _plan.title,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
+                              color: Palette.textForeground,
+                            ),
                           ),
                         ),
                         Container(
@@ -104,7 +87,7 @@ class _LessenScreenState extends State<LessenScreen> {
                   SizedBox(height: 24),
 
                   Container(
-                    height: screenHeight * 4 / 5,
+                    constraints: BoxConstraints(minHeight: screenHeight * 4 / 5),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -126,28 +109,29 @@ class _LessenScreenState extends State<LessenScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-
                           Row(
                             children: [
                               SvgPicture.asset(
                                 'assets/images/ic_calanders.svg',
                               ),
-                              Text(
-                                ' ${widget.dateRange}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Palette.textForeground,
-                                  fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: Text(
+                                  ' ${_plan.dateRangeDisplay.isEmpty ? "—" : _plan.dateRangeDisplay}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Palette.textForeground,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 24),
-                          label("Category", widget.category),
+                          label("Category", _plan.categoryName.isEmpty ? '—' : _plan.categoryName),
                           const SizedBox(height: 8),
-                          label("Age Band", widget.ageBand),
+                          label("Age Band", _plan.ageBandName.isEmpty ? '—' : _plan.ageBandName),
                           const SizedBox(height: 8),
-                          label("Class", widget.room),
+                          label("Class", _plan.roomName.isEmpty ? '—' : _plan.roomName),
                           const SizedBox(height: 14),
                           Text(
                             "Video Link",
@@ -158,9 +142,8 @@ class _LessenScreenState extends State<LessenScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-
                           Text(
-                            'https://meet.google.com/Daycare',
+                            (_plan.videoLink == null || _plan.videoLink!.isEmpty) ? '—' : _plan.videoLink!,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -169,11 +152,10 @@ class _LessenScreenState extends State<LessenScreen> {
                           ),
                           const SizedBox(height: 8),
                           TagSelectorWidget(
-                            initialTags: ["Story", "Lunch"],
+                            initialTags: _plan.tags,
                             hasBackground: false,
                             showSuggestions: false,
                           ),
-
                           Text(
                             "Description",
                             style: TextStyle(
@@ -184,7 +166,7 @@ class _LessenScreenState extends State<LessenScreen> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            "Olivia engaged in a cooperative play activity with another child, taking turns and sharing toys.",
+                            (_plan.description == null || _plan.description!.isEmpty) ? '—' : _plan.description!,
                             style: TextStyle(
                               fontSize: 14,
                               color: Palette.textForeground,
@@ -192,51 +174,6 @@ class _LessenScreenState extends State<LessenScreen> {
                             ),
                           ),
                           SizedBox(height: 24),
-                          SizedBox(
-                            height: 140,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              itemCount: images.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) {
-                                return Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Image.asset(
-                                        images[index],
-                                        width: 140,
-                                        height: 140,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 8,
-                                      left: 8,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Palette.pink,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: SvgPicture.asset(
-                                            'assets/images/ic_trash.svg',
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
                         ],
                       ),
                     ),

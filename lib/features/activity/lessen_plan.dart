@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/palette.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'create_new_lessen_bottom_sheet.dart';
 import 'lessen_list.dart';
@@ -23,6 +25,19 @@ class _LessenPlanScreenView extends StatefulWidget {
 class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _classId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClassId();
+  }
+
+  Future<void> _loadClassId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getString(AppConstants.classIdKey);
+    if (mounted) setState(() => _classId = id);
+  }
 
   @override
   void dispose() {
@@ -30,14 +45,17 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
     super.dispose();
   }
 
-  void _openNewLessen() {
-    showModalBottomSheet(
+  int _listRefreshKey = 0;
+
+  void _openNewLessen() async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       builder: (context) => const CreateNewLessenBottomSheet(),
     );
+    if (mounted) setState(() => _listRefreshKey++);
   }
 
   @override
@@ -129,7 +147,11 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                         topRight: Radius.circular(24),
                       ),
                     ),
-                    child: LessenListWidget(searchQuery: _searchQuery),
+                    child: LessenListWidget(
+                      key: ValueKey(_listRefreshKey),
+                      classId: _classId,
+                      searchQuery: _searchQuery,
+                    ),
                   ),
                 ),
               ],
