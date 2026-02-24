@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
+import 'package:teacher_app/core/widgets/app_loading_screen.dart';
 import 'package:teacher_app/features/auth/presentation/time_in_screen.dart';
 import 'package:teacher_app/features/home/my_home_page.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
@@ -87,21 +88,7 @@ class _PostLoginGuardScreenState extends State<PostLoginGuardScreen> {
           _redirectToTimeIn();
         }
       },
-      child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(
-                'Checking attendance status...',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: const AppLoadingScreen(),
     );
   }
 }

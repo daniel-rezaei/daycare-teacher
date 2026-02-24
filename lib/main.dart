@@ -7,9 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:teacher_app/features/auth/presentation/welcome_screen.dart';
+import 'package:teacher_app/features/auth/presentation/app_initial_screen.dart';
 import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
-import 'package:teacher_app/features/auth/presentation/post_login_guard_screen.dart';
 import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
 import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
@@ -81,10 +80,8 @@ class MyApp extends StatelessWidget {
           textTheme: GoogleFonts.interTextTheme(),
         ),
 
-        // 🚀 تصمیم فقط با Shared
-        home: isLoggedIn!
-            ? const PostLoginGuardScreen()
-            : const WelcomeScreen(),
+        // اسپلش یکپارچه اول، سپس بر اساس لاگین به Welcome یا PostLoginGuard
+        home: AppInitialScreen(isLoggedIn: isLoggedIn!),
       ),
     );
   }
