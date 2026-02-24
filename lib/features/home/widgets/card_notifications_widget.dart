@@ -38,10 +38,11 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
         classId = savedClassId;
         staffId = savedStaffId;
       });
-      // بررسی اینکه آیا session قبلاً لود شده است
+      // LoadHomeDataEvent قبلاً LoadSessionEvent صدا زده؛ فقط اگر هنوز لود نشده و در حال لود نیست
       final currentState = context.read<HomeBloc>().state;
       if (!_hasRequestedSession &&
-          (currentState.session == null || currentState.isLoadingSession)) {
+          currentState.session == null &&
+          !currentState.isLoadingSession) {
         _hasRequestedSession = true;
         context.read<HomeBloc>().add(LoadSessionEvent(savedClassId));
       }

@@ -41,7 +41,11 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
         staffId = savedStaffId;
         classId = savedClassId;
       });
-      context.read<HomeBloc>().add(LoadContactEvent(savedContactId));
+      // LoadContact از LoadHomeDataEvent در HomeScreen صدا زده می‌شود؛ درخواست تکراری نزن
+      final homeState = context.read<HomeBloc>().state;
+      if (homeState.contact == null && !homeState.isLoadingContact) {
+        context.read<HomeBloc>().add(LoadContactEvent(savedContactId));
+      }
     }
   }
 
@@ -63,6 +67,9 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (prev, curr) =>
+          prev.contact != curr.contact ||
+          prev.isLoadingContact != curr.isLoadingContact,
       builder: (context, state) {
         if (state.isLoadingContact) {
           return Padding(

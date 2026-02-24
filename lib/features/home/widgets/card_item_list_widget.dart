@@ -23,18 +23,22 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
   @override
   void initState() {
     super.initState();
-    // درخواست داده‌ها در صورت نیاز
+    // LoadHomeDataEvent قبلاً این درخواست‌ها را صدا زده؛ فقط اگر هنوز لود نشده و در حال لود نیست
     final currentState = context.read<HomeBloc>().state;
-    if (currentState.dietaryRestrictions == null) {
+    if (currentState.dietaryRestrictions == null &&
+        !currentState.isLoadingDietaryRestrictions) {
       context.read<HomeBloc>().add(const LoadDietaryRestrictionsEvent());
     }
-    if (currentState.medications == null) {
+    if (currentState.medications == null &&
+        !currentState.isLoadingMedications) {
       context.read<HomeBloc>().add(const LoadMedicationsEvent());
     }
-    if (currentState.physicalRequirements == null) {
+    if (currentState.physicalRequirements == null &&
+        !currentState.isLoadingPhysicalRequirements) {
       context.read<HomeBloc>().add(const LoadPhysicalRequirementsEvent());
     }
-    if (currentState.reportableDiseases == null) {
+    if (currentState.reportableDiseases == null &&
+        !currentState.isLoadingReportableDiseases) {
       context.read<HomeBloc>().add(const LoadReportableDiseasesEvent());
     }
   }

@@ -29,11 +29,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
       setState(() {
         classId = savedClassId;
       });
-      // فقط در صورتی که state قبلاً success نبوده باشد
-      final currentState = context.read<HomeBloc>().state;
-      if (currentState.classRooms == null || currentState.classRooms!.isEmpty) {
-        context.read<HomeBloc>().add(const LoadClassRoomsEvent());
-      }
+      // LoadClassRooms از LoadHomeDataEvent در HomeScreen صدا زده می‌شود؛ درخواست تکراری نزن
     }
   }
 
@@ -51,6 +47,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (prev, curr) => prev.classRooms != curr.classRooms,
       builder: (context, state) {
         String? roomName = _getRoomName(state.classRooms);
 

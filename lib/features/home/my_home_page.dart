@@ -45,11 +45,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final staffId = prefs.getString(AppConstants.staffIdKey);
 
     if (mounted && (classId != null || contactId != null)) {
-      // Load Time-In status first to sync with session state
+      // فقط در صورت نیاز: PostLoginGuardScreen قبلاً GetLatestStaffAttendance صدا زده
       if (staffId != null && staffId.isNotEmpty) {
-        context.read<StaffAttendanceBloc>().add(
-          GetLatestStaffAttendanceEvent(staffId: staffId),
-        );
+        final attendanceState = context.read<StaffAttendanceBloc>().state;
+        if (attendanceState is! GetLatestStaffAttendanceSuccess) {
+          context.read<StaffAttendanceBloc>().add(
+            GetLatestStaffAttendanceEvent(staffId: staffId),
+          );
+        }
       }
 
       context.read<HomeBloc>().add(
@@ -183,6 +186,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         child: Scaffold(
           body: BlocBuilder<HomeBloc, HomeState>(
+            buildWhen: (prev, curr) =>
+                prev.hasLoadedInitialDataOnce != curr.hasLoadedInitialDataOnce,
             builder: (context, state) {
               // بررسی اینکه آیا باید shimmer نمایش داده شود
               // از ابتدا shimmer نمایش داده می‌شود تا زمانی که داده‌های ضروری لود شوند
