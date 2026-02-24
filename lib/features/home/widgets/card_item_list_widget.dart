@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
@@ -398,17 +399,47 @@ class _CardItemListWidgetState extends State<CardItemListWidget> {
         final physicalRequirements = state.physicalRequirements ?? [];
         final reportableDiseases = state.reportableDiseases ?? [];
 
-        // اگر داده‌ها هنوز لود نشده‌اند، loading نشان بده
+        // اسکلتون ردیف‌ها تا داده‌ها لود شوند؛ بدون اسپینر مرکزی
         if (state.isLoadingChildren ||
             state.isLoadingContacts ||
             state.isLoadingDietaryRestrictions ||
             state.isLoadingMedications ||
             state.isLoadingPhysicalRequirements ||
             state.isLoadingReportableDiseases) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CupertinoActivityIndicator(),
+          return Column(
+            children: List.generate(
+              5,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    const ShimmerPlaceholder(
+                      width: 48,
+                      height: 48,
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const ShimmerPlaceholder(
+                            width: 100,
+                            height: 14,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                          ),
+                          const SizedBox(height: 6),
+                          const ShimmerPlaceholder(
+                            width: 160,
+                            height: 12,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }

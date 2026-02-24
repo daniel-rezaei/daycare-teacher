@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/features/event/domain/entity/event_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/upcoming_event_widget.dart';
@@ -18,7 +20,7 @@ class _UpcomingEventsHeaderWidgetState
   @override
   void initState() {
     super.initState();
-    context.read<HomeBloc>().add(const LoadEventsEvent());
+    // رویدادها در LoadHomeDataEvent (فاز ۲) لود می‌شوند؛ درخواست تکراری نزن
   }
 
   List<EventUiModel> _convertToUiModels(List<EventEntity> events) {
@@ -100,10 +102,17 @@ class _UpcomingEventsHeaderWidgetState
         BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
             if (state.isLoadingEvents) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CupertinoActivityIndicator(),
+              return Row(
+                children: List.generate(
+                  3,
+                  (_) => const Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: ShimmerPlaceholder(
+                      width: 90,
+                      height: 56,
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                  ),
                 ),
               );
             }

@@ -127,12 +127,10 @@ sealed class HomeState extends Equatable {
   }
 
   /// بررسی اینکه آیا داده‌های ضروری حداقل یک بار لود شده‌اند
-  /// این متد برای جلوگیری از نمایش shimmer در درخواست‌های بعدی استفاده می‌شود
+  /// فقط classRooms، children، contacts لازم است تا داشبورد نمایش داده شود؛
+  /// contact می‌تواند بعداً با اسکلتون نمایش داده شود.
   bool get hasLoadedInitialDataOnce {
-    // بررسی اینکه آیا حداقل یکی از داده‌های ضروری لود شده است
-    // این به ما کمک می‌کند تا بفهمیم آیا اولین بار است که داده‌ها لود می‌شوند یا نه
     return (classRooms != null || classRoomsError != null) &&
-        (contact != null || contactError != null) &&
         (children != null || childrenError != null) &&
         (contacts != null || contactsError != null);
   }

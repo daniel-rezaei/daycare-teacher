@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
@@ -86,10 +88,10 @@ class _AppBarWidgetState extends State<AppBarWidget> {
                     Assets.images.leftSlotItems.svg(),
                     const SizedBox(width: 8),
                     if (state.isLoadingClassRooms)
-                      const SizedBox(
-                        width: 16,
+                      ShimmerPlaceholder(
+                        width: 72,
                         height: 16,
-                        child: CupertinoActivityIndicator(radius: 8),
+                        borderRadius: BorderRadius.circular(4),
                       )
                     else
                       Text(

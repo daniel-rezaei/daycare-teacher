@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/services/time_in_access_guard.dart';
+import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
@@ -307,10 +308,11 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                           child: Assets.images.subtract.svg(),
                         ),
                         title: isLoading
-                            ? const SizedBox(
-                                width: 20,
+                            ? const ShimmerPlaceholder(
+                                width: 28,
                                 height: 20,
-                                child: CupertinoActivityIndicator(radius: 10),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
                               )
                             : Text(
                                 title,
@@ -377,10 +379,11 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                           child: Assets.images.vector.svg(),
                         ),
                         title: isLoadingNotifications
-                            ? const SizedBox(
-                                width: 20,
+                            ? const ShimmerPlaceholder(
+                                width: 28,
                                 height: 20,
-                                child: CupertinoActivityIndicator(radius: 10),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
                               )
                             : Text(
                                 '${_getTodayNotificationsCount(notifications)}',

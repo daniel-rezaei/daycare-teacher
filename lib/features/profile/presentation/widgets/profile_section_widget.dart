@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/features/auth/presentation/logout_widget.dart';
 import 'package:teacher_app/features/auth/presentation/select_class_screen.dart';
 import 'package:teacher_app/features/personal_information/personal_information_screen.dart';
@@ -76,9 +77,15 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             child: Row(
               children: [
-                _buildLoadingAvatar(),
+                const ShimmerCircle(size: 48),
                 const SizedBox(width: 12),
-                const Expanded(child: CupertinoActivityIndicator()),
+                Expanded(
+                  child: ShimmerPlaceholder(
+                    width: double.infinity,
+                    height: 20,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
                 _buildSwitchAccountIcon(),
               ],
             ),
@@ -227,16 +234,7 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
               ),
             );
           },
-          child: Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: const CupertinoActivityIndicator(),
-          ),
+          child: const ShimmerCircle(size: 48),
         );
       },
     );
@@ -376,7 +374,13 @@ class _ProfileSectionWidgetState extends State<ProfileSectionWidget> {
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
               if (state.isLoadingClassRooms) {
-                return const Center(child: CupertinoActivityIndicator());
+                return const Center(
+                  child: ShimmerPlaceholder(
+                    width: 40,
+                    height: 40,
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                );
               }
               return const SizedBox.shrink();
             },

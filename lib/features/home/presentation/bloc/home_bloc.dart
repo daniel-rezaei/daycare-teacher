@@ -45,23 +45,228 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadHomeDataEvent event,
     Emitter<HomeState> emit,
   ) async {
-    // Load all data in parallel
+    final repo = homeUsecase.homeRepository;
+
+    // فاز ۱: داده‌های ضروری برای اولین نمایش داشبورد — یک بار و موازی
+    emit(state.copyWith(
+      isLoadingClassRooms: true,
+      isLoadingContact: event.contactId != null,
+      isLoadingChildren: true,
+      isLoadingContacts: true,
+      classRoomsError: null,
+      contactError: null,
+      childrenError: null,
+      contactsError: null,
+    ));
+
+    final classRoomsFuture = repo.classRoom();
+    final childrenFuture = repo.getAllChildren();
+    final contactsFuture = repo.getAllContacts();
+    final contactFuture = event.contactId != null
+        ? repo.getContact(id: event.contactId!)
+        : null;
+
+    final results = await Future.wait([
+      classRoomsFuture,
+      childrenFuture,
+      contactsFuture,
+      if (contactFuture != null) contactFuture,
+    ]);
+
+    List<ClassRoomEntity>? classRooms;
+    String? classRoomsError;
+    List<ChildEntity>? children;
+    String? childrenError;
+    List<ContactEntity>? contacts;
+    String? contactsError;
+    ContactEntity? contact;
+    String? contactError;
+
+    final classRoomsState = results[0] as DataState<List<ClassRoomEntity>>;
+    if (classRoomsState is DataSuccess) {
+      classRooms = classRoomsState.data ?? [];
+    } else if (classRoomsState is DataFailed) {
+      classRoomsError = classRoomsState.error;
+    }
+
+    final childrenState = results[1] as DataState<List<ChildEntity>>;
+    if (childrenState is DataSuccess) {
+      children = childrenState.data ?? [];
+    } else if (childrenState is DataFailed) {
+      childrenError = childrenState.error;
+    }
+
+    final contactsState = results[2] as DataState<List<ContactEntity>>;
+    if (contactsState is DataSuccess) {
+      contacts = contactsState.data ?? [];
+    } else if (contactsState is DataFailed) {
+      contactsError = contactsState.error;
+    }
+
+    if (contactFuture != null) {
+      final contactState = results[3] as DataState<ContactEntity>;
+      if (contactState is DataSuccess) {
+        contact = contactState.data;
+      } else if (contactState is DataFailed) {
+        contactError = contactState.error;
+      }
+    } else {
+      contactError = '';
+    }
+
+    emit(state.copyWith(
+      classRooms: classRooms,
+      classRoomsError: classRoomsError,
+      isLoadingClassRooms: false,
+      children: children,
+      childrenError: childrenError,
+      isLoadingChildren: false,
+      contacts: contacts,
+      contactsError: contactsError,
+      isLoadingContacts: false,
+      contact: contact,
+      contactError: contactError,
+      isLoadingContact: false,
+    ));
+
+    // فاز ۲: session، attendance، notifications، events — موازی
+    final phase2Futures = <Future>[
+      repo.getAllNotifications(),
+      repo.getAllEvents(),
+    ];
     if (event.classId != null) {
-      add(LoadSessionEvent(event.classId!));
-      add(LoadAttendanceEvent(event.classId!));
+      phase2Futures.insertAll(
+        0,
+        [
+          repo.getSessionByClassId(classId: event.classId!),
+          repo.getAttendanceByClassId(classId: event.classId!),
+        ],
+      );
     }
-    if (event.contactId != null) {
-      add(LoadContactEvent(event.contactId!));
+
+    final phase2Results = await Future.wait(phase2Futures);
+    int idx = 0;
+
+    if (event.classId != null) {
+      final sessionState =
+          phase2Results[idx++] as DataState<StaffClassSessionEntity?>;
+      if (sessionState is DataSuccess) {
+        emit(state.copyWith(
+          session: sessionState.data,
+          isLoadingSession: false,
+        ));
+      } else if (sessionState is DataFailed) {
+        emit(state.copyWith(
+          sessionError: sessionState.error,
+          isLoadingSession: false,
+        ));
+      }
+
+      final attendanceState =
+          phase2Results[idx++] as DataState<List<AttendanceChildEntity>>;
+      if (attendanceState is DataSuccess) {
+        emit(state.copyWith(
+          attendanceList: attendanceState.data ?? [],
+          isLoadingAttendance: false,
+        ));
+      } else if (attendanceState is DataFailed) {
+        emit(state.copyWith(
+          attendanceError: attendanceState.error,
+          isLoadingAttendance: false,
+        ));
+      }
     }
-    add(const LoadClassRoomsEvent());
-    add(const LoadChildrenEvent());
-    add(const LoadContactsEvent());
-    add(const LoadDietaryRestrictionsEvent());
-    add(const LoadMedicationsEvent());
-    add(const LoadPhysicalRequirementsEvent());
-    add(const LoadReportableDiseasesEvent());
-    add(const LoadNotificationsEvent());
-    add(const LoadEventsEvent());
+
+    final notificationsState =
+        phase2Results[idx++] as DataState<List<NotificationEntity>>;
+    if (notificationsState is DataSuccess) {
+      emit(state.copyWith(
+        notifications: notificationsState.data ?? [],
+        isLoadingNotifications: false,
+      ));
+    } else if (notificationsState is DataFailed) {
+      emit(state.copyWith(
+        notificationsError: notificationsState.error,
+        isLoadingNotifications: false,
+      ));
+    }
+
+    final eventsState = phase2Results[idx] as DataState<List<EventEntity>>;
+    if (eventsState is DataSuccess) {
+      emit(state.copyWith(
+        events: eventsState.data ?? [],
+        isLoadingEvents: false,
+      ));
+    } else if (eventsState is DataFailed) {
+      emit(state.copyWith(
+        eventsError: eventsState.error,
+        isLoadingEvents: false,
+      ));
+    }
+
+    // فاز ۳: dietary، medications، physical، reportable — موازی، بعد از نمایش داشبورد
+    final phase3Results = await Future.wait([
+      repo.getAllDietaryRestrictions(),
+      repo.getAllMedications(),
+      repo.getAllPhysicalRequirements(),
+      repo.getAllReportableDiseases(),
+    ]);
+
+    final dietaryState =
+        phase3Results[0] as DataState<List<DietaryRestrictionEntity>>;
+    if (dietaryState is DataSuccess) {
+      emit(state.copyWith(
+        dietaryRestrictions: dietaryState.data ?? [],
+        isLoadingDietaryRestrictions: false,
+      ));
+    } else if (dietaryState is DataFailed) {
+      emit(state.copyWith(
+        dietaryRestrictionsError: dietaryState.error,
+        isLoadingDietaryRestrictions: false,
+      ));
+    }
+
+    final medicationsState =
+        phase3Results[1] as DataState<List<MedicationEntity>>;
+    if (medicationsState is DataSuccess) {
+      emit(state.copyWith(
+        medications: medicationsState.data ?? [],
+        isLoadingMedications: false,
+      ));
+    } else if (medicationsState is DataFailed) {
+      emit(state.copyWith(
+        medicationsError: medicationsState.error,
+        isLoadingMedications: false,
+      ));
+    }
+
+    final physicalState =
+        phase3Results[2] as DataState<List<PhysicalRequirementEntity>>;
+    if (physicalState is DataSuccess) {
+      emit(state.copyWith(
+        physicalRequirements: physicalState.data ?? [],
+        isLoadingPhysicalRequirements: false,
+      ));
+    } else if (physicalState is DataFailed) {
+      emit(state.copyWith(
+        physicalRequirementsError: physicalState.error,
+        isLoadingPhysicalRequirements: false,
+      ));
+    }
+
+    final reportableState =
+        phase3Results[3] as DataState<List<ReportableDiseaseEntity>>;
+    if (reportableState is DataSuccess) {
+      emit(state.copyWith(
+        reportableDiseases: reportableState.data ?? [],
+        isLoadingReportableDiseases: false,
+      ));
+    } else if (reportableState is DataFailed) {
+      emit(state.copyWith(
+        reportableDiseasesError: reportableState.error,
+        isLoadingReportableDiseases: false,
+      ));
+    }
   }
 
   FutureOr<void> _loadClassRoomsEvent(

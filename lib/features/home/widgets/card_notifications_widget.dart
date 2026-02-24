@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/services/time_in_access_guard.dart';
+import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_status/widgets/class_transfer_action_sheet.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
@@ -174,10 +175,10 @@ class _CardNotificationsWidgetState extends State<CardNotificationsWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (isLoading)
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CupertinoActivityIndicator(radius: 10),
+                      const ShimmerPlaceholder(
+                        width: 140,
+                        height: 18,
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
                       )
                     else
                       Text(
