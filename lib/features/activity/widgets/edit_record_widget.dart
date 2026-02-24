@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
-import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
-import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
 
 class EditRecordWidget extends StatefulWidget {
   const EditRecordWidget({super.key});

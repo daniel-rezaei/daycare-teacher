@@ -3,14 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
-import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
-import 'package:teacher_app/features/dietary_restriction/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/child_entity.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/dietary_restriction_entity.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/medication_entity.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/physical_requirement_entity.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/item_widget.dart';
-import 'package:teacher_app/features/medication/domain/entity/medication_entity.dart';
-import 'package:teacher_app/features/physical_requirement/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
-import 'package:teacher_app/features/reportable_disease/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class CardItemListWidget extends StatefulWidget {

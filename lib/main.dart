@@ -8,17 +8,17 @@ import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/app_initial_screen.dart';
-import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
-import 'package:teacher_app/features/child_emergency_contact/presentation/bloc/child_emergency_contact_bloc.dart';
-import 'package:teacher_app/features/child_guardian/presentation/bloc/child_guardian_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_emergency_contact_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/activity/presentation/bloc/activity_bloc.dart';
-import 'package:teacher_app/features/class_transfer_request/presentation/bloc/class_transfer_request_bloc.dart';
-import 'package:teacher_app/features/child_profile/presentation/bloc/child_profile_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/class_transfer_request_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_profile_bloc.dart';
 import 'package:teacher_app/core/services/attendance_session_store.dart';
 
 void main() async {

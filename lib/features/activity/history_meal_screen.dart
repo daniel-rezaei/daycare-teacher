@@ -6,7 +6,7 @@ import 'package:teacher_app/core/locator/di.dart';
 import 'package:teacher_app/core/palette.dart';
 import 'package:teacher_app/core/widgets/child_avatar_widget.dart';
 import 'package:teacher_app/features/activity/activity_detail_screen.dart';
-import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
 
 class HistoryMealScreen extends StatelessWidget {

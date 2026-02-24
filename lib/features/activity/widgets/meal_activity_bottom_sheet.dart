@@ -13,10 +13,10 @@ import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
-import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
-import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
-import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
-import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/child_entity.dart';
+import 'package:teacher_app/features/child_status_module/widgets/attach_photo_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
 import 'package:teacher_app/features/file_upload/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/core/data_state.dart';
 

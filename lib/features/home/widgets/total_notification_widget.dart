@@ -8,12 +8,14 @@ import 'package:teacher_app/core/widgets/shimmer_placeholder.dart';
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
-import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
-import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/child_entity.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
-import 'package:teacher_app/features/child_status/services/local_absent_storage_service.dart';
-import 'package:teacher_app/features/child_status/utils/child_status_helper.dart';
-import 'package:teacher_app/features/child_status/child_status.dart';
+import 'package:teacher_app/core/locator/di.dart';
+import 'package:teacher_app/features/child_status_module/screens/child_status_screen.dart';
+import 'package:teacher_app/features/child_status_module/services/local_absent_storage_service.dart';
+import 'package:teacher_app/features/child_status_module/utils/child_status_helper.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_status_module_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/info_card_widget.dart';
 import 'package:teacher_app/features/notification/domain/entity/notification_entity.dart';
@@ -365,7 +367,10 @@ class _TotalNotificationWidgetState extends State<TotalNotificationWidget> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ChildStatusScreen(),
+                                builder: (context) => BlocProvider(
+                                  create: (_) => getIt<ChildStatusModuleBloc>(),
+                                  child: const ChildStatusScreen(),
+                                ),
                               ),
                             );
                           }

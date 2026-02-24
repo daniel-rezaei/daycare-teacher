@@ -10,9 +10,9 @@ import 'package:teacher_app/features/activity/widgets/mood_activity_bottom_sheet
 import 'package:teacher_app/features/activity/widgets/observation_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/play_activity_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/widgets/sleep_activity_bottom_sheet.dart';
-import 'package:teacher_app/features/child/domain/entity/child_entity.dart';
+import 'package:teacher_app/features/child_status_module/domain/entity/child_entity.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
-import 'package:teacher_app/features/child/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';

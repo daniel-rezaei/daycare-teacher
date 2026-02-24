@@ -10,9 +10,9 @@ import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
-import 'package:teacher_app/features/child_status/widgets/attach_photo_widget.dart';
-import 'package:teacher_app/features/child_status/widgets/header_check_out_widget.dart';
-import 'package:teacher_app/features/child_status/widgets/note_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/attach_photo_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
+import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
 
 /// Bottom sheet for creating a new lesson (Learn activity).
 /// Unlike other activities, no children need to be selected beforehand.

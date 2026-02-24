@@ -22,7 +22,9 @@ import 'package:teacher_app/features/activity/data/data_source/learning_plan_api
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
-import 'package:teacher_app/features/child_status/child_status.dart';
+import 'package:teacher_app/core/locator/di.dart';
+import 'package:teacher_app/features/child_status_module/screens/child_status_screen.dart';
+import 'package:teacher_app/features/child_status_module/presentation/bloc/child_status_module_bloc.dart';
 import 'package:teacher_app/features/session/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
@@ -437,8 +439,11 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ChildStatusScreen(),
+                                      builder: (context) => BlocProvider(
+                                        create: (_) =>
+                                            getIt<ChildStatusModuleBloc>(),
+                                        child: const ChildStatusScreen(),
+                                      ),
                                     ),
                                   );
                                 },
