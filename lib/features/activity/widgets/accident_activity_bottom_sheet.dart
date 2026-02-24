@@ -15,12 +15,12 @@ import 'package:teacher_app/features/activity/data/data_source/activity_accident
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/activity/widgets/multi_select_type_selector_widget.dart';
 import 'package:teacher_app/features/auth/data/models/staff_class_model/staff_class_model.dart';
-import 'package:teacher_app/features/child_status_module/domain/entity/child_entity.dart';
+import 'package:teacher_app/features/child_management/domain/entity/child_entity.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/features/activity/log_activity_screen.dart';
-import 'package:teacher_app/features/child_status_module/widgets/attach_photo_widget.dart';
-import 'package:teacher_app/features/child_status_module/widgets/header_check_out_widget.dart';
-import 'package:teacher_app/features/child_status_module/widgets/note_widget.dart';
+import 'package:teacher_app/features/child_management/widgets/attach_photo_widget.dart';
+import 'package:teacher_app/features/child_management/widgets/header_check_out_widget.dart';
+import 'package:teacher_app/features/child_management/widgets/note_widget.dart';
 import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';
 import 'package:teacher_app/features/home/data/data_source/home_api.dart';
 import 'package:teacher_app/gen/assets.gen.dart';

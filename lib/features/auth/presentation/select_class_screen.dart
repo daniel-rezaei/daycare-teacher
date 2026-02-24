@@ -9,7 +9,7 @@ import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/select_your_profile.dart';
-import 'package:teacher_app/features/child_status_module/widgets/transfer_class_widget.dart';
+import 'package:teacher_app/features/child_management/widgets/transfer_class_widget.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class SelectClassScreen extends StatefulWidget {

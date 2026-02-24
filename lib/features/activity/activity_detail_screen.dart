@@ -15,7 +15,7 @@ import 'package:teacher_app/features/activity/data/data_source/activity_drinks_a
 import 'package:teacher_app/features/activity/data/data_source/activity_meals_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_play_api.dart';
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_bloc.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/day_strip_widget.dart';

@@ -23,8 +23,8 @@ import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
 import 'package:teacher_app/core/locator/di.dart';
-import 'package:teacher_app/features/child_status_module/screens/child_status_screen.dart';
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_status_module_bloc.dart';
+import 'package:teacher_app/features/child_management/screens/child_status_screen.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/child_management_bloc.dart';
 import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 

@@ -69,56 +69,56 @@ import 'package:teacher_app/features/auth/domain/usecase/auth_usecase.dart'
     as _i1069;
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart'
     as _i445;
-import 'package:teacher_app/features/child_status_module/data/data_source/child_api.dart'
-    as _i491;
-import 'package:teacher_app/features/child_status_module/data/data_source/child_emergency_contact_api.dart'
-    as _i82;
-import 'package:teacher_app/features/child_status_module/data/data_source/child_guardian_api.dart'
-    as _i200;
-import 'package:teacher_app/features/child_status_module/data/data_source/class_transfer_request_api.dart'
+import 'package:teacher_app/features/child_management/data/data_source/child_api.dart'
+    as _i712;
+import 'package:teacher_app/features/child_management/data/data_source/child_emergency_contact_api.dart'
     as _i644;
-import 'package:teacher_app/features/child_status_module/data/repository/child_emergency_contact_repository_impl.dart'
-    as _i1008;
-import 'package:teacher_app/features/child_status_module/data/repository/child_guardian_repository_impl.dart'
-    as _i716;
-import 'package:teacher_app/features/child_status_module/data/repository/child_repository_impl.dart'
-    as _i614;
-import 'package:teacher_app/features/child_status_module/data/repository/child_status_repository_impl.dart'
-    as _i100;
-import 'package:teacher_app/features/child_status_module/data/repository/class_transfer_request_repository_impl.dart'
-    as _i430;
-import 'package:teacher_app/features/child_status_module/domain/repository/child_emergency_contact_repository.dart'
-    as _i849;
-import 'package:teacher_app/features/child_status_module/domain/repository/child_guardian_repository.dart'
-    as _i703;
-import 'package:teacher_app/features/child_status_module/domain/repository/child_repository.dart'
-    as _i642;
-import 'package:teacher_app/features/child_status_module/domain/repository/child_status_repository.dart'
-    as _i339;
-import 'package:teacher_app/features/child_status_module/domain/repository/class_transfer_request_repository.dart'
-    as _i186;
-import 'package:teacher_app/features/child_status_module/domain/usecase/child_emergency_contact_usecase.dart'
-    as _i1055;
-import 'package:teacher_app/features/child_status_module/domain/usecase/child_guardian_usecase.dart'
-    as _i534;
-import 'package:teacher_app/features/child_status_module/domain/usecase/child_status_usecase.dart'
-    as _i364;
-import 'package:teacher_app/features/child_status_module/domain/usecase/child_usecase.dart'
-    as _i659;
-import 'package:teacher_app/features/child_status_module/domain/usecase/class_transfer_request_usecase.dart'
-    as _i311;
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_bloc.dart'
-    as _i1049;
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_emergency_contact_bloc.dart'
-    as _i853;
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_guardian_bloc.dart'
-    as _i501;
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_profile_bloc.dart'
-    as _i546;
-import 'package:teacher_app/features/child_status_module/presentation/bloc/child_status_module_bloc.dart'
-    as _i630;
-import 'package:teacher_app/features/child_status_module/presentation/bloc/class_transfer_request_bloc.dart'
-    as _i690;
+import 'package:teacher_app/features/child_management/data/data_source/child_guardian_api.dart'
+    as _i548;
+import 'package:teacher_app/features/child_management/data/data_source/class_transfer_request_api.dart'
+    as _i6;
+import 'package:teacher_app/features/child_management/data/repository/child_emergency_contact_repository_impl.dart'
+    as _i428;
+import 'package:teacher_app/features/child_management/data/repository/child_guardian_repository_impl.dart'
+    as _i361;
+import 'package:teacher_app/features/child_management/data/repository/child_repository_impl.dart'
+    as _i796;
+import 'package:teacher_app/features/child_management/data/repository/child_status_repository_impl.dart'
+    as _i50;
+import 'package:teacher_app/features/child_management/data/repository/class_transfer_request_repository_impl.dart'
+    as _i663;
+import 'package:teacher_app/features/child_management/domain/repository/child_emergency_contact_repository.dart'
+    as _i789;
+import 'package:teacher_app/features/child_management/domain/repository/child_guardian_repository.dart'
+    as _i442;
+import 'package:teacher_app/features/child_management/domain/repository/child_repository.dart'
+    as _i876;
+import 'package:teacher_app/features/child_management/domain/repository/child_status_repository.dart'
+    as _i677;
+import 'package:teacher_app/features/child_management/domain/repository/class_transfer_request_repository.dart'
+    as _i309;
+import 'package:teacher_app/features/child_management/domain/usecase/child_emergency_contact_usecase.dart'
+    as _i213;
+import 'package:teacher_app/features/child_management/domain/usecase/child_guardian_usecase.dart'
+    as _i497;
+import 'package:teacher_app/features/child_management/domain/usecase/child_status_usecase.dart'
+    as _i618;
+import 'package:teacher_app/features/child_management/domain/usecase/child_usecase.dart'
+    as _i828;
+import 'package:teacher_app/features/child_management/domain/usecase/class_transfer_request_usecase.dart'
+    as _i265;
+import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart'
+    as _i148;
+import 'package:teacher_app/features/child_management/presentation/bloc/child_emergency_contact_bloc.dart'
+    as _i1072;
+import 'package:teacher_app/features/child_management/presentation/bloc/child_guardian_bloc.dart'
+    as _i768;
+import 'package:teacher_app/features/child_management/presentation/bloc/child_management_bloc.dart'
+    as _i976;
+import 'package:teacher_app/features/child_management/presentation/bloc/child_profile_bloc.dart'
+    as _i765;
+import 'package:teacher_app/features/child_management/presentation/bloc/class_transfer_request_bloc.dart'
+    as _i192;
 import 'package:teacher_app/features/home/data/data_source/home_api.dart'
     as _i618;
 import 'package:teacher_app/features/home/data/repository/home_repository_impl.dart'
@@ -218,15 +218,15 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i472.AttendanceApi(gh<_i361.Dio>()),
     );
     gh.singleton<_i59.AuthApi>(() => _i59.AuthApi(gh<_i361.Dio>()));
-    gh.singleton<_i491.ChildApi>(() => _i491.ChildApi(gh<_i361.Dio>()));
-    gh.singleton<_i82.ChildEmergencyContactApi>(
-      () => _i82.ChildEmergencyContactApi(gh<_i361.Dio>()),
+    gh.singleton<_i712.ChildApi>(() => _i712.ChildApi(gh<_i361.Dio>()));
+    gh.singleton<_i644.ChildEmergencyContactApi>(
+      () => _i644.ChildEmergencyContactApi(gh<_i361.Dio>()),
     );
-    gh.singleton<_i200.ChildGuardianApi>(
-      () => _i200.ChildGuardianApi(gh<_i361.Dio>()),
+    gh.singleton<_i548.ChildGuardianApi>(
+      () => _i548.ChildGuardianApi(gh<_i361.Dio>()),
     );
-    gh.singleton<_i644.ClassTransferRequestApi>(
-      () => _i644.ClassTransferRequestApi(gh<_i361.Dio>()),
+    gh.singleton<_i6.ClassTransferRequestApi>(
+      () => _i6.ClassTransferRequestApi(gh<_i361.Dio>()),
     );
     gh.singleton<_i618.HomeApi>(() => _i618.HomeApi(gh<_i361.Dio>()));
     gh.singleton<_i997.PickupAuthorizationApi>(
@@ -239,22 +239,39 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i565.StaffScheduleApi>(
       () => _i565.StaffScheduleApi(gh<_i361.Dio>()),
     );
-    gh.singleton<_i849.ChildEmergencyContactRepository>(
-      () => _i1008.ChildEmergencyContactRepositoryImpl(
-        gh<_i82.ChildEmergencyContactApi>(),
+    gh.singleton<_i910.StaffAttendanceRepository>(
+      () => _i370.StaffAttendanceRepositoryImpl(gh<_i45.StaffAttendanceApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i309.ClassTransferRequestRepository>(
+      () => _i663.ClassTransferRequestRepositoryImpl(
+        gh<_i6.ClassTransferRequestApi>(),
       ),
       registerFor: {_prod},
     );
-    gh.singleton<_i910.StaffAttendanceRepository>(
-      () => _i370.StaffAttendanceRepositoryImpl(gh<_i45.StaffAttendanceApi>()),
+    gh.singleton<_i789.ChildEmergencyContactRepository>(
+      () => _i428.ChildEmergencyContactRepositoryImpl(
+        gh<_i644.ChildEmergencyContactApi>(),
+      ),
       registerFor: {_prod},
     );
     gh.singleton<_i1057.StaffScheduleRepository>(
       () => _i162.StaffScheduleRepositoryImpl(gh<_i565.StaffScheduleApi>()),
       registerFor: {_prod},
     );
+    gh.singleton<_i876.ChildRepository>(
+      () => _i796.ChildRepositoryImpl(
+        gh<_i712.ChildApi>(),
+        gh<_i595.ProfileApi>(),
+      ),
+      registerFor: {_prod},
+    );
     gh.singleton<_i78.HomeRepository>(
       () => _i359.HomeRepositoryImpl(gh<_i618.HomeApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i442.ChildGuardianRepository>(
+      () => _i361.ChildGuardianRepositoryImpl(gh<_i548.ChildGuardianApi>()),
       registerFor: {_prod},
     );
     gh.singleton<_i275.AuthRepository>(
@@ -267,19 +284,18 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_prod},
     );
+    gh.singleton<_i497.ChildGuardianUsecase>(
+      () => _i497.ChildGuardianUsecase(gh<_i442.ChildGuardianRepository>()),
+    );
+    gh.singleton<_i828.ChildUsecase>(
+      () => _i828.ChildUsecase(gh<_i876.ChildRepository>()),
+    );
     gh.singleton<_i18.StaffAttendanceUsecase>(
       () => _i18.StaffAttendanceUsecase(gh<_i910.StaffAttendanceRepository>()),
     );
-    gh.singleton<_i642.ChildRepository>(
-      () => _i614.ChildRepositoryImpl(
-        gh<_i491.ChildApi>(),
-        gh<_i595.ProfileApi>(),
-      ),
-      registerFor: {_prod},
-    );
-    gh.singleton<_i1055.ChildEmergencyContactUsecase>(
-      () => _i1055.ChildEmergencyContactUsecase(
-        gh<_i849.ChildEmergencyContactRepository>(),
+    gh.singleton<_i265.ClassTransferRequestUsecase>(
+      () => _i265.ClassTransferRequestUsecase(
+        gh<_i309.ClassTransferRequestRepository>(),
       ),
     );
     gh.singleton<_i124.FileUploadRepository>(
@@ -288,12 +304,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i102.ActivityRepository>(
       () => _i835.ActivityRepositoryImpl(gh<_i758.LearningPlanApi>()),
-      registerFor: {_prod},
-    );
-    gh.singleton<_i186.ClassTransferRequestRepository>(
-      () => _i430.ClassTransferRequestRepositoryImpl(
-        gh<_i644.ClassTransferRequestApi>(),
-      ),
       registerFor: {_prod},
     );
     gh.singleton<_i962.ActivityUsecase>(
@@ -318,25 +328,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i1069.AuthUsecase>(
       () => _i1069.AuthUsecase(gh<_i275.AuthRepository>()),
     );
+    gh.singleton<_i213.ChildEmergencyContactUsecase>(
+      () => _i213.ChildEmergencyContactUsecase(
+        gh<_i789.ChildEmergencyContactRepository>(),
+      ),
+    );
     gh.singleton<_i471.StaffScheduleUsecase>(
       () => _i471.StaffScheduleUsecase(gh<_i1057.StaffScheduleRepository>()),
-    );
-    gh.singleton<_i339.ChildStatusRepository>(
-      () => _i100.ChildStatusRepositoryImpl(
-        gh<_i642.ChildRepository>(),
-        gh<_i570.AttendanceRepository>(),
-        gh<_i186.ClassTransferRequestRepository>(),
-      ),
-      registerFor: {_prod},
-    );
-    gh.factory<_i853.ChildEmergencyContactBloc>(
-      () => _i853.ChildEmergencyContactBloc(
-        gh<_i1055.ChildEmergencyContactUsecase>(),
-      ),
-    );
-    gh.singleton<_i703.ChildGuardianRepository>(
-      () => _i716.ChildGuardianRepositoryImpl(gh<_i200.ChildGuardianApi>()),
-      registerFor: {_prod},
     );
     gh.factory<_i445.AuthBloc>(() => _i445.AuthBloc(gh<_i1069.AuthUsecase>()));
     gh.factory<_i1041.ActivityBloc>(
@@ -345,40 +343,44 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i606.StaffScheduleBloc>(
       () => _i606.StaffScheduleBloc(gh<_i471.StaffScheduleUsecase>()),
     );
+    gh.factory<_i768.ChildGuardianBloc>(
+      () => _i768.ChildGuardianBloc(gh<_i497.ChildGuardianUsecase>()),
+    );
     gh.singleton<_i777.HomeUsecase>(
       () => _i777.HomeUsecase(gh<_i78.HomeRepository>()),
-    );
-    gh.singleton<_i659.ChildUsecase>(
-      () => _i659.ChildUsecase(gh<_i642.ChildRepository>()),
     );
     gh.singleton<_i750.FileUploadUsecase>(
       () => _i750.FileUploadUsecase(gh<_i124.FileUploadRepository>()),
     );
+    gh.factory<_i148.ChildBloc>(
+      () => _i148.ChildBloc(gh<_i828.ChildUsecase>()),
+    );
+    gh.factory<_i765.ChildProfileBloc>(
+      () => _i765.ChildProfileBloc(gh<_i828.ChildUsecase>()),
+    );
     gh.singleton<_i905.AttendanceUsecase>(
       () => _i905.AttendanceUsecase(gh<_i570.AttendanceRepository>()),
     );
-    gh.singleton<_i534.ChildGuardianUsecase>(
-      () => _i534.ChildGuardianUsecase(gh<_i703.ChildGuardianRepository>()),
+    gh.singleton<_i677.ChildStatusRepository>(
+      () => _i50.ChildStatusRepositoryImpl(
+        gh<_i876.ChildRepository>(),
+        gh<_i570.AttendanceRepository>(),
+        gh<_i309.ClassTransferRequestRepository>(),
+      ),
+      registerFor: {_prod},
     );
-    gh.factory<_i1049.ChildBloc>(
-      () => _i1049.ChildBloc(gh<_i659.ChildUsecase>()),
+    gh.factory<_i1072.ChildEmergencyContactBloc>(
+      () => _i1072.ChildEmergencyContactBloc(
+        gh<_i213.ChildEmergencyContactUsecase>(),
+      ),
     );
-    gh.factory<_i546.ChildProfileBloc>(
-      () => _i546.ChildProfileBloc(gh<_i659.ChildUsecase>()),
-    );
-    gh.factory<_i501.ChildGuardianBloc>(
-      () => _i501.ChildGuardianBloc(gh<_i534.ChildGuardianUsecase>()),
-    );
-    gh.singleton<_i364.ChildStatusUsecase>(
-      () => _i364.ChildStatusUsecase(gh<_i339.ChildStatusRepository>()),
+    gh.factory<_i192.ClassTransferRequestBloc>(
+      () => _i192.ClassTransferRequestBloc(
+        gh<_i265.ClassTransferRequestUsecase>(),
+      ),
     );
     gh.singleton<_i1012.ProfileUsecase>(
       () => _i1012.ProfileUsecase(gh<_i59.ProfileRepository>()),
-    );
-    gh.singleton<_i311.ClassTransferRequestUsecase>(
-      () => _i311.ClassTransferRequestUsecase(
-        gh<_i186.ClassTransferRequestRepository>(),
-      ),
     );
     gh.factory<_i811.AttendanceBloc>(
       () => _i811.AttendanceBloc(gh<_i905.AttendanceUsecase>()),
@@ -388,17 +390,15 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1027.PickupAuthorizationUsecase>(),
       ),
     );
+    gh.singleton<_i618.ChildStatusUsecase>(
+      () => _i618.ChildStatusUsecase(gh<_i677.ChildStatusRepository>()),
+    );
     gh.factory<_i224.ProfileBloc>(
       () => _i224.ProfileBloc(gh<_i1012.ProfileUsecase>()),
     );
     gh.factory<_i493.HomeBloc>(() => _i493.HomeBloc(gh<_i777.HomeUsecase>()));
-    gh.factory<_i690.ClassTransferRequestBloc>(
-      () => _i690.ClassTransferRequestBloc(
-        gh<_i311.ClassTransferRequestUsecase>(),
-      ),
-    );
-    gh.factory<_i630.ChildStatusModuleBloc>(
-      () => _i630.ChildStatusModuleBloc(gh<_i364.ChildStatusUsecase>()),
+    gh.factory<_i976.ChildStatusModuleBloc>(
+      () => _i976.ChildStatusModuleBloc(gh<_i618.ChildStatusUsecase>()),
     );
     return this;
   }
