@@ -11,7 +11,7 @@ import 'package:teacher_app/features/auth/presentation/app_initial_screen.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_emergency_contact_bloc.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_guardian_bloc.dart';
-import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/personal_information/presentation/bloc/staff_schedule_bloc.dart';

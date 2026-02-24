@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/core/locator/di.dart';
-import 'package:teacher_app/features/pickup_authorization/data/data_source/pickup_authorization_api.dart';
-import 'package:teacher_app/features/pickup_authorization/data/models/pickup_authorization_model/pickup_authorization_model.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/repository/pickup_authorization_repository.dart';
+import 'package:teacher_app/features/child_management/data/data_source/pickup_authorization_api.dart';
+import 'package:teacher_app/features/child_management/data/models/pickup_authorization_model.dart';
+import 'package:teacher_app/features/child_management/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/child_management/domain/repository/pickup_authorization_repository.dart';
 
 @Singleton(as: PickupAuthorizationRepository, env: [Env.prod])
 class PickupAuthorizationRepositoryImpl extends PickupAuthorizationRepository {
@@ -33,9 +33,6 @@ class PickupAuthorizationRepositoryImpl extends PickupAuthorizationRepository {
       return _handleDioError(e);
     }
   }
-
-  // NOTE: PickupAuthorization creation removed - only Guardian/Admin flows can create pickups.
-  // Teachers can ONLY SELECT existing authorized pickups.
 
   DataFailed<T> _handleDioError<T>(DioException e) {
     String errorMessage = 'Error retrieving information';

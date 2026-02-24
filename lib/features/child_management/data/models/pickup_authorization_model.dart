@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/child_management/domain/entity/pickup_authorization_entity.dart';
 
 @immutable
 class PickupAuthorizationModel extends PickupAuthorizationEntity {
@@ -27,4 +27,3 @@ class PickupAuthorizationModel extends PickupAuthorizationEntity {
     );
   }
 }
-

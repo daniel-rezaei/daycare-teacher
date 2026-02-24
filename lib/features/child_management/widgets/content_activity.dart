@@ -15,8 +15,8 @@ import 'package:teacher_app/features/child_management/presentation/bloc/child_em
 import 'package:teacher_app/features/child_management/presentation/bloc/child_guardian_bloc.dart';
 import 'package:teacher_app/features/child_management/widgets/activity_section_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/day_strip_widget.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
-import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
+import 'package:teacher_app/features/child_management/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 // Helper class برای نگهداری اطلاعات فعالیت

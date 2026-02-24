@@ -3,8 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/usecase/pickup_authorization_usecase.dart';
+import 'package:teacher_app/features/child_management/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/child_management/domain/usecase/pickup_authorization_usecase.dart';
 
 part 'pickup_authorization_event.dart';
 part 'pickup_authorization_state.dart';
@@ -18,8 +18,6 @@ class PickupAuthorizationBloc
     on<GetPickupAuthorizationByChildIdEvent>(
       _getPickupAuthorizationByChildIdEvent,
     );
-    // NOTE: CreatePickupAuthorizationEvent removed - only Guardian/Admin flows can create pickups.
-    // Teachers can ONLY SELECT existing authorized pickups.
   }
 
   FutureOr<void> _getPickupAuthorizationByChildIdEvent(
@@ -45,7 +43,4 @@ class PickupAuthorizationBloc
       );
     }
   }
-
-  // NOTE: _createPickupAuthorizationEvent removed - only Guardian/Admin flows can create pickups.
-  // Teachers can ONLY SELECT existing authorized pickups.
 }

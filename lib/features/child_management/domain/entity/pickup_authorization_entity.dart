@@ -33,4 +33,3 @@ class PickupAuthorizationEntity extends Equatable {
         userUpdated,
       ];
 }
-

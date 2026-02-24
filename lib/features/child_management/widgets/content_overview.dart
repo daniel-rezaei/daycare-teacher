@@ -9,8 +9,8 @@ import 'package:teacher_app/features/child_management/domain/entity/child_guardi
 import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_emergency_contact_bloc.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_guardian_bloc.dart';
-import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
-import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
+import 'package:teacher_app/features/child_management/domain/entity/pickup_authorization_entity.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/child_management/domain/entity/allergy_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/dietary_restriction_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/immunization_entity.dart';

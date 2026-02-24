@@ -6,9 +6,6 @@ class PickupAuthorizationApi {
   final Dio httpclient;
   PickupAuthorizationApi(this.httpclient);
 
-  // دریافت PickupAuthorization بر اساس child_id
-  // NOTE: PickupAuthorization creation is ONLY allowed from Guardian/Admin flows.
-  // Teachers can ONLY SELECT existing authorized pickups.
   Future<Response> getPickupAuthorizationByChildId({
     required String childId,
   }) async {
@@ -21,4 +18,3 @@ class PickupAuthorizationApi {
     );
   }
 }
-

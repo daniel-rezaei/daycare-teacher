@@ -15,7 +15,3 @@ class GetPickupAuthorizationByChildIdEvent extends PickupAuthorizationEvent {
   @override
   List<Object> get props => [childId];
 }
-
-// NOTE: CreatePickupAuthorizationEvent removed - only Guardian/Admin flows can create pickups.
-// Teachers can ONLY SELECT existing authorized pickups.
-
