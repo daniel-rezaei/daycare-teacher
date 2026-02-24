@@ -20,7 +20,7 @@ import 'package:teacher_app/features/child_management/domain/entity/reportable_d
 import 'package:teacher_app/features/child_management/presentation/bloc/child_profile_bloc.dart';
 import 'package:teacher_app/features/child_management/widgets/emergency_contacts.dart';
 import 'package:teacher_app/features/child_management/widgets/info_card_overview.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class ContentOverviewWidget extends StatefulWidget {

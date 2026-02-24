@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 @immutable
 class ContactModel extends ContactEntity {
@@ -43,4 +43,3 @@ class ContactModel extends ContactEntity {
     );
   }
 }
-

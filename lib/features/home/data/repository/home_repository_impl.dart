@@ -26,8 +26,8 @@ import 'package:teacher_app/features/home/domain/entity/event_entity.dart';
 import 'package:teacher_app/features/home/domain/entity/notification_entity.dart';
 import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/features/home/domain/repository/home_repository.dart';
-import 'package:teacher_app/features/profile/data/models/contact_model/contact_model.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/data/models/contact_model.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 @Singleton(as: HomeRepository, env: [Env.prod])
 class HomeRepositoryImpl extends HomeRepository {

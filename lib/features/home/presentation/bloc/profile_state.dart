@@ -9,10 +9,8 @@ sealed class ProfileState extends Equatable {
 
 final class ProfileInitial extends ProfileState {}
 
-/// Loading state for getting contact
 final class GetContactLoading extends ProfileState {}
 
-/// Success state for getting contact
 final class GetContactSuccess extends ProfileState {
   final ContactEntity contact;
 
@@ -22,7 +20,6 @@ final class GetContactSuccess extends ProfileState {
   List<Object> get props => [contact];
 }
 
-/// Failure state for getting contact
 final class GetContactFailure extends ProfileState {
   final String message;
 
@@ -31,4 +28,3 @@ final class GetContactFailure extends ProfileState {
   @override
   List<Object> get props => [message];
 }
-

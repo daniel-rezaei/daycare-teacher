@@ -14,7 +14,7 @@ import 'package:teacher_app/features/child_management/domain/entity/child_entity
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class SelectChildrenScreen extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:teacher_app/core/constants/app_constants.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 class ContactUtils {
   ContactUtils._();

@@ -19,7 +19,7 @@ import 'package:teacher_app/features/child_management/presentation/bloc/child_ma
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/info_card_widget.dart';
 import 'package:teacher_app/features/home/domain/entity/notification_entity.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/home/domain/entity/staff_class_session_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 

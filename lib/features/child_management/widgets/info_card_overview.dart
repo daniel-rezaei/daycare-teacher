@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:teacher_app/core/utils/string_utils.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_guardian_entity.dart';
 import 'package:teacher_app/features/child_management/widgets/phone_widget.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class InfoCardOverviewWidget extends StatelessWidget {

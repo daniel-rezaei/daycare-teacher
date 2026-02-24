@@ -10,7 +10,7 @@ import 'package:teacher_app/features/child_management/domain/entity/medication_e
 import 'package:teacher_app/features/child_management/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/child_management/domain/usecase/child_usecase.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 part 'child_event.dart';
 part 'child_state.dart';

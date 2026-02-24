@@ -19,7 +19,7 @@ import 'package:teacher_app/features/child_management/widgets/check_out_widget.d
 import 'package:teacher_app/features/child_management/widgets/child_status_list_item.dart';
 import 'package:teacher_app/features/child_management/widgets/more_details_widget.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/class_transfer_request_entity.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/class_transfer_request_bloc.dart';
 

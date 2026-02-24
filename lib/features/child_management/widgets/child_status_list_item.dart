@@ -9,7 +9,7 @@ import 'package:teacher_app/features/child_management/presentation/bloc/child_pr
 import 'package:teacher_app/features/child_management/utils/child_status_helper.dart';
 import 'package:teacher_app/features/child_management/widgets/child_status_actions.dart';
 import 'package:teacher_app/features/child_management/widgets/child_status_badge.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/class_transfer_request_entity.dart';
 

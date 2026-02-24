@@ -3,8 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
-import 'package:teacher_app/features/profile/domain/usecase/profile_usecase.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/usecase/profile_usecase.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';

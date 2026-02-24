@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_emergency_contact_entity.dart';
 import 'package:teacher_app/features/child_management/widgets/phone_widget.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class EmergencyContactsWidget extends StatelessWidget {

@@ -18,9 +18,9 @@ import 'package:teacher_app/features/child_management/domain/entity/medication_e
 import 'package:teacher_app/features/child_management/domain/entity/physical_requirement_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/child_management/domain/repository/child_repository.dart';
-import 'package:teacher_app/features/profile/data/data_source/profile_api.dart';
-import 'package:teacher_app/features/profile/data/models/contact_model/contact_model.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/data/data_source/profile_api.dart';
+import 'package:teacher_app/features/home/data/models/contact_model.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 @Singleton(as: ChildRepository, env: [Env.prod])
 class ChildRepositoryImpl extends ChildRepository {

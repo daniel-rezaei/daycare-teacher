@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/class_transfer_request_entity.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 /// دادهٔ تجمیعی برای صفحه Child Status (لیست بچه‌ها با وضعیت حضور و درخواست انتقال).
 class ChildStatusAggregateEntity extends Equatable {

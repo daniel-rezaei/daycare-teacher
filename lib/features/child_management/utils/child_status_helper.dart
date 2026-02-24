@@ -1,7 +1,7 @@
 import 'package:teacher_app/core/utils/date_utils.dart';
 import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_entity.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 
 enum ChildAttendanceStatus { notArrived, present, checkedOut, absent }
 

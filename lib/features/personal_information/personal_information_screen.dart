@@ -14,7 +14,7 @@ import 'package:teacher_app/features/personal_information/widgets/day_strip_widg
 import 'package:teacher_app/features/personal_information/widgets/mail_card_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/schedule_item_widget.dart';
 import 'package:teacher_app/features/personal_information/widgets/teacher_header_widget.dart';
-import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:teacher_app/features/home/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/domain/entity/staff_attendance_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
 import 'package:teacher_app/features/personal_information/presentation/bloc/staff_schedule_bloc.dart';

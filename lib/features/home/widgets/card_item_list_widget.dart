@@ -10,7 +10,7 @@ import 'package:teacher_app/features/child_management/domain/entity/physical_req
 import 'package:teacher_app/features/child_management/domain/entity/reportable_disease_entity.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/item_widget.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class CardItemListWidget extends StatefulWidget {

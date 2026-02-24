@@ -19,7 +19,7 @@ import 'package:teacher_app/features/child_management/widgets/header_check_out_w
 import 'package:teacher_app/features/child_management/widgets/note_widget.dart';
 import 'package:teacher_app/features/pickup_authorization/domain/entity/pickup_authorization_entity.dart';
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
-import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
+import 'package:teacher_app/features/home/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';

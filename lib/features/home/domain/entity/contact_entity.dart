@@ -57,4 +57,3 @@ class ContactEntity extends Equatable {
         userCreated,
       ];
 }
-
