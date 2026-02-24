@@ -1,5 +1,5 @@
 import 'package:teacher_app/core/data_state.dart';
-import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
+import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/auth/domain/entity/staff_class_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_entity.dart';

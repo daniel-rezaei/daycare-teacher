@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teacher_app/core/locator/di.dart';
-import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:teacher_app/features/auth/presentation/app_initial_screen.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart';
@@ -14,7 +14,7 @@ import 'package:teacher_app/features/child_management/presentation/bloc/child_gu
 import 'package:teacher_app/features/pickup_authorization/presentation/bloc/pickup_authorization_bloc.dart';
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
-import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
+import 'package:teacher_app/features/personal_information/presentation/bloc/staff_schedule_bloc.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/activity/presentation/bloc/activity_bloc.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/class_transfer_request_bloc.dart';

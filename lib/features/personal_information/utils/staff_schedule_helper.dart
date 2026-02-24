@@ -1,6 +1,6 @@
 import 'package:teacher_app/core/utils/date_utils.dart';
-import 'package:teacher_app/features/staff_schedule/domain/entity/shift_date_entity.dart';
-import 'package:teacher_app/features/staff_schedule/domain/entity/staff_schedule_entity.dart';
+import 'package:teacher_app/features/personal_information/domain/entity/shift_date_entity.dart';
+import 'package:teacher_app/features/personal_information/domain/entity/staff_schedule_entity.dart';
 
 class StaffScheduleHelper {
   StaffScheduleHelper._();

@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
-import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
+import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/auth/domain/entity/class_room_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_entity.dart';
 import 'package:teacher_app/features/child_management/domain/entity/dietary_restriction_entity.dart';

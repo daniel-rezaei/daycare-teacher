@@ -1,7 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/core/locator/di.dart';
-import 'package:teacher_app/features/attendance/domain/repository/attendance_repository.dart';
+import 'package:teacher_app/features/child_management/domain/repository/attendance_repository.dart';
 import 'package:teacher_app/features/child_management/domain/entity/child_status_aggregate_entity.dart';
 import 'package:teacher_app/features/child_management/domain/repository/child_repository.dart';
 import 'package:teacher_app/features/child_management/domain/repository/child_status_repository.dart';

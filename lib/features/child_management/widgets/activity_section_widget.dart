@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:teacher_app/core/constants/app_constants.dart';
 import 'package:teacher_app/core/utils/contact_utils.dart';
-import 'package:teacher_app/features/attendance/domain/entity/attendance_child_entity.dart';
+import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/profile/domain/entity/contact_entity.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 

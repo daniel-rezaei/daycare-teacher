@@ -17,7 +17,7 @@ import 'package:teacher_app/features/personal_information/widgets/teacher_header
 import 'package:teacher_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:teacher_app/features/staff_attendance/domain/entity/staff_attendance_entity.dart';
 import 'package:teacher_app/features/staff_attendance/presentation/bloc/staff_attendance_bloc.dart';
-import 'package:teacher_app/features/staff_schedule/presentation/bloc/staff_schedule_bloc.dart';
+import 'package:teacher_app/features/personal_information/presentation/bloc/staff_schedule_bloc.dart';
 import 'package:teacher_app/gen/assets.gen.dart';
 
 class PersonalInformationScreen extends StatefulWidget {

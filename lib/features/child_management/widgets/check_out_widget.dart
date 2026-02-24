@@ -12,7 +12,7 @@ import 'package:teacher_app/core/widgets/button_widget.dart';
 import 'package:teacher_app/core/widgets/lifecycle_event_handler.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
-import 'package:teacher_app/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:teacher_app/features/child_management/presentation/bloc/attendance_bloc.dart';
 import 'package:teacher_app/features/child_management/presentation/bloc/child_bloc.dart';
 import 'package:teacher_app/features/child_management/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_management/widgets/header_check_out_widget.dart';
