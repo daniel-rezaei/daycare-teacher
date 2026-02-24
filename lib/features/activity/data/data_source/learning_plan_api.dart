@@ -112,4 +112,21 @@ class LearningPlanApi {
     final response = await httpclient.post('/items/Learning_Plan', data: data);
     return response;
   }
+
+  /// Returns true if the class has at least one Learning Plan (for history screen).
+  Future<bool> hasHistory(String classId) async {
+    try {
+      final response = await httpclient.get(
+        '/items/Learning_Plan',
+        queryParameters: {
+          'filter[class_id][_eq]': classId,
+          'limit': 1,
+        },
+      );
+      final data = response.data['data'] as List<dynamic>? ?? [];
+      return data.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
 }

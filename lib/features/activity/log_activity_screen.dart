@@ -17,6 +17,8 @@ import 'package:teacher_app/features/activity/data/data_source/activity_play_api
 import 'package:teacher_app/features/activity/data/data_source/activity_sleep_api.dart';
 import 'package:teacher_app/features/activity/create_new_lessen_bottom_sheet.dart';
 import 'package:teacher_app/features/activity/history_meal_screen.dart';
+import 'package:teacher_app/features/activity/lessen_plan.dart';
+import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/home/presentation/bloc/home_bloc.dart';
 import 'package:teacher_app/features/home/widgets/background_widget.dart';
 import 'package:teacher_app/features/messages/select_childs_screen.dart';
@@ -107,6 +109,10 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
           final api = GetIt.instance<ActivityMoodApi>();
           hasHistory = await api.hasHistory(classId);
           break;
+        case 'learn':
+          final api = GetIt.instance<LearningPlanApi>();
+          hasHistory = await api.hasHistory(classId);
+          break;
         default:
           return false;
       }
@@ -128,7 +134,25 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
     try {
       final hasHistory = await _hasActivityHistory(activityType, _classId);
 
-      if (hasHistory) {
+      if (activityType == 'learn') {
+        if (hasHistory) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LessenPlanScreen(),
+            ),
+          );
+        } else {
+          if (!context.mounted) return;
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            useSafeArea: true,
+            builder: (context) => const CreateNewLessenBottomSheet(),
+          );
+        }
+      } else if (hasHistory) {
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -298,15 +322,9 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
                               child: InfoCardLogActivityWidget(
                                 icon: Assets.images.learn.image(height: 48),
                                 title: 'Learn',
+                                isLoading: _loadingStates['learn'] ?? false,
                                 onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    useSafeArea: true,
-                                    builder: (context) =>
-                                        const CreateNewLessenBottomSheet(),
-                                  );
+                                  _navigateToActivity(context, 'learn');
                                 },
                               ),
                             ),
