@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:teacher_app/core/palette.dart';
 
+import 'create_new_lessen_bottom_sheet.dart';
 import 'lessen_list.dart';
 
 class LessenPlanScreen extends StatelessWidget {
@@ -20,6 +21,25 @@ class _LessenPlanScreenView extends StatefulWidget {
 }
 
 class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _openNewLessen() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (context) => const CreateNewLessenBottomSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -51,19 +71,22 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                   'Lessen Plan',
                   style: TextStyle(color: Colors.black),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'New Lessen',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Palette.textForeground,
+                GestureDetector(
+                  onTap: _openNewLessen,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'New Lessen',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Palette.textForeground,
+                        ),
                       ),
                     ),
                   ),
@@ -77,26 +100,26 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search in All lessens...',
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
-                          child: Icon(Icons.search),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search in All lessens...',
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Icon(Icons.search),
                       ),
-                      onChanged: (value) {},
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value.trim());
+                    },
                   ),
                 ),
-                // Media Grid
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -106,7 +129,7 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
                         topRight: Radius.circular(24),
                       ),
                     ),
-                    child: const Expanded(child: LessenListWidget()),
+                    child: LessenListWidget(searchQuery: _searchQuery),
                   ),
                 ),
               ],
