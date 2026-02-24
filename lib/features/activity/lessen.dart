@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:teacher_app/core/palette.dart';
-import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
+import 'package:teacher_app/features/activity/domain/entity/learning_plan_entity.dart';
 import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
 class LessenScreen extends StatefulWidget {
   const LessenScreen({super.key, required this.plan});
 
-  /// All display values come from the plan (from API).
-  final LearningPlanItem plan;
+  /// All display values come from the plan (entity from clean architecture).
+  final LearningPlanEntity plan;
 
   @override
   State<LessenScreen> createState() => _LessenScreenState();
 }
 
 class _LessenScreenState extends State<LessenScreen> {
-  LearningPlanItem get _plan => widget.plan;
+  LearningPlanEntity get _plan => widget.plan;
 
   @override
   Widget build(BuildContext context) {

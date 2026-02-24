@@ -33,6 +33,14 @@ import 'package:teacher_app/features/activity/data/data_source/activity_sleep_ap
     as _i765;
 import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart'
     as _i758;
+import 'package:teacher_app/features/activity/data/repository/activity_repository_impl.dart'
+    as _i835;
+import 'package:teacher_app/features/activity/domain/repository/activity_repository.dart'
+    as _i102;
+import 'package:teacher_app/features/activity/domain/usecase/activity_usecase.dart'
+    as _i962;
+import 'package:teacher_app/features/activity/presentation/bloc/activity_bloc.dart'
+    as _i1041;
 import 'package:teacher_app/features/attendance/data/data_source/attendance_api.dart'
     as _i472;
 import 'package:teacher_app/features/attendance/data/repository/attendance_repository_impl.dart'
@@ -271,6 +279,13 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_prod},
     );
+    gh.singleton<_i102.ActivityRepository>(
+      () => _i835.ActivityRepositoryImpl(gh<_i758.LearningPlanApi>()),
+      registerFor: {_prod},
+    );
+    gh.singleton<_i962.ActivityUsecase>(
+      () => _i962.ActivityUsecase(gh<_i102.ActivityRepository>()),
+    );
     gh.singleton<_i570.AttendanceRepository>(
       () => _i954.AttendanceRepositoryImpl(gh<_i472.AttendanceApi>()),
       registerFor: {_prod},
@@ -314,6 +329,9 @@ extension GetItInjectableX on _i174.GetIt {
       ),
     );
     gh.factory<_i445.AuthBloc>(() => _i445.AuthBloc(gh<_i1069.AuthUsecase>()));
+    gh.factory<_i1041.ActivityBloc>(
+      () => _i1041.ActivityBloc(gh<_i962.ActivityUsecase>()),
+    );
     gh.factory<_i606.StaffScheduleBloc>(
       () => _i606.StaffScheduleBloc(gh<_i471.StaffScheduleUsecase>()),
     );
