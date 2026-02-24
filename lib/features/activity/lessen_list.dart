@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:teacher_app/features/activity/lessen.dart';
 import 'package:teacher_app/features/activity/widgets/lessen_card_colaps.dart';
 
 class LessenListWidget extends StatelessWidget {
@@ -23,14 +24,29 @@ class LessenListWidget extends StatelessWidget {
         ? titles
         : titles.where((t) => t.toLowerCase().contains(query)).toList();
 
+    final dateStr = dateFormat.format(sampleDate);
     for (var title in filteredTitles) {
       cards.add(
         LessonCardCollapseWidget(
           title: title,
-          date: dateFormat.format(sampleDate),
+          date: dateStr,
           category: "Art",
           ageBand: "Toddler 2",
           room: "Bluebird",
+          onArrowTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LessenScreen(
+                  title: title,
+                  dateRange: dateStr,
+                  category: "Art",
+                  ageBand: "Toddler 2",
+                  room: "Bluebird",
+                ),
+              ),
+            );
+          },
         ),
       );
       cards.add(const SizedBox(height: 12));

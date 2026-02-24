@@ -8,6 +8,7 @@ class LessonCardCollapseWidget extends StatefulWidget {
   final String category;
   final String ageBand;
   final String room;
+  final VoidCallback? onArrowTap;
 
   const LessonCardCollapseWidget({
     super.key,
@@ -16,6 +17,7 @@ class LessonCardCollapseWidget extends StatefulWidget {
     required this.title,
     required this.ageBand,
     required this.room,
+    this.onArrowTap,
   });
 
   @override
@@ -87,16 +89,19 @@ class _LessonCardCollapseWidgetState extends State<LessonCardCollapseWidget> {
                   ),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 4,
+                      GestureDetector(
+                        onTap: widget.onArrowTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.arrow_forward),
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(Icons.arrow_forward),
                       ),
                       const SizedBox(width: 8),
                     ],

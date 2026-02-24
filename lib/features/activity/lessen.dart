@@ -4,7 +4,20 @@ import 'package:teacher_app/core/palette.dart';
 import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
 class LessenScreen extends StatefulWidget {
-  const LessenScreen({super.key});
+  const LessenScreen({
+    super.key,
+    this.title = 'Music & Movement',
+    this.dateRange = '13 June 2023 - 14 July 2023',
+    this.category = 'Art & Craft',
+    this.ageBand = 'Toddler',
+    this.room = 'Bluebirds',
+  });
+
+  final String title;
+  final String dateRange;
+  final String category;
+  final String ageBand;
+  final String room;
 
   @override
   State<LessenScreen> createState() => _LessenScreenState();
@@ -44,7 +57,7 @@ class _LessenScreenState extends State<LessenScreen> {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () {},
+              onPressed: () => Navigator.pop(context),
             ),
             title: const Text('Lessen', style: TextStyle(color: Colors.black)),
           ),
@@ -64,7 +77,7 @@ class _LessenScreenState extends State<LessenScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Music & Movement',
+                          widget.title,
                           style: TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.w600,
@@ -120,7 +133,7 @@ class _LessenScreenState extends State<LessenScreen> {
                                 'assets/images/ic_calanders.svg',
                               ),
                               Text(
-                                ' 13 June 2023 - 14 July 2023',
+                                ' ${widget.dateRange}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Palette.textForeground,
@@ -130,11 +143,11 @@ class _LessenScreenState extends State<LessenScreen> {
                             ],
                           ),
                           const SizedBox(height: 24),
-                          label("Category", 'Art & Craft'),
+                          label("Category", widget.category),
                           const SizedBox(height: 8),
-                          label("Age Band", 'Toddler'),
+                          label("Age Band", widget.ageBand),
                           const SizedBox(height: 8),
-                          label("Class", 'Bluebirds'),
+                          label("Class", widget.room),
                           const SizedBox(height: 14),
                           Text(
                             "Video Link",
