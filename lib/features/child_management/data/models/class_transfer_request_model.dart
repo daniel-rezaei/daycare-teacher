@@ -16,7 +16,8 @@ class ClassTransferRequestModel extends ClassTransferRequestEntity {
   factory ClassTransferRequestModel.fromJson(Map<String, dynamic> json) {
     return ClassTransferRequestModel(
       id: json['id'] as String?,
-      studentId: json['student_id'] as String?,
+      // در بک‌اند فیلد واقعی child_id است، نه student_id
+      studentId: json['child_id'] as String?,
       fromClassId: json['from_class_id'] as String?,
       toClassId: json['to_class_id'] as String?,
       status: json['status'] as String?,
@@ -28,7 +29,7 @@ class ClassTransferRequestModel extends ClassTransferRequestEntity {
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
-      if (studentId != null) 'student_id': studentId,
+      if (studentId != null) 'child_id': studentId,
       if (fromClassId != null) 'from_class_id': fromClassId,
       if (toClassId != null) 'to_class_id': toClassId,
       if (status != null) 'status': status,

@@ -40,9 +40,9 @@ class ClassTransferRequestApi {
     return await httpclient.get(
       '/items/Class_Transfer_Request',
       queryParameters: {
-        'filter[student_id][_eq]': studentId,
+        'filter[child_id][_eq]': studentId,
         'filter[status][_eq]': 'pending',
-        'fields': 'id,student_id,from_class_id,to_class_id,status',
+        'fields': 'id,child_id,from_class_id,to_class_id,status',
         'limit': 1,
         'sort': '-id',
       },
@@ -56,7 +56,7 @@ class ClassTransferRequestApi {
       'filter[_or][0][from_class_id][_eq]': classId,
       'filter[_or][1][to_class_id][_eq]': classId,
       'filter[status][_eq]': 'pending',
-      'fields': 'id,student_id,from_class_id,to_class_id,status',
+      'fields': 'id,child_id,from_class_id,to_class_id,status',
       'sort': '-id',
     };
     return await httpclient.get(
