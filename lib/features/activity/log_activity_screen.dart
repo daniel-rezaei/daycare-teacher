@@ -119,7 +119,13 @@ class _LogActivityScreenState extends State<LogActivityScreen> {
           return false;
       }
       return hasHistory;
-    } catch (e) {
+    } catch (e, st) {
+      // Debug log for diagnosing history checks per activity
+      // ignore: avoid_print
+      print(
+        '[LogActivityScreen._hasActivityHistory] ERROR activityType=$activityType '
+        'classId=$classId -> $e\n$st',
+      );
       return false;
     }
   }

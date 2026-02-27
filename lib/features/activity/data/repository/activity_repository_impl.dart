@@ -92,6 +92,7 @@ class ActivityRepositoryImpl extends ActivityRepository {
     String? videoLink,
     List<String>? tags,
     String? description,
+    String? fileId,
   }) async {
     try {
       await learningPlanApi.createLearningPlan(
@@ -104,6 +105,7 @@ class ActivityRepositoryImpl extends ActivityRepository {
         videoLink: videoLink,
         tags: tags,
         description: description,
+        fileId: fileId,
       );
       return DataSuccess(null);
     } on DioException catch (e) {

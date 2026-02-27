@@ -9,6 +9,8 @@ import 'package:teacher_app/core/palette.dart';
 import 'package:teacher_app/core/widgets/modal_bottom_sheet_wrapper.dart';
 import 'package:teacher_app/core/widgets/snackbar/custom_snackbar.dart';
 import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
+import 'package:teacher_app/features/activity/domain/usecase/file_upload_usecase.dart';
+import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/features/activity/widgets/meal_type_selector_widget.dart';
 import 'package:teacher_app/features/child_management/widgets/attach_photo_widget.dart';
 import 'package:teacher_app/features/child_management/widgets/header_check_out_widget.dart';
@@ -27,6 +29,8 @@ class CreateNewLessenBottomSheet extends StatefulWidget {
 class _CreateNewLessenBottomSheetState
     extends State<CreateNewLessenBottomSheet> {
   final LearningPlanApi _api = GetIt.instance<LearningPlanApi>();
+  final FileUploadUsecase _fileUploadUsecase =
+      GetIt.instance<FileUploadUsecase>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _videoLinkController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -94,6 +98,19 @@ class _CreateNewLessenBottomSheetState
 
   String _formatDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
 
+  Future<String?> _uploadAttachment(File file) async {
+    try {
+      final result =
+          await _fileUploadUsecase.uploadFile(filePath: file.path);
+      if (result is DataSuccess && result.data != null) {
+        return result.data;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _pickStartDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -138,6 +155,12 @@ class _CreateNewLessenBottomSheetState
 
     setState(() => _isSubmitting = true);
     try {
+      // Upload first attachment (image/video/file) if any, to get file id for Learning_Plan.file
+      String? fileId;
+      if (_images.isNotEmpty) {
+        fileId = await _uploadAttachment(_images.first);
+      }
+
       await _api.createLearningPlan(
         title: title,
         category: _selectedCategoryId!,
@@ -152,6 +175,7 @@ class _CreateNewLessenBottomSheetState
         description: _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),
+        fileId: fileId,
       );
       if (!mounted) return;
       setState(() => _isSubmitting = false);

@@ -31,6 +31,7 @@ abstract class ActivityRepository {
     String? videoLink,
     List<String>? tags,
     String? description,
+    String? fileId,
   });
 
   /// آیا این کلاس حداقل یک برنامه یادگیری دارد؟

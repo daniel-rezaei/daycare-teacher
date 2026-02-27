@@ -18,6 +18,9 @@ class LearningPlanModel extends LearningPlanEntity {
     super.videoLink,
     super.tags = const [],
     super.description,
+    super.fileId,
+    super.fileName,
+    super.fileUrl,
   });
 
   factory LearningPlanModel.fromLearningPlanItem(LearningPlanItem item) {
@@ -35,6 +38,9 @@ class LearningPlanModel extends LearningPlanEntity {
       videoLink: item.videoLink,
       tags: List<String>.from(item.tags),
       description: item.description,
+      fileId: item.fileId,
+      fileName: item.fileName,
+      fileUrl: item.fileUrl,
     );
   }
 }

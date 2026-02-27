@@ -44,6 +44,7 @@ class ActivityUsecase {
     String? videoLink,
     List<String>? tags,
     String? description,
+    String? fileId,
   }) async {
     return activityRepository.createLearningPlan(
       title: title,
@@ -55,6 +56,7 @@ class ActivityUsecase {
       videoLink: videoLink,
       tags: tags,
       description: description,
+      fileId: fileId,
     );
   }
 

@@ -14,6 +14,10 @@ class LearningPlanEntity extends Equatable {
   final String? videoLink;
   final List<String> tags;
   final String? description;
+  // Optional attached file from API (`file` relation)
+  final String? fileId;
+  final String? fileName;
+  final String? fileUrl;
 
   const LearningPlanEntity({
     required this.id,
@@ -29,6 +33,9 @@ class LearningPlanEntity extends Equatable {
     this.videoLink,
     this.tags = const [],
     this.description,
+    this.fileId,
+    this.fileName,
+    this.fileUrl,
   });
 
   String get dateRangeDisplay => '$startDate - $endDate';
@@ -48,5 +55,8 @@ class LearningPlanEntity extends Equatable {
         videoLink,
         tags,
         description,
+        fileId,
+        fileName,
+        fileUrl,
       ];
 }

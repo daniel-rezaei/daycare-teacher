@@ -51,6 +51,10 @@ class LearningPlanItem {
   final String? videoLink;
   final List<String> tags;
   final String? description;
+  // Optional attached file information from `file` relation
+  final String? fileId;
+  final String? fileName;
+  final String? fileUrl;
 
   LearningPlanItem({
     required this.id,
@@ -66,6 +70,9 @@ class LearningPlanItem {
     this.videoLink,
     this.tags = const [],
     this.description,
+    this.fileId,
+    this.fileName,
+    this.fileUrl,
   });
 
   String get dateRangeDisplay => '$startDate - $endDate';
@@ -74,6 +81,7 @@ class LearningPlanItem {
     final cat = m['category_id'];
     final age = m['age_group_id'];
     final cls = m['class_id'];
+    final file = m['file'];
 
     String catName = '';
     if (cat is Map<String, dynamic>) {
@@ -88,6 +96,15 @@ class LearningPlanItem {
     String room = '';
     if (cls is Map<String, dynamic>) {
       room = cls['room_name'] as String? ?? '';
+    }
+
+    String? fileId;
+    String? fileName;
+    String? fileUrl;
+    if (file is Map<String, dynamic>) {
+      fileId = file['id'] as String?;
+      fileName = file['filename_download'] as String?;
+      fileUrl = file['url'] as String?;
     }
 
     List<String> tagList = [];
@@ -112,6 +129,9 @@ class LearningPlanItem {
       videoLink: m['video_link'] as String?,
       tags: tagList,
       description: m['description'] as String?,
+      fileId: fileId,
+      fileName: fileName,
+      fileUrl: fileUrl,
     );
   }
 
@@ -195,6 +215,7 @@ class LearningPlanApi {
     String? videoLink,
     List<String>? tags,
     String? description,
+    String? fileId,
   }) async {
     final data = <String, dynamic>{
       'title': title,
@@ -203,9 +224,10 @@ class LearningPlanApi {
       'end_date': endDate,
       'age_group_id': ageGroupId,
       'class_id': classId,
-      'video_link': videoLink ?? '',
+      'video_link': videoLink,
       'tags': tags ?? [],
-      'description': description ?? '',
+      'description': description,
+      if (fileId != null && fileId.isNotEmpty) 'file': fileId,
     };
     final response = await httpclient.post('/items/Learning_Plan', data: data);
     return response;
@@ -223,7 +245,11 @@ class LearningPlanApi {
       );
       final data = response.data['data'] as List<dynamic>? ?? [];
       return data.isNotEmpty;
-    } catch (_) {
+    } catch (e, st) {
+      // Debug log for diagnosing Learning_Plan history errors
+      // Please copy this from console if you report a bug.
+      // ignore: avoid_print
+      print('[LearningPlanApi.hasHistory] ERROR for classId=$classId -> $e\n$st');
       return false;
     }
   }
@@ -234,7 +260,8 @@ class LearningPlanApi {
       '/items/Learning_Plan',
       queryParameters: {
         'filter[class_id][_eq]': classId,
-        'fields': 'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description',
+        'fields':
+            'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description,file,file.filename_download',
         'sort': '-start_date',
       },
     );
@@ -248,7 +275,8 @@ class LearningPlanApi {
       final response = await httpclient.get(
         '/items/Learning_Plan/$id',
         queryParameters: {
-          'fields': 'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description',
+          'fields':
+              'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description,file,file.filename_download',
         },
       );
       final data = response.data['data'] as Map<String, dynamic>?;
