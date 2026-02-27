@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +15,7 @@ import 'package:teacher_app/features/child_management/presentation/bloc/child_bl
 import 'package:teacher_app/features/child_management/presentation/bloc/child_management_bloc.dart';
 import 'package:teacher_app/features/child_management/services/local_absent_storage_service.dart';
 import 'package:teacher_app/features/child_management/utils/child_status_helper.dart';
+import 'package:teacher_app/features/child_management/utils/child_status_logger.dart';
 import 'package:teacher_app/features/child_management/widgets/appbar_child.dart';
 import 'package:teacher_app/features/child_management/widgets/bottom_navigation_bar_child.dart';
 import 'package:teacher_app/features/child_management/widgets/check_out_widget.dart';
@@ -31,14 +34,24 @@ class ChildStatusScreen extends StatefulWidget {
 }
 
 class _ChildStatusScreenState extends State<ChildStatusScreen> {
+  static const _refreshDebounceDuration = Duration(milliseconds: 400);
+
   String? classId;
   String? staffId;
+  Timer? _refreshDebounceTimer;
 
   @override
   void initState() {
     super.initState();
+    childStatusLog('Screen: initState');
     _loadIds();
     _clearOldAbsentRecords();
+  }
+
+  @override
+  void dispose() {
+    _refreshDebounceTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _clearOldAbsentRecords() async {
@@ -46,6 +59,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
   }
 
   Future<void> _loadIds() async {
+    childStatusLog('Screen: _loadIds started');
     final prefs = await SharedPreferences.getInstance();
     final savedClassId = prefs.getString(AppConstants.classIdKey);
     final savedStaffId = prefs.getString(AppConstants.staffIdKey);
@@ -55,22 +69,34 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
         classId = savedClassId;
         staffId = savedStaffId;
       });
+      childStatusLog('Screen: _loadIds OK classId=$savedClassId → dispatching LoadChildrenStatus');
       context.read<ChildStatusModuleBloc>().add(
             LoadChildrenStatusEvent(classId: savedClassId),
           );
+    } else {
+      childStatusLog('Screen: _loadIds skipped (no classId or not mounted)', isError: savedClassId == null);
     }
   }
 
+  /// رفرش با دباؤنس تا از چند درخواست پشت‌سرهم جلوگیری شود و درخواست دیر ارسال نشود.
   void _refreshChildrenStatus() {
-    if (classId != null) {
+    if (classId == null) return;
+    final cid = classId!;
+    _refreshDebounceTimer?.cancel();
+    _refreshDebounceTimer = Timer(_refreshDebounceDuration, () {
+      _refreshDebounceTimer = null;
+      if (!mounted || classId == null) return;
+      childStatusLog('Screen: refresh executed classId=$cid');
       context.read<ChildStatusModuleBloc>().add(
-            LoadChildrenStatusEvent(classId: classId!),
+            LoadChildrenStatusEvent(classId: cid),
           );
-    }
+    });
+    childStatusLog('Screen: refresh scheduled (debounced ${_refreshDebounceDuration.inMilliseconds}ms)');
   }
 
   void _handlePresentClick(String childId) {
     if (classId == null || staffId == null) return;
+    childStatusLog('Screen: action Present childId=$childId');
     LocalAbsentStorageService.removeAbsent(classId!, childId).then((_) {
       _refreshChildrenStatus();
     });
@@ -83,10 +109,13 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
         staffId: staffId,
       ),
     );
+    // بعد از موفقیت، AttendanceBloc فعلاً GetAttendanceByClassIdSuccess emit می‌کند نه CreateAttendanceSuccess؛
+    // رفرش از طریق همین .then و در صورت وجود از BlocListener انجام می‌شود (دباؤنس جلوی دوباره‌کاری را می‌گیرد).
   }
 
   void _handleAbsentClick(String childId) {
     if (classId == null) return;
+    childStatusLog('Screen: action Absent childId=$childId');
     LocalAbsentStorageService.markAbsent(classId!, childId).then((_) {
       _refreshChildrenStatus();
     });
@@ -98,12 +127,16 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
     List<AttendanceChildEntity> attendanceList,
   ) {
     if (classId == null) return;
+    childStatusLog('Screen: action CheckOut childId=$childId');
     final attendance = ChildStatusHelper.getChildAttendance(
       childId,
       attendanceList,
       classId: classId,
     );
-    if (attendance == null || attendance.id == null) return;
+    if (attendance == null || attendance.id == null) {
+      childStatusLog('Screen: CheckOut skipped (no attendance id)', isError: true);
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -129,6 +162,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
     ChildEntity? childEntity,
   ) {
     if (classId.isEmpty) return;
+    childStatusLog('Screen: action More details childId=$childId');
     final firstName = contact?.firstName ?? '';
     final lastName = contact?.lastName ?? '';
     final attendanceId = attendance?.id;
@@ -153,6 +187,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
   }
 
   void _handleAcceptTransfer(String requestId) {
+    childStatusLog('Screen: action Accept transfer requestId=$requestId');
     context.read<ClassTransferRequestBloc>().add(
       UpdateTransferRequestStatusEvent(
         requestId: requestId,
@@ -162,6 +197,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
   }
 
   void _handleDeclineTransfer(String requestId) {
+    childStatusLog('Screen: action Decline transfer requestId=$requestId');
     context.read<ClassTransferRequestBloc>().add(
       UpdateTransferRequestStatusEvent(
         requestId: requestId,
@@ -177,7 +213,9 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
         BlocListener<AttendanceBloc, AttendanceState>(
           listener: (context, state) {
             if (state is CreateAttendanceSuccess ||
-                state is UpdateAttendanceSuccess) {
+                state is UpdateAttendanceSuccess ||
+                state is GetAttendanceByClassIdSuccess) {
+              childStatusLog('Screen: listener Attendance ${state.runtimeType} → refresh');
               _refreshChildrenStatus();
             }
           },
@@ -187,6 +225,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
             if (state is GetTransferRequestsByClassIdSuccess ||
                 state is CreateTransferRequestSuccess ||
                 state is UpdateTransferRequestStatusSuccess) {
+              childStatusLog('Screen: listener Transfer ${state.runtimeType} → refresh');
               _refreshChildrenStatus();
             }
           },
@@ -223,6 +262,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
                             ChildStatusModuleState>(
                           builder: (context, moduleState) {
                             if (moduleState is LoadChildrenStatusLoading) {
+                              childStatusLog('Screen: UI showing full-page loading');
                               return const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
@@ -231,6 +271,7 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
                               );
                             }
                             if (moduleState is LoadChildrenStatusFailure) {
+                              childStatusLog('Screen: UI showing error ${moduleState.message}', isError: true);
                               return Center(
                                 child: Padding(
                                   padding: const EdgeInsets.all(32.0),

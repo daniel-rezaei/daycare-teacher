@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import 'package:teacher_app/core/data_state.dart';
 import 'package:teacher_app/features/child_management/domain/entity/attendance_child_entity.dart';
 import 'package:teacher_app/features/child_management/domain/usecase/attendance_usecase.dart';
+import 'package:teacher_app/features/child_management/utils/child_status_logger.dart';
 
 part 'attendance_event.dart';
 part 'attendance_state.dart';
@@ -22,6 +23,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     GetAttendanceByClassIdEvent event,
     Emitter<AttendanceState> emit,
   ) async {
+    childStatusLog('AttendanceBloc: GetAttendanceByClassId classId=${event.classId}');
     emit(GetAttendanceByClassIdLoading());
     try {
       DataState dataState = await attendanceUsecase.getAttendanceByClassId(
@@ -29,11 +31,14 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         childId: event.childId,
       );
       if (dataState is DataSuccess) {
+        childStatusLog('AttendanceBloc: GetAttendanceByClassId SUCCESS');
         emit(GetAttendanceByClassIdSuccess(dataState.data));
       } else if (dataState is DataFailed) {
+        childStatusLog('AttendanceBloc: GetAttendanceByClassId FAILED ${dataState.error}', isError: true);
         emit(GetAttendanceByClassIdFailure(dataState.error!));
       }
     } catch (e) {
+      childStatusLog('AttendanceBloc: GetAttendanceByClassId exception $e', isError: true);
       emit(GetAttendanceByClassIdFailure(
           'Error retrieving attendance information'));
     }
@@ -43,6 +48,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     CreateAttendanceEvent event,
     Emitter<AttendanceState> emit,
   ) async {
+    childStatusLog('AttendanceBloc: CreateAttendance childId=${event.childId} classId=${event.classId}');
     final previousState = state;
     emit(CreateAttendanceLoading());
     try {
@@ -53,6 +59,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         staffId: event.staffId,
       );
       if (dataState is DataSuccess) {
+        childStatusLog('AttendanceBloc: CreateAttendance SUCCESS');
         if (previousState is GetAttendanceByClassIdSuccess) {
           final updatedList = <AttendanceChildEntity>[
             ...previousState.attendanceList,
@@ -63,9 +70,11 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           emit(GetAttendanceByClassIdSuccess([dataState.data]));
         }
       } else if (dataState is DataFailed) {
+        childStatusLog('AttendanceBloc: CreateAttendance FAILED ${dataState.error}', isError: true);
         emit(CreateAttendanceFailure(dataState.error!));
       }
     } catch (e) {
+      childStatusLog('AttendanceBloc: CreateAttendance exception $e', isError: true);
       emit(CreateAttendanceFailure('Error creating attendance'));
     }
   }
@@ -74,6 +83,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     UpdateAttendanceEvent event,
     Emitter<AttendanceState> emit,
   ) async {
+    childStatusLog('AttendanceBloc: UpdateAttendance attendanceId=${event.attendanceId}');
     final previousState = state;
     emit(const UpdateAttendanceLoading());
     try {
@@ -86,6 +96,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         checkoutPickupContactId: event.checkoutPickupContactId,
       );
       if (dataState is DataSuccess) {
+        childStatusLog('AttendanceBloc: UpdateAttendance SUCCESS (checkout)');
         if (previousState is GetAttendanceByClassIdSuccess) {
           final updatedList = previousState.attendanceList
               .map<AttendanceChildEntity>((attendance) {
@@ -97,9 +108,11 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           emit(GetAttendanceByClassIdSuccess([dataState.data]));
         }
       } else if (dataState is DataFailed) {
+        childStatusLog('AttendanceBloc: UpdateAttendance FAILED ${dataState.error}', isError: true);
         emit(UpdateAttendanceFailure(dataState.error!));
       }
     } catch (e) {
+      childStatusLog('AttendanceBloc: UpdateAttendance exception $e', isError: true);
       emit(const UpdateAttendanceFailure('Error updating attendance'));
     }
   }
