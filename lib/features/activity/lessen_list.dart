@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:teacher_app/features/activity/domain/entity/learning_plan_entity.dart';
@@ -80,7 +81,9 @@ class _LessenListWidgetState extends State<LessenListWidget> {
               }).toList();
 
         if (isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CupertinoActivityIndicator(radius: 12),
+          );
         }
         if (error != null) {
           return Center(

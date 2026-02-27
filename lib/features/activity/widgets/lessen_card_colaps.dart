@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:teacher_app/core/palette.dart';
 
 class LessonCardCollapseWidget extends StatefulWidget {
@@ -126,46 +125,9 @@ class _LessonCardCollapseWidgetState extends State<LessonCardCollapseWidget> {
                 child: Column(
                   children: [
                     label("Category", widget.category),
-                    rowLabel(
+                    label(
                       "Age Band",
-                      InkWell(
-                        borderRadius: BorderRadius.circular(6),
-                        onTap: () {
-                          // optional future action
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Colors.grey.shade300,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/images/ic_info.svg',
-                                height: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                widget.ageBand.isEmpty ? '-' : widget.ageBand,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Palette.txtPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      widget.ageBand.isEmpty ? '-' : widget.ageBand,
                     ),
                     label("Room", widget.room),
                   ],
