@@ -1,32 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get_it/get_it.dart';
 import 'package:teacher_app/core/palette.dart';
+import 'package:teacher_app/features/activity/data/data_source/learning_plan_api.dart';
 import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
 Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
   BuildContext context,
-) {
+) async {
+  final api = GetIt.instance<LearningPlanApi>();
+
+  List<LearningCategoryItem> categories = [];
+  List<AgeGroupItem> ageGroups = [];
+  List<ClassItem> classes = [];
+
+  try {
+    categories = await api.getLearningCategories();
+  } catch (_) {}
+
+  try {
+    ageGroups = await api.getAgeGroups();
+  } catch (_) {}
+
+  try {
+    classes = await api.getClasses();
+  } catch (_) {}
+
   final filters = {
-    'Category': [
-      'Art & Craft',
-      'Language Development',
-      'Outdoor Play',
-      'Role Play',
-      'Numeracy',
-      'Physical Development',
-      'Music & Movement',
-      'Cultural Awareness',
-      'Science & Discovery',
-      'Gross Motor Skills',
-      'Nature & Environment',
-      'Social-Emotional Learning',
-      'Sensory Play',
-      'Health & Nutrition',
-      'Fine Motor Skills',
-      'STEM Activities',
-    ],
-    'Age Band': ['Infant', 'Toddler', 'Preschool', 'Kindergarten'],
-    'Class': ['Room A', 'Room B', 'Room C', 'Room D'],
+    'Category': categories.map((c) => c.name).toList(),
+    'Age Band': ageGroups.map((a) => a.name).toList(),
+    'Class': classes.map((c) => c.roomName).toList(),
   };
 
   final Map<String, String> selected = {};
