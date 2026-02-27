@@ -330,7 +330,7 @@ class _CreateNewLessenBottomSheetState
                             child: Row(
                               children: [
                                 SvgPicture.asset(
-                                  'assets/images/ic_calanders.svg',
+                                  'assets/images/Calendar Date.svg',
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -368,7 +368,7 @@ class _CreateNewLessenBottomSheetState
                             child: Row(
                               children: [
                                 SvgPicture.asset(
-                                  'assets/images/ic_calanders.svg',
+                                  'assets/images/Calendar Date.svg',
                                 ),
                                 const SizedBox(width: 8),
                                 Text(

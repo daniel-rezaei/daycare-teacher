@@ -261,7 +261,7 @@ class LearningPlanApi {
       queryParameters: {
         'filter[class_id][_eq]': classId,
         'fields':
-            'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description,file,file.filename_download',
+            'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description,file,file.id,file.filename_download',
         'sort': '-start_date',
       },
     );
@@ -276,7 +276,7 @@ class LearningPlanApi {
         '/items/Learning_Plan/$id',
         queryParameters: {
           'fields':
-              'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description,file,file.filename_download',
+              'id,title,start_date,end_date,category_id,category_id.name,age_group_id,age_group_id.name,class_id,class_id.room_name,video_link,tags,description,file,file.id,file.filename_download',
         },
       );
       final data = response.data['data'] as Map<String, dynamic>?;

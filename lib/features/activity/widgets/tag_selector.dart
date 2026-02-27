@@ -113,7 +113,7 @@ class _TagSelectorWidgetState extends State<TagSelectorWidget> {
                 selectedTags.remove(tag);
               });
             },
-            child: SvgPicture.asset('assets/images/ic_close_tag.svg'),
+            child: SvgPicture.asset('assets/images/X-fill.svg'),
           ),
         ],
       ),

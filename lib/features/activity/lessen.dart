@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:teacher_app/core/palette.dart';
+import 'package:teacher_app/core/utils/photo_utils.dart';
 import 'package:teacher_app/features/activity/domain/entity/learning_plan_entity.dart';
 import 'package:teacher_app/features/activity/widgets/tag_selector.dart';
 
@@ -16,6 +18,21 @@ class LessenScreen extends StatefulWidget {
 
 class _LessenScreenState extends State<LessenScreen> {
   LearningPlanEntity get _plan => widget.plan;
+
+  bool get _hasAttachment =>
+      _plan.fileId != null && _plan.fileId!.isNotEmpty;
+
+  bool _isImageFileName(String? name) {
+    if (name == null) return false;
+    final lower = name.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp') ||
+        lower.endsWith('.bmp') ||
+        lower.endsWith('.heic');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +129,7 @@ class _LessenScreenState extends State<LessenScreen> {
                           Row(
                             children: [
                               SvgPicture.asset(
-                                'assets/images/ic_calanders.svg',
+                                'assets/images/Calendar Date.svg',
                               ),
                               Expanded(
                                 child: Text(
@@ -173,6 +190,8 @@ class _LessenScreenState extends State<LessenScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          if (_hasAttachment) _buildAttachmentSection(),
                           SizedBox(height: 24),
                         ],
                       ),
@@ -205,6 +224,104 @@ class _LessenScreenState extends State<LessenScreen> {
               fontWeight: FontWeight.w600,
               color: Palette.textForeground,
               fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttachmentSection() {
+    final fileName = _plan.fileName ?? 'Attachment';
+    final fileId = _plan.fileId!;
+    final isImage = _isImageFileName(_plan.fileName);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Attachment",
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.black54,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (isImage)
+          _buildImageAttachment(fileId, fileName)
+        else
+          _buildFileAttachmentChip(fileName),
+      ],
+    );
+  }
+
+  Widget _buildImageAttachment(String fileId, String fileName) {
+    final url = PhotoUtils.getPhotoUrl(fileId);
+    if (url.isEmpty) {
+      return _buildFileAttachmentChip(fileName);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CachedNetworkImage(
+            imageUrl: url,
+            httpHeaders: PhotoUtils.getImageHeaders(),
+            width: double.infinity,
+            height: 180,
+            fit: BoxFit.cover,
+            placeholder: (context, _) => Container(
+              height: 180,
+              color: Colors.grey.shade200,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+            errorWidget: (context, _, __) => Container(
+              height: 180,
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.broken_image),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          fileName,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Palette.textForeground,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileAttachmentChip(String fileName) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F4F4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.insert_drive_file, color: Palette.txtPrimary),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              fileName,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Palette.txtPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

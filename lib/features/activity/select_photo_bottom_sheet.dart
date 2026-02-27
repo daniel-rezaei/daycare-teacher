@@ -119,7 +119,7 @@ Future<Map<String, String>?> showFilterBottomSheetCreateNewLessen(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: [
-                          SvgPicture.asset('assets/images/ic_calanders.svg'),
+                      SvgPicture.asset('assets/images/Calendar Date.svg'),
                           Text(
                             ' 13 June 2023 - 14 July 2023',
                             style: TextStyle(
