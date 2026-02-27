@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -1516,8 +1517,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     child: Column(
                       children: [
                         DayStripWidget(
-                          initialDate: widget.fromHistory ? _selectedDate : null,
-                          readOnly: widget.fromHistory,
+                          // وقتی از history باز می‌شود، فقط تاریخ اولیه را ست می‌کنیم
+                          // اما readOnly=false می‌ماند تا کاربر بتواند روزهای دیگر را هم انتخاب کند.
+                          initialDate:
+                              widget.fromHistory ? _selectedDate : null,
+                          readOnly: false,
                           onDateSelected: _onDateSelected,
                         ),
                         const SizedBox(height: 16),
@@ -1532,7 +1536,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                             padding: const EdgeInsets.fromLTRB(16, 16, 16, 36),
                             child: _isLoading
                                 ? const Center(
-                                    child: CircularProgressIndicator(),
+                                    child: CupertinoActivityIndicator(
+                                      radius: 12,
+                                    ),
                                   )
                                 : _activities.isEmpty
                                 ? Center(
