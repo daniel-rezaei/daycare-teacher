@@ -131,7 +131,7 @@ class _LessonCardCollapseWidgetState extends State<LessonCardCollapseWidget> {
                       InkWell(
                         borderRadius: BorderRadius.circular(6),
                         onTap: () {
-                          // your action
+                          // optional future action
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -154,9 +154,9 @@ class _LessonCardCollapseWidgetState extends State<LessonCardCollapseWidget> {
                                 height: 18,
                               ),
                               const SizedBox(width: 6),
-                              const Text(
-                                "Toddler 2",
-                                style: TextStyle(
+                              Text(
+                                widget.ageBand.isEmpty ? '-' : widget.ageBand,
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   color: Palette.txtPrimary,
