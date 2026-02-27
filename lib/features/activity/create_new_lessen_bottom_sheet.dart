@@ -179,7 +179,8 @@ class _CreateNewLessenBottomSheetState
       );
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      Navigator.pop(context);
+      // Return `true` to indicate that a new learning plan was actually created
+      Navigator.pop(context, true);
       CustomSnackbar.showSuccess(context, 'Learning plan created successfully');
     } catch (e) {
       if (mounted) {

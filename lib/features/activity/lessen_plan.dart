@@ -48,14 +48,17 @@ class _LessenPlanScreenViewState extends State<_LessenPlanScreenView> {
   int _listRefreshKey = 0;
 
   void _openNewLessen() async {
-    await showModalBottomSheet(
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
       builder: (context) => const CreateNewLessenBottomSheet(),
     );
-    if (mounted) setState(() => _listRefreshKey++);
+    // Only refresh list if a new lesson was really created
+    if (mounted && (result == true)) {
+      setState(() => _listRefreshKey++);
+    }
   }
 
   @override
