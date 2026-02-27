@@ -90,6 +90,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         case 'meal':
           final mealTypes = await _mealsApi.getMealTypes();
           final quantities = await _mealsApi.getQuantities();
+          if (!mounted) return;
           setState(() {
             _typeOptions = mealTypes;
             _quantityOptions = quantities;
@@ -99,6 +100,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         case 'drink':
           final drinkTypes = await _drinksApi.getDrinkTypes();
           final quantities = await _drinksApi.getQuantities();
+          if (!mounted) return;
           setState(() {
             _typeOptions = drinkTypes;
             _quantityOptions = quantities;
@@ -108,6 +110,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         case 'bathroom':
           final types = await _bathroomApi.getBathroomTypes();
           final subTypes = await _bathroomApi.getSubTypes();
+          if (!mounted) return;
           setState(() {
             _typeOptions = types;
             _quantityOptions = [];
@@ -116,6 +119,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           break;
         case 'play':
           final types = await _playApi.getPlayTypes();
+          if (!mounted) return;
           setState(() {
             _typeOptions = types;
             _quantityOptions = [];
@@ -124,6 +128,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           break;
         case 'sleep':
           final types = await _sleepApi.getSleepTypes();
+          if (!mounted) return;
           setState(() {
             _typeOptions = types;
             _quantityOptions = [];
@@ -131,6 +136,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           });
           break;
         default:
+          if (!mounted) return;
           setState(() {
             _typeOptions = [];
             _quantityOptions = [];
@@ -138,6 +144,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _typeOptions = [];
         _quantityOptions = [];
@@ -166,15 +173,17 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     );
     if (widget.classId == null || widget.classId!.isEmpty) {
       print('🔴 [_loadActivitiesForDate] classId is null or empty');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+      if (!mounted) return;
+      setState(() {
+        _isLoading = true;
+      });
 
     try {
       // Handle accident and incident differently - query directly from their tables
@@ -285,6 +294,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           '📷 [_loadActivitiesForDate] items[$i] activityId=${items[i].activityId} photo=${items[i].photo}',
         );
       }
+      if (!mounted) return;
       setState(() {
         _activities = items;
         _isLoading = false;
@@ -295,6 +305,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     } catch (e, stackTrace) {
       print('🔴 [_loadActivitiesForDate] Error: $e');
       print('🔴 [_loadActivitiesForDate] StackTrace: $stackTrace');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -474,6 +485,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         '🔵 [_loadAccidentActivities] First item accidentFields: ${items.isNotEmpty ? items[0].accidentFields : null}',
       );
 
+      if (!mounted) return;
       setState(() {
         _activities = items;
         _isLoading = false;
@@ -483,6 +495,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       );
     } catch (e) {
       print('🔴 [_loadAccidentActivities] Error: $e');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -613,6 +626,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         '🟢 [_loadIncidentActivities] First item incidentFields: ${items.isNotEmpty ? items[0].incidentFields : null}',
       );
 
+      if (!mounted) return;
       setState(() {
         _activities = items;
         _isLoading = false;
@@ -622,6 +636,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
       );
     } catch (e) {
       print('🔴 [_loadIncidentActivities] Error: $e');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
